@@ -1,45 +1,67 @@
-<?php 
-$menu = isset($_GET['menu']) ? $_GET['menu'] : '';
-$submenu = isset($_GET['submenu']) ? $_GET['submenu'] : '';
-$judul_browser = "Manajemen Apps - Alpha : ". $menu;
+<?php
+// Konstanta untuk menu yang valid
+const VALID_MENUS = [
+    'Dashboard' => [
+        'header' => 'bagian/header/dashboard.php',
+        'view' => 'views/dashboard.php'
+    ],
+    'Tabel' => [
+        'header' => 'bagian/header/tabel.php',
+        'view' => 'views/tabel.php'
+    ],
+    'Inbox' => [
+        'header' => 'bagian/header/inbox.php',
+        'view' => 'views/inbox.php'
+    ],
+    'Kalender' => [
+        'header' => 'bagian/header/kalender.php',
+        'view' => 'views/kalender.php'
+    ],
+    'Create' => [
+        'header' => 'bagian/header/create.php',
+        'view' => 'views/create.php'
+    ]
+];
 
-require_once('bagian/Header.php'); ?>
+// Validasi submenu
+$validSubmenus = ['Sekolah', 'Contact'];
+// Sanitasi input
+$menu = isset($_GET['menu']) ? htmlspecialchars($_GET['menu']) : '';
+$submenu = isset($_GET['submenu']) ? htmlspecialchars($_GET['submenu']) : '';
 
-<?php require_once('bagian/Navbar.php') ?>
+// Validasi menu
+$isValidMenu = array_key_exists($menu, VALID_MENUS);
+$currentMenu = $isValidMenu ? $menu : '404';
+$judul_browser = "Manajemen Apps - Alpha : " . $currentMenu;
 
-<?php require_once('bagian/Sidebar.php'); ?>
+// Load templates
+require_once('bagian/Header.php');
+require_once('bagian/Navbar.php');
+require_once('bagian/Sidebar.php');
+?>
 
 <!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
-    <?php if($menu == "Dashboard"){
-        require_once('bagian/header/dashboard.php');
-    } else if($menu == "Tabel") {
-        require_once('bagian/header/tabel.php');
-    } else if($menu == "Inbox") {
-        require_once('bagian/header/inbox.php');
-    } else if($menu == "Kalender") {
-        require_once('bagian/header/kalender.php');
-    }  else {
+    <!-- Content Header -->
+    <?php
+    if ($isValidMenu) {
+        require_once(VALID_MENUS[$menu]['header']);
+    } else {
         require_once('bagian/header/404.php');
-    }?>
+    }
+    ?>
     <!-- /.content-header -->
 
     <!-- Main content -->
     <section class="content">
-        <?php if ($menu == "Dashboard") {
-            require_once('views/dashboard.php');
-        } else if ($menu == "Tabel") {
-            require_once('views/tabel.php');
-        } else if ($menu == "Inbox") {
-            require_once('views/inbox.php');
-        } else if ($menu == "Kalender") {
-            require_once('views/kalender.php');
+        <?php
+        if ($isValidMenu) {
+            require_once(VALID_MENUS[$menu]['view']);
         } else {
             require_once('views/404.php');
-        }?>
+        }
+        ?>
     </section>
 </div>
-
 
 <?php require_once('bagian/Footer.php'); ?>
