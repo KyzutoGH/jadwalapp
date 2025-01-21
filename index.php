@@ -1,23 +1,37 @@
-<?php
-require_once 'bagian/config.php';
-require_once 'bagian/function.php';
+<?php 
+$judul_browser = "Manajemen Apps - Alpha";
+$menu = isset($_GET['menu']) ? $_GET['menu'] : '';
+$submenu = isset($_GET['submenu']) ? $_GET['submenu'] : '';
 
-$page = isset($_GET['page']) ? $_GET['page'] : 'home';
+require_once('bagian/Header.php'); ?>
 
-include 'bagian/header.php';
+<?php require_once('bagian/Navbar.php') ?>
 
-switch ($page) {
-    case 'home':
-        include 'views/home.php';
-        break;
-    case 'tambahSekolah':
-        include 'views/tambahSekolah.php';
-        break;
-    case 'listSekolah':
-        include 'views/listSekolah.php';
-        break;
-    default:
-        include 'views/home.php';
-}
+<?php require_once('bagian/Sidebar.php'); ?>
 
-include 'bagian/footer.php';
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <?php if($menu == "Dashboard"){
+        require_once('bagian/header/dashboard.php');
+    } else if($menu == "Tabel") {
+        require_once('bagian/header/tabel.php');
+    } else {
+        require_once('bagian/header/404.php');
+    }?>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <section class="content">
+        <?php if ($menu == "Dashboard") {
+            require_once('views/dashboard.php');
+        } else if ($menu == "Tabel") {
+            require_once('views/tabel.php');
+        }else {
+            require_once('views/404.php');
+        }?>
+    </section>
+</div>
+
+
+<?php require_once('bagian/Footer.php'); ?>
