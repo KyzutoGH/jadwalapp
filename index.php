@@ -16,7 +16,11 @@ require_once('bagian/Header.php'); ?>
         require_once('bagian/header/dashboard.php');
     } else if($menu == "Tabel") {
         require_once('bagian/header/tabel.php');
-    } else {
+    } else if($menu == "Inbox") {
+        require_once('bagian/header/inbox.php');
+    } else if($menu == "Kalender") {
+        require_once('bagian/header/kalender.php');
+    }  else {
         require_once('bagian/header/404.php');
     }?>
     <!-- /.content-header -->
@@ -27,7 +31,11 @@ require_once('bagian/Header.php'); ?>
             require_once('views/dashboard.php');
         } else if ($menu == "Tabel") {
             require_once('views/tabel.php');
-        }else {
+        } else if ($menu == "Inbox") {
+            require_once('views/inbox.php');
+        } else if ($menu == "Kalender") {
+            require_once('views/kalender.php');
+        } else {
             require_once('views/404.php');
         }?>
     </section>
