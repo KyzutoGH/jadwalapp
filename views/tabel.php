@@ -145,7 +145,7 @@ if ($menu == "Tabel") { ?>
 
         function hapusSekolah(id) {
             // Implement delete sekolah functionality
-            if(confirm('Apakah Anda yakin ingin menghapus data sekolah ini?')) {
+            if (confirm('Apakah Anda yakin ingin menghapus data sekolah ini?')) {
                 console.log('Hapus sekolah dengan ID:', id);
             }
         }
@@ -157,7 +157,132 @@ if ($menu == "Tabel") { ?>
 
         function hapusContact(id) {
             // Implement delete contact functionality
-            if(confirm('Apakah Anda yakin ingin menghapus data contact person ini?')) {
+            if (confirm('Apakah Anda yakin ingin menghapus data contact person ini?')) {
+                console.log('Hapus contact dengan ID:', id);
+            }
+        }
+    </script>
+<?php } else if ($menu == "Penagihan") {
+?> <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Data Master</h3>
+            <div class="float-right">
+                <!-- Navigation links -->
+                <!-- <a href="index.php?menu=Create&submenu=ContactAdd" class="btn btn-<?= ($submenu == 'Sekolah') ? 'primary' : 'secondary' ?>">
+                    Tambah Contact Person
+                </a> -->
+            </div>
+        </div>
+        <!-- /.card-header -->
+        <div class="card-body">
+            <table id="tabelPenagihan" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th rowspan="3">TANGGAL</th>
+                        <th rowspan="3">NAMA CUSTOMER</th>
+                        <th rowspan="3">KESELURUHAN</th>
+                        <th colspan="6">DP</th>
+                        <th rowspan="3">TOTAL PELUNASAN</th>
+                        <th rowspan="3">KETERANGAN</th>
+                        <th rowspan="3">AKSI</th>
+                    </tr>
+                    <tr>
+                        <th colspan="2">DP 1</th>
+                        <th colspan="2">DP 2</th>
+                        <th colspan="2">DP 3</th>
+                    </tr>
+                    <tr>
+                        <th>TANGGAL</th>
+                        <th>NOMINAL</th>
+                        <th>TANGGAL</th>
+                        <th>NOMINAL</th>
+                        <th>TANGGAL</th>
+                        <th>NOMINAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    // Contoh data sekolah (ganti dengan query database Anda)
+                    $sekolah = [
+                        ['id' => 1, 'nama' => 'SMA Negeri 1', 'alamat' => 'Jl. Pendidikan No. 1', 'telepon' => '021-1234567', 'email' => 'sman1@edu.com'],
+                        ['id' => 2, 'nama' => 'SMK Negeri 1', 'alamat' => 'Jl. Kejuruan No. 2', 'telepon' => '021-7654321', 'email' => 'smkn1@edu.com']
+                    ];
+
+                    foreach ($sekolah as $index => $s) {
+                        echo "<tr>";
+                        // echo "<td>{$s['nama']}</td>"; Nanti formatnya begini
+                        echo "<td>7 Januari 2007</td>";
+                        echo "<td>Wawan</td>";
+                        echo "<td>Rp. 2.500.000</td>";
+                        echo "<td>12 Agustus 2008</td>";
+                        echo "<td>Rp. 500.000</td>";
+                        echo "<td>17 Agustus 2009</td>";
+                        echo "<td>Rp. 500.000</td>";
+                        echo "<td>32 November 2010</td>";
+                        echo "<td>Rp. 1.500.000</td>";
+                        echo "<td>Rp. 2.500.000</td>";
+                        echo "<td>Lunas - Tinggal Ambil</td>";
+                        echo "<td>
+                                    <button class='btn btn-sm btn-primary' onclick='editSekolah({$s['id']})'>Edit</button>
+                                    <button class='btn btn-sm btn-danger' onclick='hapusSekolah({$s['id']})'>Hapus</button>
+                                </td>";
+                        echo "</tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
+
+        </div>
+        <!-- /.card-body -->
+    </div>
+
+    <!-- DataTables initialization -->
+    <script>
+        $(document).ready(function() {
+            <?php if ($submenu == 'Sekolah') { ?>
+                $('#tabelSekolah').DataTable({
+                    "paging": true,
+                    "lengthChange": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": false,
+                    "responsive": true
+                });
+            <?php } elseif ($submenu == 'Contact') { ?>
+                $('#tabelContact').DataTable({
+                    "paging": true,
+                    "lengthChange": true,
+                    "searching": true,
+                    "ordering": true,
+                    "info": true,
+                    "autoWidth": false,
+                    "responsive": true
+                });
+            <?php } ?>
+        });
+
+        // Placeholder functions for CRUD operations
+        function editSekolah(id) {
+            // Implement edit sekolah functionality
+            console.log('Edit sekolah dengan ID:', id);
+        }
+
+        function hapusSekolah(id) {
+            // Implement delete sekolah functionality
+            if (confirm('Apakah Anda yakin ingin menghapus data sekolah ini?')) {
+                console.log('Hapus sekolah dengan ID:', id);
+            }
+        }
+
+        function editContact(id) {
+            // Implement edit contact functionality
+            console.log('Edit contact dengan ID:', id);
+        }
+
+        function hapusContact(id) {
+            // Implement delete contact functionality
+            if (confirm('Apakah Anda yakin ingin menghapus data contact person ini?')) {
                 console.log('Hapus contact dengan ID:', id);
             }
         }

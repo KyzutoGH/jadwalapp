@@ -219,7 +219,7 @@
     $('button[type="button"]').on('click', function() {
       $('#contactForm')[0].reset();
       $('#wilayah, #sekolah').val(null).trigger('change');
-    })
+    }));
   </script>
   </body>
 

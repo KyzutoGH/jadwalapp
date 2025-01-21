@@ -20,6 +20,10 @@ const VALID_MENUS = [
     'Create' => [
         'header' => 'bagian/header/create.php',
         'view' => 'views/create.php'
+    ],
+    'Penagihan' => [
+        'header' => 'bagian/header/tabel.php',
+        'view' => 'views/tabel.php'
     ]
 ];
 
