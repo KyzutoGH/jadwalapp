@@ -1,7 +1,7 @@
 <?php 
-$judul_browser = "Manajemen Apps - Alpha";
 $menu = isset($_GET['menu']) ? $_GET['menu'] : '';
 $submenu = isset($_GET['submenu']) ? $_GET['submenu'] : '';
+$judul_browser = "Manajemen Apps - Alpha : ". $menu;
 
 require_once('bagian/Header.php'); ?>
 
