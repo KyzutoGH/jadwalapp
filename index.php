@@ -24,13 +24,18 @@ const VALID_MENUS    = [
     'Penagihan' => [
         'header' => 'bagian/header/tabel.php',
         'view' => 'views/tabel.php'
+    ],
+    'Barang' => [
+        'header' => 'bagian/header/tabelbarang.php',
+        'view' => 'views/tabelbarang.php'
     ]
 ];
 
 // Definisi submenu yang valid untuk setiap menu
 const VALID_SUBMENUS = [
     'Tabel' => ['Sekolah', 'Contact', 'Penagihan'],
-    'Create' => ['Sekolah', 'Contact', 'Penagihan']
+    'Create' => ['Sekolah', 'Contact', 'Penagihan'],
+    'Barang' => ['BarangMasuk', 'DataBarang', 'BarangKeluar']
     // Tambahkan menu lain yang memiliki submenu
 ];
 
