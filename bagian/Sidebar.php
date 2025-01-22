@@ -24,8 +24,7 @@
         <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
                
-        <li class="nav-header">Database</li>
-        <li class="nav-item">
+        <li class="nav-header">Data Stock</li>        <li class="nav-item">
           <a href="index.php?menu=Dashboard" class="nav-link <?php if ($menu == "Dashboard") {
                                                                 echo "active";
                                                               } ?>">
@@ -33,6 +32,8 @@
             <p>Dashboard</p>
           </a>
         </li>
+
+        <li class="nav-header">Data DN</li>
         <li class="nav-item <?php if ($menu == "Create") {
                               echo "menu-is-opening menu-open";
                             } ?>">
@@ -99,14 +100,13 @@
             </li>
           </ul>
         </li>
-        <li class="nav-header">Kalender</li>
         <li class="nav-item">
           <a href="index.php?menu=Kalender" class="nav-link <?php if ($menu == "Kalender") {
                                                               echo "active";
                                                             } ?>">
             <i class="nav-icon fas fa-calendar-alt"></i>
             <p>
-              Calendar
+              Kalender DN
                                                           <!-- Tambahkan Nanti Setelah Fitur Ini Bekerja -->
               <!-- <span class="badge badge-info right">2</span> -->
             </p>
