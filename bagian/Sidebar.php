@@ -23,6 +23,8 @@
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
+               
+        <li class="nav-header">Database</li>
         <li class="nav-item">
           <a href="index.php?menu=Dashboard" class="nav-link <?php if ($menu == "Dashboard") {
                                                                 echo "active";
@@ -43,7 +45,7 @@
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="index.php?menu=Create" class="nav-link <?php if ($menu == "Create") {
+              <a href="index.php?menu=Create&submenu=ContactAdd" class="nav-link <?php if ($submenu == "ContactAdd") {
                                                                 echo "active";
                                                               } ?>">
                 <i class="far fa-circle nav-icon"></i>
@@ -51,21 +53,19 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="index.php?menu=Tagihan" class="nav-link">
+            <a href="index.php?menu=Create&submenu=Sekolah" class="nav-link <?php if ($submenu == "Sekolah") {
+                                                                echo "active";
+                                                              } ?>">
                 <i class="far fa-circle nav-icon"></i>
-                <p>Advanced Elements</p>
+                <p>Data Sekolah</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="pages/forms/editors.html" class="nav-link">
+            <a href="index.php?menu=Create&submenu=Penagihan" class="nav-link <?php if ($submenu == "Penagihan") {
+                                                                echo "active";
+                                                              } ?>">
                 <i class="far fa-circle nav-icon"></i>
-                <p>Editors</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="pages/forms/validation.html" class="nav-link">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Validation</p>
+                <p>Data Penagihan</p>
               </a>
             </li>
           </ul>
@@ -82,7 +82,7 @@
           </a>
           <ul class="nav nav-treeview">
             <li class="nav-item">
-              <a href="index.php?menu=Tabel" class="nav-link <?php if ($submenu == "Sekolah" || $submenu == "Contact") {
+              <a href="index.php?menu=Tabel" class="nav-link <?php if ($menu == "Tabel") {
                                                                 echo "active";
                                                               } ?>">
                 <i class="far fa-circle nav-icon"></i>
