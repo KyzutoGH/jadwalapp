@@ -21,10 +21,9 @@
     <!-- Sidebar Menu -->
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-        <!-- Add icons to the links using the .nav-icon class
-               with font-awesome or any other icon font library -->
-               
-        <li class="nav-header">Data Stock</li>        <li class="nav-item">
+        
+        <li class="nav-header">Data Stock</li>        
+        <li class="nav-item">
           <a href="index.php?menu=Dashboard" class="nav-link <?php if ($menu == "Dashboard") {
                                                                 echo "active";
                                                               } ?>">
@@ -34,6 +33,45 @@
         </li>
 
         <li class="nav-header">Data DN</li>
+        <!-- New Data Barang Section -->
+        <li class="nav-item <?php if ($menu == "Barang") {
+                              echo "menu-is-opening menu-open";
+                            } ?>">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-box"></i>
+            <p>
+              Data Barang
+              <i class="fas fa-angle-left right"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="index.php?menu=Barang&submenu=BarangMasuk" class="nav-link <?php if ($submenu == "BarangMasuk") {
+                                                                echo "active";
+                                                              } ?>">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Data Barang Masuk</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.php?menu=Barang&submenu=DataBarang" class="nav-link <?php if ($submenu == "DataBarang") {
+                                                                echo "active";
+                                                              } ?>">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Data Barang</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="index.php?menu=Barang&submenu=BarangKeluar" class="nav-link <?php if ($submenu == "BarangKeluar") {
+                                                                echo "active";
+                                                              } ?>">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Data Barang Keluar</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+
         <li class="nav-item <?php if ($menu == "Create") {
                               echo "menu-is-opening menu-open";
                             } ?>">
