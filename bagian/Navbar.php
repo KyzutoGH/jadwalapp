@@ -1,102 +1,180 @@
-  <!-- Navbar -->
-  <nav class="main-header navbar navbar-expand navbar-dark">
-    <!-- Left navbar links -->
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-      </li>
-      <li class="nav-item d-none d-sm-inline-block">
-        <a href="index.php?menu=Dashboard" class="nav-link">Home</a>
-      </li>
-      <li class="nav-item d-none d-sm-inline-block">
-        <a href="#" class="nav-link">Contact</a>
-      </li>
-    </ul>
+<?php
+class DiesNatalisNotification
+{
+  private $db;
 
-    <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto">
+  public function __construct($db)
+  {
+    $this->db = $db;
+  }
 
-      <!-- Messages Dropdown Menu -->
-      <li class="nav-item dropdown">
-        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-          <a href="#" class="dropdown-item">
-            <!-- Message Start -->
-            <div class="media">
-              <img src="assets/img/user1-128x128.jpg" alt="User Avatar" class="img-size-50 mr-3 img-circle">
-              <div class="media-body">
-                <h3 class="dropdown-item-title">
-                  Brad Diesel
-                  <span class="float-right text-sm text-danger"><i class="fas fa-star"></i></span>
-                </h3>
-                <p class="text-sm">Call me whenever you can...</p>
-                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-              </div>
-            </div>
-            <!-- Message End -->
-          </a>
+  public function getActiveNotifications()
+  {
+    $notifications = [];
+    $current_date = new DateTime();
+    $current_year = (int)$current_date->format('Y');
+
+    // Query untuk mengambil semua tanggal DN
+    $query = "SELECT id, nama_sekolah, tanggaldn FROM sekolah WHERE tanggaldn IS NOT NULL";
+    $result = $this->db->query($query);
+
+    while ($row = $result->fetch_assoc()) {
+      // Format tanggal dari database (DD-MM)
+      $dn_date = $row['tanggaldn'];
+
+      // Buat objek DateTime untuk tanggal DN dengan tahun sekarang
+      $dn_with_year = DateTime::createFromFormat('d-m-Y', $dn_date . '-' . $current_year);
+
+      // Jika tanggal sudah lewat, gunakan tahun depan
+      if ($dn_with_year < $current_date) {
+        $dn_with_year = DateTime::createFromFormat('d-m-Y', $dn_date . '-' . ($current_year + 1));
+      }
+
+      // Hitung selisih hari
+      $interval = $current_date->diff($dn_with_year);
+      $days_until = $interval->days;
+
+      // Jika dalam rentang 30 hari dan belum lewat
+      if ($days_until <= 30 && $dn_with_year > $current_date) {
+        $notifications[] = [
+          'id' => $row['id'],
+          'nama_sekolah' => $row['nama_sekolah'],
+          'tanggal_dn' => $dn_with_year->format('d-m-Y'),
+          'sisa_hari' => $days_until,
+          'status' => $this->getNotificationStatus($days_until)
+        ];
+      }
+    }
+
+    return $notifications;
+  }
+
+  private function getNotificationStatus($days)
+  {
+    if ($days <= 7) {
+      return 'urgent'; // Merah
+    } elseif ($days <= 14) {
+      return 'warning'; // Kuning
+    } else {
+      return 'info'; // Biru
+    }
+  }
+
+  public function getNotificationCount()
+  {
+    return count($this->getActiveNotifications());
+  }
+}
+
+// Contoh penggunaan di halaman
+$dnNotification = new DiesNatalisNotification($db);
+$notifications = $dnNotification->getActiveNotifications();
+$notificationCount = $dnNotification->getNotificationCount();
+
+// Untuk AJAX request
+if (isset($_GET['check_dn_notifications'])) {
+  header('Content-Type: application/json');
+  echo json_encode([
+    'notifications' => $notifications,
+    'count' => $notificationCount
+  ]);
+  exit;
+}
+?>
+<!-- Navbar -->
+<nav class="main-header navbar navbar-expand navbar-dark">
+  <!-- Left navbar links -->
+  <ul class="navbar-nav">
+    <li class="nav-item">
+      <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+    </li>
+    <li class="nav-item d-none d-sm-inline-block">
+      <a href="index.php?menu=Dashboard" class="nav-link">Home</a>
+    </li>
+    <li class="nav-item d-none d-sm-inline-block">
+      <a href="#" class="nav-link">Contact</a>
+    </li>
+  </ul>
+
+  <!-- Right navbar links -->
+  <ul class="navbar-nav ml-auto">
+    <li class="nav-item dropdown">
+      <a class="nav-link" data-toggle="dropdown" href="#">
+        <i class="far fa-bell"></i>
+        <span class="badge badge-warning navbar-badge"><?php echo $notificationCount; ?></span>
+      </a>
+      <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+        <span class="dropdown-item dropdown-header"><?php echo $notificationCount; ?> Dies Natalis Sudah Dekat</span>
+
+        <?php foreach ($notifications as $notif): ?>
           <div class="dropdown-divider"></div>
           <a href="#" class="dropdown-item">
-            <!-- Message Start -->
-            <div class="media">
-              <img src="assets/img/user8-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
-              <div class="media-body">
-                <h3 class="dropdown-item-title">
-                  John Pierce
-                  <span class="float-right text-sm text-muted"><i class="fas fa-star"></i></span>
-                </h3>
-                <p class="text-sm">I got your message bro</p>
-                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-              </div>
-            </div>
-            <!-- Message End -->
+            <i class="fas fa-calendar mr-2"></i>
+            <?php
+            $statusClass = match ($notif['status']) {
+              'urgent' => 'text-danger',
+              'warning' => 'text-warning',
+              'info' => 'text-info'
+            };
+            ?>
+            <span class="<?php echo $statusClass; ?>">
+              <?php echo htmlspecialchars($notif['nama_sekolah']); ?>
+            </span>
+            <br>
+            <small class="text-muted">
+              H-<?php echo $notif['sisa_hari']; ?> (<?php echo $notif['tanggal_dn']; ?>)
+            </small>
           </a>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item">
-            <!-- Message Start -->
-            <div class="media">
-              <img src="assets/img/user3-128x128.jpg" alt="User Avatar" class="img-size-50 img-circle mr-3">
-              <div class="media-body">
-                <h3 class="dropdown-item-title">
-                  Nora Silvester
-                  <span class="float-right text-sm text-warning"><i class="fas fa-star"></i></span>
-                </h3>
-                <p class="text-sm">The subject goes here</p>
-                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> 4 Hours Ago</p>
-              </div>
-            </div>
-            <!-- Message End -->
-          </a>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item dropdown-footer">See All Messages</a>
-        </div>
-      </li>
-      <!-- Notifications Dropdown Menu -->
-      <li class="nav-item dropdown">
-        <a class="nav-link" data-toggle="dropdown" href="#">
-          <i class="far fa-bell"></i>
-          <span class="badge badge-warning navbar-badge">15</span>
-        </a>
-        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-          <span class="dropdown-item dropdown-header">15 Notifications</span>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item">
-            <i class="fas fa-envelope mr-2"></i> 4 new messages
-            <span class="float-right text-muted text-sm">3 mins</span>
-          </a>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item">
-            <i class="fas fa-users mr-2"></i> 8 friend requests
-            <span class="float-right text-muted text-sm">12 hours</span>
-          </a>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item">
-            <i class="fas fa-file mr-2"></i> 3 new reports
-            <span class="float-right text-muted text-sm">2 days</span>
-          </a>
-          <div class="dropdown-divider"></div>
-          <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
-        </div>
-      </li>
-    </ul>
-  </nav>
-  <!-- /.navbar -->
+        <?php endforeach; ?>
+
+        <div class="dropdown-divider"></div>
+        <a href="#" class="dropdown-item dropdown-footer">Lihat Semua Notifikasi</a>
+      </div>
+    </li>
+  </ul>
+  <script>
+    // Fungsi untuk mengecek notifikasi sistem
+    function checkSystemNotifications() {
+      if (!("Notification" in window)) {
+        console.log("Browser tidak mendukung notifikasi sistem");
+        return;
+      }
+
+      if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+    }
+
+    // Fungsi untuk memperbarui notifikasi
+    function updateDNNotifications() {
+      fetch('?check_dn_notifications=1')
+        .then(response => response.json())
+        .then(data => {
+          // Update badge
+          document.querySelector('.navbar-badge').textContent = data.count;
+
+          // Kirim notifikasi sistem untuk yang urgent (H-7)
+          if (Notification.permission === "granted") {
+            data.notifications.forEach(notif => {
+              if (notif.sisa_hari <= 30) {
+                new Notification(`Pengingat Dies Natalis ${notif.nama_sekolah}`, {
+                  body: `Dies Natalis akan berlangsung dalam ${notif.sisa_hari} hari pada tanggal ${notif.tanggal_dn}`,
+                  icon: "/path/to/your/icon.png" // Sesuaikan path
+                });
+              }
+            });
+          }
+        });
+    }
+
+    // Inisialisasi
+    document.addEventListener('DOMContentLoaded', function() {
+      checkSystemNotifications();
+      updateDNNotifications();
+
+      // Update setiap 5 menit
+      setInterval(updateDNNotifications, 5 * 60 * 1000);
+    });
+  </script>
+</nav>
+<!-- /.navbar -->

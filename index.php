@@ -1,4 +1,5 @@
 <?php
+require_once('config/koneksi.php');
 // Konstanta untuk menu yang valid
 const VALID_MENUS    = [
     'Dashboard' => [

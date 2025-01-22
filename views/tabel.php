@@ -74,9 +74,19 @@ if ($menu == "Tabel") { ?>
         <div class="card-header">
             <h3 class="card-title">Data Master</h3>
             <div class="float-right">
-                <a href="index.php?menu=Create&submenu=ContactAdd" class="btn btn-<?= ($submenu == 'ContactAdd') ? 'primary' : 'secondary' ?>">
-                    Tambah Contact Person
-                </a>
+                <?php if ($submenu == "Sekolah") { ?>
+                    <a href="index.php?menu=Create&submenu=Sekolah" class="btn btn-<?= ($submenu == 'Sekolah') ? 'primary' : 'secondary' ?>">
+                        Tambah Sekolah
+                    </a>
+                <?php } else if ($submenu == "Contact") { ?>
+                    <a href="index.php?menu=Create&submenu=ContactAdd" class="btn btn-<?= ($submenu == 'ContactAdd') ? 'primary' : 'secondary' ?>">
+                        Tambah Contact Person
+                    </a>
+                <?php } else { ?>
+                    <a href="#" class="btn btn-primary disabled">
+                        Pilih dulu tabelnya
+                    </a>
+                <?php } ?>
                 <a href="index.php?menu=Tabel&submenu=Sekolah" class="btn btn-<?= ($submenu == 'Sekolah') ? 'primary' : 'secondary' ?>">
                     Data Sekolah
                 </a>
@@ -86,7 +96,7 @@ if ($menu == "Tabel") { ?>
             </div>
         </div>
         <div class="card-body">
-            <?php if ($submenu == 'Sekolah'): ?>
+            <?php if ($submenu == "Sekolah"): ?>
                 <table id="tabelSekolah" class="table table-bordered table-striped">
                     <thead>
                         <tr>
@@ -94,26 +104,57 @@ if ($menu == "Tabel") { ?>
                             <th>Nama Sekolah</th>
                             <th>Alamat</th>
                             <th>Telepon</th>
+                            <th>Nomor HP</th>
                             <th>Email</th>
+                            <th>Tanggal DN</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        $sekolah = DataRepository::getSchools();
-                        foreach ($sekolah as $index => $s): ?>
+                        $no = 1;
+                        $data = mysqli_query($koneksi, "select * from sekolah");
+                        while ($d = mysqli_fetch_array($data)) {
+                        ?>
                             <tr>
-                                <td><?= $index + 1 ?></td>
-                                <td><?= htmlspecialchars($s['nama']) ?></td>
-                                <td><?= htmlspecialchars($s['alamat']) ?></td>
-                                <td><?= htmlspecialchars($s['telepon']) ?></td>
-                                <td><?= htmlspecialchars($s['email']) ?></td>
+                                <td><?= $no++ ?></td>
+                                <td><?= htmlspecialchars($d['nama_sekolah']) ?></td>
+                                <td><?= htmlspecialchars($d['alamat']) ?></td>
+                                <td><a href="tel:<?= htmlspecialchars($d['telepon']) ?>"><?= htmlspecialchars($d['telepon']) ?></a></td>
                                 <td>
-                                    <button class="btn btn-sm btn-primary" onclick="editSekolah(<?= $s['id'] ?>)">Edit</button>
-                                    <button class="btn btn-sm btn-danger" onclick="hapusSekolah(<?= $s['id'] ?>)">Hapus</button>
+                                    <a href="tel:<?= htmlspecialchars(preg_replace('/^08/', '+62', $d['nohp'])) ?>">
+                                        <?= htmlspecialchars(preg_replace('/^08/', '+62', $d['nohp'])) ?>
+                                    </a>
+                                </td>
+                                <td><a href="mailto:<?= htmlspecialchars($d['email']) ?>"><?= htmlspecialchars($d['email']) ?></a></td>
+                                <td>
+                                    <?php
+                                    $date = $d['tanggaldn']; // Format: DD-MM
+                                    list($day, $month) = explode('-', $date); // Memisahkan hari dan bulan
+                                    $months = [
+                                        '01' => 'Januari',
+                                        '02' => 'Februari',
+                                        '03' => 'Maret',
+                                        '04' => 'April',
+                                        '05' => 'Mei',
+                                        '06' => 'Juni',
+                                        '07' => 'Juli',
+                                        '08' => 'Agustus',
+                                        '09' => 'September',
+                                        '10' => 'Oktober',
+                                        '11' => 'November',
+                                        '12' => 'Desember'
+                                    ];
+                                    $month_string = $months[$month];
+                                    echo htmlspecialchars("$day $month_string");
+                                    ?>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="editSekolah(<?= $d['id'] ?>)"><i class="far fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger" onclick="hapusSekolah(<?= $d['id'] ?>)"><i class="far fa-trash-alt"></i></button>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </tbody>
                 </table>
 
