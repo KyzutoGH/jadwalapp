@@ -12,40 +12,63 @@ class DiesNatalisNotification
   {
     $notifications = [];
     $current_date = new DateTime();
-    $current_year = (int)$current_date->format('Y');
+    $current_year = (int) $current_date->format('Y');
 
     // Query untuk mengambil semua tanggal DN
-    $query = "SELECT id, nama_sekolah, tanggaldn FROM sekolah WHERE tanggaldn IS NOT NULL";
+    $query = "SELECT id, nama_sekolah, tanggal_dn FROM datadn WHERE tanggal_dn IS NOT NULL";
     $result = $this->db->query($query);
 
-    while ($row = $result->fetch_assoc()) {
-      // Format tanggal dari database (DD-MM)
-      $dn_date = $row['tanggaldn'];
+    if ($result && $result->num_rows > 0) {
+      $_SESSION['toastr'] = [
+        'type' => 'warning',
+        'message' => 'Ada Dies Natalis yang sudah dekat!',
+      ];
+      ?>
+      <script>
+        title = 'Penting';
+        message = 'Ada Dies Natalis yang sudah dekat!';
+        if ('Notification' in window) {
+          showNotification(title, message);
+        }
+      </script>
+      <?php
+      while ($row = $result->fetch_assoc()) {
+        // Format tanggal dari database (DD-MM)
+        $dn_date = $row['tanggal_dn'];
 
-      // Buat objek DateTime untuk tanggal DN dengan tahun sekarang
-      $dn_with_year = DateTime::createFromFormat('d-m-Y', $dn_date . '-' . $current_year);
+        // Buat objek DateTime untuk tanggal DN dengan tahun sekarang
+        $dn_with_year = DateTime::createFromFormat('d-m-Y', $dn_date . '-' . $current_year);
 
-      // Jika tanggal sudah lewat, gunakan tahun depan
-      if ($dn_with_year < $current_date) {
-        $dn_with_year = DateTime::createFromFormat('d-m-Y', $dn_date . '-' . ($current_year + 1));
+        // Cek jika gagal parse tanggal
+        if (!$dn_with_year) {
+          // Log kesalahan atau beri default value
+          error_log("Gagal memparsing tanggal: " . $dn_date);
+          continue; // Lewati iterasi ini jika parsing gagal
+        }
+
+        // Jika tanggal sudah lewat, gunakan tahun depan
+        if ($dn_with_year < $current_date) {
+          $dn_with_year = DateTime::createFromFormat('d-m-Y', $dn_date . '-' . ($current_year + 1));
+        }
+
+        // Hitung selisih hari
+        $interval = $current_date->diff($dn_with_year);
+        $days_until = $interval->days;
+
+        // Jika dalam rentang 30 hari dan belum lewat
+        if ($days_until <= 30 && $dn_with_year > $current_date) {
+          $notifications[] = [
+            'id' => $row['id'],
+            'nama_sekolah' => $row['nama_sekolah'],
+            'tanggal_dn' => $dn_with_year->format('d-m-Y'),
+            'sisa_hari' => $days_until,
+            'status' => $this->getNotificationStatus($days_until)
+          ];
+        }
       }
-
-      // Hitung selisih hari
-      $interval = $current_date->diff($dn_with_year);
-      $days_until = $interval->days;
-
-      // Jika dalam rentang 30 hari dan belum lewat
-      if ($days_until <= 30 && $dn_with_year > $current_date) {
-        $notifications[] = [
-          'id' => $row['id'],
-          'nama_sekolah' => $row['nama_sekolah'],
-          'tanggal_dn' => $dn_with_year->format('d-m-Y'),
-          'sisa_hari' => $days_until,
-          'status' => $this->getNotificationStatus($days_until)
-        ];
-      }
+    } else {
+      error_log('Query error!');
     }
-
     return $notifications;
   }
 
@@ -70,16 +93,6 @@ class DiesNatalisNotification
 $dnNotification = new DiesNatalisNotification($db);
 $notifications = $dnNotification->getActiveNotifications();
 $notificationCount = $dnNotification->getNotificationCount();
-
-// Untuk AJAX request
-if (isset($_GET['check_dn_notifications'])) {
-  header('Content-Type: application/json');
-  echo json_encode([
-    'notifications' => $notifications,
-    'count' => $notificationCount
-  ]);
-  exit;
-}
 ?>
 <!-- Navbar -->
 <nav class="main-header navbar navbar-expand navbar-dark">
@@ -159,7 +172,7 @@ if (isset($_GET['check_dn_notifications'])) {
               if (notif.sisa_hari <= 30) {
                 new Notification(`Pengingat Dies Natalis ${notif.nama_sekolah}`, {
                   body: `Dies Natalis akan berlangsung dalam ${notif.sisa_hari} hari pada tanggal ${notif.tanggal_dn}`,
-                  icon: "/path/to/your/icon.png" // Sesuaikan path
+                  icon: "../assets/img/date-of-birth.png" // Sesuaikan path
                 });
               }
             });
@@ -168,7 +181,7 @@ if (isset($_GET['check_dn_notifications'])) {
     }
 
     // Inisialisasi
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       checkSystemNotifications();
       updateDNNotifications();
 

@@ -1,7 +1,9 @@
 <?php
+$formatter = new IntlDateFormatter('id_ID', IntlDateFormatter::FULL, IntlDateFormatter::NONE);
+$formatter->setPattern('MMMM');
 require_once('config/koneksi.php');
 // Konstanta untuk menu yang valid
-const VALID_MENUS    = [
+const VALID_MENUS = [
     'Dashboard' => [
         'header' => 'bagian/header/dashboard.php',
         'view' => 'views/dashboard.php'
@@ -70,17 +72,43 @@ if ($isValidMenu) {
 // Load templates
 require_once('bagian/Header.php');
 ?>
+<?php
+session_start();
+?>
+<script>
+    function showNotification(title, message) {
+        if (Notification.permission === "granted") {
+            new Notification(title, { body: message, icon: 'assets/img/date-of-birth.png' });
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    new Notification(title, { body: message, icon: 'assets/img/date-of-birth.png' });
+                }
+            });
+        }
+    }
+</script>
 
 <body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
+    <?php
+    if (isset($_SESSION['toastr'])) {
+        $toastr = $_SESSION['toastr'];
+        echo "<script>
+        window.onload = function() {
+            toastr['{$toastr['type']}']('{$toastr['message']}');
+        }
+    </script>";
+        unset($_SESSION['toastr']); // Hapus notifikasi setelah ditampilkan
+    } ?>
     <div class="wrapper">
 
         <!-- Preloader -->
         <div class="preloader flex-column justify-content-center align-items-center">
             <img class="animation__wobble" src="assets/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
         </div><?php
-                require_once('bagian/Navbar.php');
-                require_once('bagian/Sidebar.php');
-                ?>
+        require_once('bagian/Navbar.php');
+        require_once('bagian/Sidebar.php');
+        ?>
 
         <!-- Content Wrapper. Contains page content -->
         <div class="content-wrapper">

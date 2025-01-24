@@ -1,218 +1,168 @@
-      <div class="container-fluid">
-          <div class="row">
-              <div class="col-md-3">
-                  <div class="sticky-top mb-3">
-                      <div class="card">
-                          <div class="card-header">
-                              <h4 class="card-title">Draggable Events</h4>
-                          </div>
-                          <div class="card-body">
-                              <!-- the events -->
-                              <div id="external-events">
-                                  <div class="external-event bg-success">Lunch</div>
-                                  <div class="external-event bg-warning">Go home</div>
-                                  <div class="external-event bg-info">Do homework</div>
-                                  <div class="external-event bg-primary">Work on UI design</div>
-                                  <div class="external-event bg-danger">Sleep tight</div>
-                                  <div class="checkbox">
-                                      <label for="drop-remove">
-                                          <input type="checkbox" id="drop-remove">
-                                          remove after drop
-                                      </label>
-                                  </div>
-                              </div>
-                          </div>
-                          <!-- /.card-body -->
-                      </div>
-                      <!-- /.card -->
-                      <div class="card">
-                          <div class="card-header">
-                              <h3 class="card-title">Create Event</h3>
-                          </div>
-                          <div class="card-body">
-                              <div class="btn-group" style="width: 100%; margin-bottom: 10px;">
-                                  <ul class="fc-color-picker" id="color-chooser">
-                                      <li><a class="text-primary" href="#"><i class="fas fa-square"></i></a></li>
-                                      <li><a class="text-warning" href="#"><i class="fas fa-square"></i></a></li>
-                                      <li><a class="text-success" href="#"><i class="fas fa-square"></i></a></li>
-                                      <li><a class="text-danger" href="#"><i class="fas fa-square"></i></a></li>
-                                      <li><a class="text-muted" href="#"><i class="fas fa-square"></i></a></li>
-                                  </ul>
-                              </div>
-                              <!-- /btn-group -->
-                              <div class="input-group">
-                                  <input id="new-event" type="text" class="form-control" placeholder="Event Title">
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="sticky-top mb-3">
+                <div class="card">
+                    <div class="card-header"><?php
+                    $bulan_ini = $formatter->format(new DateTime()); ?>
+                        <h4 class="card-title">Dies Natalis Bulan <?php echo $bulan_ini; ?></h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- the events -->
+                        <div id="external-events">
+                            <?php
+                            $query = "SELECT * FROM datadn";
+                            $result = $db->query($query);
+                            $current_month = date('m');
+                            while ($row = $result->fetch_assoc()) {
+                                $tanggal_parts = explode('-', $row['tanggal_dn']);
 
-                                  <div class="input-group-append">
-                                      <button id="add-new-event" type="button" class="btn btn-primary">Add</button>
-                                  </div>
-                                  <!-- /btn-group -->
-                              </div>
-                              <!-- /input-group -->
-                          </div>
-                      </div>
-                  </div>
-              </div>
-              <!-- /.col -->
-              <div class="col-md-9">
-                  <div class="card card-primary">
-                      <div class="card-body p-0">
-                          <!-- THE CALENDAR -->
-                          <div id="calendar"></div>
-                      </div>
-                      <!-- /.card-body -->
-                  </div>
-                  <!-- /.card -->
-              </div>
-              <!-- /.col -->
-          </div>
-          <!-- /.row -->
-      </div><!-- /.container-fluid -->
+                                // Periksa apakah bulan cocok dengan bulan sekarang
+                                if (isset($tanggal_parts[1]) && $tanggal_parts[1] === $current_month) {
+                                    ?>
+                                    <div class="external-event bg-success"><?php echo $row['nama_sekolah']; ?></div>
+                                    <?php
+                                }
+                            } ?>
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <div class="card shadow-lg rounded">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="card-title mb-0">Legenda Kategori Pendidikan</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Legenda Warna -->
+                        <div id="external-events">
+                            <ul class="fc-color-picker list-unstyled">
+                                <li class="mb-2">
+                                    <a style="color: #FFEB3B; font-size: 1.1rem;" href="#">
+                                        <i class="fas fa-square me-2"></i> SD
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <a style="color: #8BC34A; font-size: 1.1rem;" href="#">
+                                        <i class="fas fa-square me-2"></i> SMP
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <a style="color: #2196F3; font-size: 1.1rem;" href="#">
+                                        <i class="fas fa-square me-2"></i> SMA
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <a style="color: #FF5722; font-size: 1.1rem;" href="#">
+                                        <i class="fas fa-square me-2"></i> SMK
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <a style="color: #FFC107; font-size: 1.1rem;" href="#">
+                                        <i class="fas fa-square me-2"></i> MI
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <a style="color: #009688; font-size: 1.1rem;" href="#">
+                                        <i class="fas fa-square me-2"></i> MTs
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <a style="color: #3F51B5; font-size: 1.1rem;" href="#">
+                                        <i class="fas fa-square me-2"></i> MA
+                                    </a>
+                                </li>
+                                <li class="mb-2">
+                                    <a style="color: #9C27B0; font-size: 1.1rem;" href="#">
+                                        <i class="fas fa-square me-2"></i> MAK
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
 
-      <script>
-          // Buat file terpisah misalnya calendar.js
-          document.addEventListener('DOMContentLoaded', function() {
-              // Pastikan elemen ada sebelum inisialisasi
-              const calendarEl = document.getElementById('calendar');
-              if (!calendarEl) return;
 
-              const date = new Date();
-              const y = date.getFullYear();
-              const m = date.getMonth();
-              const d = date.getDate();
-              const containerEl = document.getElementById('external-events');
-              const checkbox = document.getElementById('drop-remove');
+            </div>
+        </div>
+        <!-- /.col -->
+        <div class="col-md-9">
+            <div class="card card-primary">
+                <div class="card-body p-0">
+                    <!-- THE CALENDAR -->
+                    <div id="calendar"></div>
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+</div><!-- /.container-fluid -->
 
-              // Inisialisasi draggable events
-              if (containerEl) {
-                  new FullCalendar.Draggable(containerEl, {
-                      itemSelector: '.external-event',
-                      eventData: function(eventEl) {
-                          return {
-                              title: eventEl.innerText,
-                              backgroundColor: window.getComputedStyle(eventEl, null).getPropertyValue('background-color'),
-                              borderColor: window.getComputedStyle(eventEl, null).getPropertyValue('background-color'),
-                              textColor: window.getComputedStyle(eventEl, null).getPropertyValue('color'),
-                          };
-                      }
-                  });
-              }
+<?php
 
-              // Inisialisasi calendar
-              const calendar = new FullCalendar.Calendar(calendarEl, {
-                  headerToolbar: {
-                      left: 'prev,next today',
-                      center: 'title',
-                      right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                  },
-                  themeSystem: 'bootstrap',
-                  editable: true,
-                  droppable: true,
-                  events: [{
-                          title: 'All Day Event',
-                          start: new Date(y, m, 1),
-                          backgroundColor: '#f56954', //red
-                          borderColor: '#f56954', //red
-                          allDay: true
-                      },
-                      {
-                          title: 'Long Event',
-                          start: new Date(y, m, d - 5),
-                          end: new Date(y, m, d - 2),
-                          backgroundColor: '#f39c12', //yellow
-                          borderColor: '#f39c12' //yellow
-                      },
-                      {
-                          title: 'Meeting',
-                          start: new Date(y, m, d, 10, 30),
-                          allDay: false,
-                          backgroundColor: '#0073b7', //Blue
-                          borderColor: '#0073b7' //Blue
-                      },
-                      {
-                          title: 'Lunch',
-                          start: new Date(y, m, d, 12, 0),
-                          end: new Date(y, m, d, 14, 0),
-                          allDay: false,
-                          backgroundColor: '#00c0ef', //Info (aqua)
-                          borderColor: '#00c0ef' //Info (aqua)
-                      },
-                      {
-                          title: 'Birthday Party',
-                          start: new Date(y, m, d + 1, 19, 0),
-                          end: new Date(y, m, d + 1, 22, 30),
-                          allDay: false,
-                          backgroundColor: '#00a65a', //Success (green)
-                          borderColor: '#00a65a' //Success (green)
-                      },
-                      {
-                          title: 'Click for Google',
-                          start: new Date(y, m, 28),
-                          end: new Date(y, m, 29),
-                          url: 'https://www.google.com/',
-                          backgroundColor: '#3c8dbc', //Primary (light-blue)
-                          borderColor: '#3c8dbc' //Primary (light-blue)
-                      }
-                  ],
-                  drop: function(info) {
-                      if (checkbox && checkbox.checked) {
-                          info.draggedEl.parentNode.removeChild(info.draggedEl);
-                      }
-                  }
-              });
+$events = [];
 
-              calendar.render();
+if ($result) {
+    $result->data_seek(0);
+    while ($row = $result->fetch_assoc()) {
+        $backgroundColor = '';
+        if (strpos($row['nama_sekolah'], 'SD') !== false) {
+            $backgroundColor = '#FFEB3B'; // Warna kuning untuk SD
+        } elseif (strpos($row['nama_sekolah'], 'SMP') !== false) {
+            $backgroundColor = '#8BC34A'; // Warna hijau untuk SMP
+        } elseif (strpos($row['nama_sekolah'], 'SMA') !== false) {
+            $backgroundColor = '#2196F3'; // Warna biru untuk SMA
+        } elseif (strpos($row['nama_sekolah'], 'SMK') !== false) {
+            $backgroundColor = '#FF5722'; // Warna oranye untuk SMK
+        } elseif (strpos($row['nama_sekolah'], 'MI') !== false) {
+            $backgroundColor = '#FFC107'; // Warna kuning untuk MI
+        } elseif (strpos($row['nama_sekolah'], 'MTs') !== false) {
+            $backgroundColor = '#009688'; // Warna teal untuk MTs
+        } elseif (strpos($row['nama_sekolah'], 'MA') !== false) {
+            $backgroundColor = '#3F51B5'; // Warna biru tua untuk MA
+        } elseif (strpos($row['nama_sekolah'], 'MAK') !== false) {
+            $backgroundColor = '#9C27B0'; // Warna ungu untuk MAK
+        }
+        $parts = explode('-', $row['tanggal_dn']); // Pisahkan DD dan MM
+        if (count($parts) === 2) {
+            $tanggal_dn = date('Y') . '-' . $parts[1] . '-' . $parts[0]; // Susun jadi YYYY-MM-DD (tahun-bulan-tanggal)
+            $events[] = [
+                'title' => 'Dies Natalis ' . $row['nama_sekolah'],
+                'start' => $tanggal_dn, // Format yang benar untuk FullCalendar
+                'end' => $tanggal_dn,   // Jika end sama dengan start
+                'backgroundColor' => $backgroundColor,
+                'borderColor' => '#000000'
+            ];
+        }
+    }
+}
 
-              // Handle color picker
-              const colorChooser = document.querySelectorAll('#color-chooser > li > a');
-              let currColor = '#3c8dbc';
+$event_json = json_encode($events);
+?>
 
-              colorChooser.forEach(color => {
-                  color.addEventListener('click', function(e) {
-                      e.preventDefault();
-                      currColor = window.getComputedStyle(this).getPropertyValue('color');
-                      const addEventBtn = document.getElementById('add-new-event');
-                      if (addEventBtn) {
-                          addEventBtn.style.backgroundColor = currColor;
-                          addEventBtn.style.borderColor = currColor;
-                      }
-                  });
-              });
 
-              // Handle add new event
-              const addEventBtn = document.getElementById('add-new-event');
-              const newEventInput = document.getElementById('new-event');
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarEl = document.getElementById('calendar');
+        if (!calendarEl) return;
+        const diesnatalis = <?php echo $event_json; ?>;
 
-              if (addEventBtn && newEventInput) {
-                  addEventBtn.addEventListener('click', function(e) {
-                      e.preventDefault();
-                      const val = newEventInput.value.trim();
-                      if (val.length === 0) return;
+        // Inisialisasi kalender
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            themeSystem: 'bootstrap',
+            editable: true,
+            droppable: true,
+            events: diesnatalis
+        });
 
-                      const event = document.createElement('div');
-                      event.className = 'external-event';
-                      event.style.backgroundColor = currColor;
-                      event.style.borderColor = currColor;
-                      event.style.color = '#fff';
-                      event.innerText = val;
+        calendar.render();
+    });
 
-                      const externalEvents = document.getElementById('external-events');
-                      if (externalEvents) {
-                          externalEvents.prepend(event);
-                          newEventInput.value = '';
-
-                          // Reinitialize draggable
-                          new FullCalendar.Draggable(event, {
-                              eventData: function() {
-                                  return {
-                                      title: event.innerText,
-                                      backgroundColor: currColor,
-                                      borderColor: currColor
-                                  };
-                              }
-                          });
-                      }
-                  });
-              }
-          });
-      </script>
+</script>
