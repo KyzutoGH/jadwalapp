@@ -61,7 +61,7 @@
 <script>
   $(document).ready(function () {
     // Inisialisasi DataTables untuk semua tabel yang ada
-    ['#tabelSekolah', '#tabelContact', '#tabelPenagihan'].forEach(function (tableId) {
+    ['#tabelSekolah', '#tabelContact', '#tabelPenagihan', '#tabelBarang, #tabelBarangKeluar', '#tabelBarangMasuk'].forEach(function (tableId) {
       if ($(tableId).length) {
         $(tableId).DataTable({
           "paging": true,

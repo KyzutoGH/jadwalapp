@@ -2,21 +2,6 @@
 // data.php - Menyimpan data statis
 class DataRepository
 {
-    public static function getSchools()
-    {
-        return [
-            ['id' => 1, 'nama' => 'SMA Negeri 1', 'alamat' => 'Jl. Pendidikan No. 1', 'telepon' => '021-1234567', 'email' => 'sman1@edu.com'],
-            ['id' => 2, 'nama' => 'SMK Negeri 1', 'alamat' => 'Jl. Kejuruan No. 2', 'telepon' => '021-7654321', 'email' => 'smkn1@edu.com']
-        ];
-    }
-
-    public static function getContacts()
-    {
-        return [
-            ['id' => 1, 'sekolah' => 'SMA Negeri 1', 'kelas' => 'X-1', 'nama' => 'Budi Santoso', 'hp' => '081234567890', 'jabatan' => 'Wali Kelas'],
-            ['id' => 2, 'sekolah' => 'SMK Negeri 1', 'kelas' => 'XI-2', 'nama' => 'Ani Wijaya', 'hp' => '087654321098', 'jabatan' => 'Guru BK']
-        ];
-    }
 
     public static function getPenagihan()
     {
