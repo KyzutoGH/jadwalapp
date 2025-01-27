@@ -32,35 +32,6 @@
             <p>Dashboard</p>
           </a>
         </li>
-        <li class="nav-item <?php if ($menu == "Create") {
-          echo "menu-is-opening menu-open";
-        } ?>">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-edit"></i>
-            <p>
-              Tambah Data
-              <i class="fas fa-angle-left right"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="index.php?menu=Create&submenu=BarangAdd" class="nav-link <?php if ($submenu == "BarangAdd") {
-                echo "active";
-              } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Jaket/Varsity</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?menu=Create&submenu=StikerAdd" class="nav-link <?php if ($submenu == "StikerAdd") {
-                echo "active";
-              } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Stiker</p>
-              </a>
-            </li>
-          </ul>
-        </li>
         <li class="nav-item <?php if ($menu == "Barang" || $menu == "Stiker") {
           echo "menu-is-opening menu-open";
         } ?>">
@@ -92,36 +63,6 @@
         </li>
         <li class="nav-header">Data Dies Natalis</li>
         <!-- New Data Barang Section -->
-
-        <li class="nav-item <?php if ($menu == "Create") {
-          echo "menu-is-opening menu-open";
-        } ?>">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-edit"></i>
-            <p>
-              Tambah Data
-              <i class="fas fa-angle-left right"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
-              <a href="index.php?menu=Create&submenu=ContactAdd" class="nav-link <?php if ($submenu == "ContactAdd") {
-                echo "active";
-              } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Dies Natalis</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?menu=Create&submenu=Penagihan" class="nav-link <?php if ($submenu == "Penagihan") {
-                echo "active";
-              } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Penagihan</p>
-              </a>
-            </li>
-          </ul>
-        </li>
         <li class="nav-item <?php if ($menu == "Tabel" || $menu == "Penagihan") {
           echo "menu-is-opening menu-open";
         } ?>">
