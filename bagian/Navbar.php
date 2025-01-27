@@ -18,16 +18,9 @@ class DiesNatalisNotification
     $query = "SELECT id, nama_sekolah, tanggal_dn FROM datadn WHERE tanggal_dn IS NOT NULL";
     $result = $this->db->query($query);
 
+    $showNotificationScript = false;
+
     if ($result && $result->num_rows > 0) {
-      ?>
-      <script>
-        title = 'Penting';
-        message = 'Ada Dies Natalis yang sudah dekat!';
-        if ('Notification' in window) {
-          showNotification(title, message);
-        }
-      </script>
-      <?php
       while ($row = $result->fetch_assoc()) {
         // Format tanggal dari database (DD-MM)
         $dn_date = $row['tanggal_dn'];
@@ -60,11 +53,20 @@ class DiesNatalisNotification
             'sisa_hari' => $days_until,
             'status' => $this->getNotificationStatus($days_until)
           ];
+
+          // Aktifkan flag notifikasi hanya sekali
+          $showNotificationScript = true;
         }
       }
     } else {
       error_log('Query error!');
     }
+
+    // Tampilkan script notifikasi hanya sekali jika ada data
+    if ($showNotificationScript) {
+      echo $this->generateNotificationScript();
+    }
+
     return $notifications;
   }
 
@@ -83,6 +85,19 @@ class DiesNatalisNotification
   {
     return count($this->getActiveNotifications());
   }
+
+  private function generateNotificationScript()
+  {
+    return <<<SCRIPT
+      <script>
+        const title = 'Penting';
+        const message = 'Ada Dies Natalis yang sudah dekat!';
+        if ('Notification' in window) {
+          showNotification(title, message);
+        }
+      </script>
+    SCRIPT;
+  }
 }
 
 // Contoh penggunaan di halaman
@@ -90,6 +105,7 @@ $dnNotification = new DiesNatalisNotification($db);
 $notifications = $dnNotification->getActiveNotifications();
 $notificationCount = $dnNotification->getNotificationCount();
 ?>
+
 <!-- Navbar -->
 <nav class="main-header navbar navbar-expand">
   <!-- Left navbar links -->

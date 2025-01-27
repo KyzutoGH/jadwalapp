@@ -92,14 +92,6 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="index.php?menu=Create&submenu=Sekolah" class="nav-link <?php if ($submenu == "Sekolah") {
-                echo "active";
-              } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Sekolah</p>
-              </a>
-            </li>
-            <li class="nav-item">
               <a href="index.php?menu=Create&submenu=Penagihan" class="nav-link <?php if ($submenu == "Penagihan") {
                 echo "active";
               } ?>">
