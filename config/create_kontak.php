@@ -27,7 +27,7 @@ if (empty($nama_sekolah) || empty($alamat) || empty($nomor) || empty($pemilik_ko
         'type' => 'error',
         'message' => 'Semua field harus diisi!',
     ];
-    header("Location: form_page.php"); // Ganti dengan halaman form Anda
+    header("Location: ../index.php?menu=Create&submenu=ContactAdd"); // Ganti dengan halaman form Anda
     exit;
 } else {
     // Query insert data

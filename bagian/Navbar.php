@@ -19,10 +19,6 @@ class DiesNatalisNotification
     $result = $this->db->query($query);
 
     if ($result && $result->num_rows > 0) {
-      $_SESSION['toastr'] = [
-        'type' => 'warning',
-        'message' => 'Ada Dies Natalis yang sudah dekat!',
-      ];
       ?>
       <script>
         title = 'Penting';
@@ -95,7 +91,7 @@ $notifications = $dnNotification->getActiveNotifications();
 $notificationCount = $dnNotification->getNotificationCount();
 ?>
 <!-- Navbar -->
-<nav class="main-header navbar navbar-expand navbar-dark">
+<nav class="main-header navbar navbar-expand">
   <!-- Left navbar links -->
   <ul class="navbar-nav">
     <li class="nav-item">

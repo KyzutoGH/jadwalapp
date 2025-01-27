@@ -149,9 +149,87 @@ if ($menu == "Tabel") { ?>
                              } ?></span></td>
                             <td class="text-center">
                                 <div class="btn-group" role="group" aria-label="Actions">
-                                    <button class="btn btn-sm btn-primary" onclick="editSekolah(<?= $d['id'] ?>)" title="Edit">
+                                    <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                        data-target="#modalEdit<?= $d['id'] ?>">
                                         <i class="far fa-edit"></i>
                                     </button>
+
+                                    <div class="modal fade" id="modalEdit<?= $d['id'] ?>" tabindex="-1" role="dialog">
+                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Edit Data</h5>
+                                                    <button type="button" class="close" data-dismiss="modal">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <form action="config/edit_kontak.php" method="POST">
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="id" value="<?= $d['id'] ?>">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <label>Nama Sekolah</label>
+                                                                    <input type="text" class="form-control" name="nama_sekolah"
+                                                                        value="<?= htmlspecialchars($d['nama_sekolah']) ?>"
+                                                                        required>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Alamat</label>
+                                                                    <input type="text" class="form-control" name="alamat"
+                                                                        value="<?= htmlspecialchars($d['alamat']) ?>" required>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Nomor Kontak</label>
+                                                                    <input type="text" class="form-control" name="nomor"
+                                                                        value="<?= htmlspecialchars($d['nomor']) ?>" required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="form-group">
+                                                                    <label>Pemilik Kontak</label>
+                                                                    <input type="text" class="form-control"
+                                                                        name="pemilik_kontak"
+                                                                        value="<?= htmlspecialchars($d['pemilik_kontak']) ?>"
+                                                                        required>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Jabatan</label>
+                                                                    <input type="text" class="form-control" name="jabatan"
+                                                                        value="<?= htmlspecialchars($d['jabatan']) ?>" required>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Tanggal Dies Natalis (DD-MM)</label>
+                                                                    <input type="text" class="form-control" name="tanggal_dn"
+                                                                        value="<?= htmlspecialchars($d['tanggal_dn']) ?>"
+                                                                        required placeholder="DD-MM">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Status Kontak</label>
+                                                                    <select class="form-control" name="status">
+                                                                        <option value="0" <?= $d['status'] == 0 ? 'selected' : '' ?>>Kontak Aktif</option>
+                                                                        <option value="1" <?= $d['status'] == 1 ? 'selected' : '' ?>>Kontak Belum Dihubungi
+                                                                        </option>
+                                                                        <option value="2" <?= $d['status'] == 2 ? 'selected' : '' ?>>Kontak Tidak Aktif
+                                                                        </option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-dismiss="modal">Batal</button>
+                                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <form id="hapusSekolahForm" action="./config/hapus_kontak.php" method="POST"
+                                        style="display:none;">
+                                        <input type="hidden" name="id" value="<?= $d['id'] ?>">
+                                    </form>
                                     <button class="btn btn-sm btn-danger" onclick="hapusSekolah(<?= $d['id'] ?>)" title="Hapus">
                                         <i class="far fa-trash-alt"></i>
                                     </button>
@@ -334,54 +412,6 @@ if ($menu == "Tabel") { ?>
 <?php } else { ?>
         <h1>Tidak Ada</h1>
 <?php } ?>
-
-<!-- Script initialization -->
-<script>
-    $(document).ready(function () {
-        // Inisialisasi DataTables untuk semua tabel yang ada
-        ['#tabelSekolah', '#tabelContact', '#tabelPenagihan'].forEach(function (tableId) {
-            if ($(tableId).length) {
-                $(tableId).DataTable({
-                    "paging": true,
-                    "lengthChange": true,
-                    "searching": true,
-                    "ordering": true,
-                    "info": true,
-                    "autoWidth": false,
-                    "responsive": true,
-                    "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
-                    }
-                });
-            }
-        });
-    });
-
-    // Fungsi-fungsi CRUD
-    function editSekolah(id) {
-        alert('Edit sekolah dengan ID: ' + id);
-        // Implementasi edit sekolah
-    }
-
-    function hapusSekolah(id) {
-        if (confirm('Apakah Anda yakin ingin menghapus data sekolah ini?')) {
-            alert('Hapus sekolah dengan ID: ' + id);
-            // Implementasi hapus sekolah
-        }
-    }
-
-    function editContact(id) {
-        alert('Edit contact dengan ID: ' + id);
-        // Implementasi edit contact
-    }
-
-    function hapusContact(id) {
-        if (confirm('Apakah Anda yakin ingin menghapus data contact person ini?')) {
-            alert('Hapus contact dengan ID: ' + id);
-            // Implementasi hapus contact
-        }
-    }
-</script>
 <div class="modal fade" id="modalBatalkan" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -407,55 +437,3 @@ if ($menu == "Tabel") { ?>
         </div>
     </div>
 </div>
-
-<!-- Add these JavaScript functions -->
-<script>
-    function showBatalkanModal(index) {
-        $('#custIdBatal').val(index);
-        $('#alasanBatal').val('');
-        $('#modalBatalkan').modal('show');
-    }
-
-    function batalkanPesanan() {
-        const alasan = $('#alasanBatal').val().trim();
-        if (!alasan) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Alasan pembatalan harus diisi',
-                icon: 'error'
-            });
-            return;
-        }
-
-        Swal.fire({
-            title: 'Konfirmasi Pembatalan',
-            text: 'Apakah Anda yakin ingin membatalkan pesanan ini?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, Batalkan!',
-            cancelButtonText: 'Tidak'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Here you would normally update the database
-                Swal.fire(
-                    'Dibatalkan!',
-                    'Pesanan telah dibatalkan.',
-                    'success'
-                ).then(() => {
-                    $('#modalBatalkan').modal('hide');
-                    location.reload();
-                });
-            }
-        });
-    }
-
-    function showAlasanBatal(alasan) {
-        Swal.fire({
-            title: 'Alasan Pembatalan',
-            text: alasan,
-            icon: 'info'
-        });
-    }
-</script>

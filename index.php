@@ -89,7 +89,7 @@ session_start();
     }
 </script>
 
-<body class="hold-transition dark-mode sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
     <?php
     if (isset($_SESSION['toastr'])) {
         $toastr = $_SESSION['toastr'];

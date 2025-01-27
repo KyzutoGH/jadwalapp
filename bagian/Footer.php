@@ -59,6 +59,143 @@
 <!-- Toastr -->
 <script src="assets/plugins/toastr/toastr.min.js"></script>
 <script>
+  $(document).ready(function () {
+    // Inisialisasi DataTables untuk semua tabel yang ada
+    ['#tabelSekolah', '#tabelContact', '#tabelPenagihan'].forEach(function (tableId) {
+      if ($(tableId).length) {
+        $(tableId).DataTable({
+          "paging": true,
+          "lengthChange": true,
+          "searching": true,
+          "ordering": true,
+          "info": true,
+          "autoWidth": false,
+          "responsive": true,
+          "language": {
+            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
+          }
+        });
+      }
+    });
+  });
+  $(document).ready(function () {
+    // When modal is about to be shown
+    $('#modalEdit').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget); // Button that triggered the modal
+      var modal = $(this);
+
+      // Debug the data attributes
+      console.log('Data from button:', {
+        id: button.data('id'),
+        nama_sekolah: button.data('nama_sekolah'),
+        alamat: button.data('alamat'),
+        nomor: button.data('nomor_kontak'),
+        pemilik_kontak: button.data('pemilik_kontak'),
+        jabatan: button.data('jabatan'),
+        tanggal_dn: button.data('tanggal_dn'),
+        status_kontak: button.data('status_kontak')
+      });
+
+      // Set values to form fields
+      modal.find('input[name="nama_sekolah"]').val(button.data('nama_sekolah'));
+      modal.find('input[name="alamat"]').val(button.data('alamat'));
+      modal.find('input[name="nomor_kontak"]').val(button.data('nomor_kontak'));
+      modal.find('input[name="pemilik_kontak"]').val(button.data('pemilik_kontak'));
+      modal.find('input[name="jabatan"]').val(button.data('jabatan'));
+      modal.find('input[name="tanggal_dn"]').val(button.data('tanggal_dn'));
+      modal.find('select[name="status_kontak"]').val(button.data('status_kontak'));
+    });
+
+    // Add form submission handling
+    $('#editForm').on('submit', function (e) {
+      e.preventDefault();
+
+      // Get form data
+      var formData = $(this).serialize();
+
+      // Submit using AJAX
+      $.ajax({
+        type: 'POST',
+        url: $(this).attr('action'),
+        data: formData,
+        success: function (response) {
+          $('#modalEdit').modal('hide');
+          Swal.fire({
+            title: 'Berhasil!',
+            text: 'Data berhasil diperbarui',
+            icon: 'success'
+          }).then((result) => {
+            location.reload();
+          });
+        },
+        error: function (xhr, status, error) {
+          Swal.fire({
+            title: 'Error!',
+            text: 'Terjadi kesalahan saat menyimpan data',
+            icon: 'error'
+          });
+        }
+      });
+    });
+  });
+  // Fungsi-fungsi CRUD
+  function editSekolah(id) {
+    document.getElementById('editContact').submit();
+  }
+
+  function hapusSekolah(id) {
+    if (confirm('Apakah Anda yakin ingin menghapus data sekolah ini?')) {
+      document.getElementById('hapusSekolahForm').submit();
+    }
+  }
+  function showBatalkanModal(index) {
+    $('#custIdBatal').val(index);
+    $('#alasanBatal').val('');
+    $('#modalBatalkan').modal('show');
+  }
+
+  function batalkanPesanan() {
+    const alasan = $('#alasanBatal').val().trim();
+    if (!alasan) {
+      Swal.fire({
+        title: 'Error!',
+        text: 'Alasan pembatalan harus diisi',
+        icon: 'error'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Konfirmasi Pembatalan',
+      text: 'Apakah Anda yakin ingin membatalkan pesanan ini?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Ya, Batalkan!',
+      cancelButtonText: 'Tidak'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Here you would normally update the database
+        Swal.fire(
+          'Dibatalkan!',
+          'Pesanan telah dibatalkan.',
+          'success'
+        ).then(() => {
+          $('#modalBatalkan').modal('hide');
+          location.reload();
+        });
+      }
+    });
+  }
+
+  function showAlasanBatal(alasan) {
+    Swal.fire({
+      title: 'Alasan Pembatalan',
+      text: alasan,
+      icon: 'info'
+    });
+  }
   $(function () {
     $("#example1").DataTable({
       "responsive": true,
@@ -76,8 +213,6 @@
       "responsive": true,
     });
   });
-</script>
-<script>
   $(function () {
     //Enable check and uncheck all functionality
     $('.checkbox-toggle').click(function () {
