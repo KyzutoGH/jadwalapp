@@ -6,7 +6,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_sticker = isset($_POST['id_sticker']) ? $_POST['id_sticker'] : null; // Tambahkan id_sticker jika ada
     $action = $_POST['action'];
     $jumlah = (int) $_POST['jumlah'];
-    $tanggal = date('Y-m-d');
+    date_default_timezone_set('Asia/Jakarta');
+    $tanggal = date('Y-m-d H:i:s');
 
     // Ambil stok lama dari tabel jaket
     $query = "SELECT stock FROM jaket WHERE id_jaket = ?";
