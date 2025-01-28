@@ -32,6 +32,10 @@ const VALID_MENUS = [
         'header' => 'bagian/header/tabelbarang.php',
         'view' => 'views/tabelbarang.php'
     ],
+    'Stiker' => [
+        'header' => 'bagian/header/tabelstiker.php',
+        'view' => 'views/tabelstiker.php'
+    ],
     'CreateBarang' => [
         'header' => 'bagian/header/createbarang.php',
         'view' => 'views/createbarang.php'
@@ -42,7 +46,8 @@ const VALID_MENUS = [
 const VALID_SUBMENUS = [
     'Tabel' => ['Sekolah', 'Contact', 'Penagihan'],
     'Create' => ['Sekolah', 'Contact', 'Penagihan'],
-    'Barang' => ['BarangMasuk', 'DataBarang', 'BarangKeluar'],
+    'Barang' => ['DataBarang'],
+    'Stiker' => ['DataStiker'],
     'CreateBarang' => ['BarangAdd', 'StikerAdd']
     // Tambahkan menu lain yang memiliki submenu
 ];

@@ -61,7 +61,7 @@
             </li>
           </ul>
         </li>
-        <li class="nav-item <?php if ($menu == "Barang") {
+        <li class="nav-item <?php if ($menu == "Barang" || $menu == "Stiker") {
           echo "menu-is-opening menu-open";
         } ?>">
           <a href="#" class="nav-link">
@@ -81,56 +81,11 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="index.php?menu=Barang&submenu=BarangMasuk" class="nav-link <?php if ($submenu == "BarangMasuk") {
-                echo "active";
-              } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Barang Masuk</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?menu=Barang&submenu=BarangKeluar" class="nav-link <?php if ($submenu == "BarangKeluar") {
-                echo "active";
-              } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Barang Keluar</p>
-              </a>
-            </li>
-          </ul>
-        </li>
-        <li class="nav-item <?php if ($menu == "Stiker") {
-          echo "menu-is-opening menu-open";
-        } ?>">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-box"></i>
-            <p>Data Stiker
-              <i class="fas fa-angle-left right"></i>
-            </p>
-          </a>
-
-          <ul class="nav nav-treeview">
-            <li class="nav-item">
               <a href="index.php?menu=Stiker&submenu=DataStiker" class="nav-link <?php if ($submenu == "DataStiker") {
                 echo "active";
               } ?>">
                 <i class="far fa-circle nav-icon"></i>
                 <p>Data Stiker</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?menu=Stiker&submenu=StikerMasuk" class="nav-link <?php if ($submenu == "StikerMasuk") {
-                echo "active";
-              } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Stiker Masuk</p>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="index.php?menu=Stiker&submenu=StikerKeluar" class="nav-link <?php if ($submenu == "StikerKeluar") {
-                echo "active";
-              } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Stiker Keluar</p>
               </a>
             </li>
           </ul>
