@@ -57,6 +57,10 @@
                                     <input type="number" class="form-control" id="harga" name="harga" required>
                                 </div>
                                 <div class="form-group">
+                                    <label for="namabarang">Nama Barang</label>
+                                    <input type="text" class="form-control" id="namabarang" name="namabarang" required>
+                                </div>
+                                <div class="form-group">
                                     <label for="stock">Stok</label>
                                     <input type="number" class="form-control" id="stock" name="stock" required>
                                 </div>

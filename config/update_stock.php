@@ -1,9 +1,10 @@
 <?php
 include 'koneksi.php';
+session_start(); // Add session start for toastr
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_jaket = $_POST['id_jaket'];
-    $id_sticker = isset($_POST['id_sticker']) ? $_POST['id_sticker'] : null; // Tambahkan id_sticker jika ada
+    $id_sticker = isset($_POST['id_sticker']) ? $_POST['id_sticker'] : null;
     $action = $_POST['action'];
     $jumlah = (int) $_POST['jumlah'];
     date_default_timezone_set('Asia/Jakarta');
@@ -28,11 +29,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $jenis_log = 'Kurangi';
 
             if ($stok_baru < 0) {
-                echo "<script>alert('Stok tidak mencukupi!'); window.history.back();</script>";
+                $_SESSION['toastr'] = [
+                    'type' => 'error',
+                    'message' => 'Stok tidak mencukupi!'
+                ];
+                header('Location: ../index.php?menu=Barang&submenu=DataBarang');
                 exit;
             }
         } else {
-            echo "<script>alert('Aksi tidak valid!'); window.history.back();</script>";
+            $_SESSION['toastr'] = [
+                'type' => 'error',
+                'message' => 'Aksi tidak valid!'
+            ];
+            header('Location: ../index.php?menu=Barang&submenu=DataBarang');
             exit;
         }
 
@@ -55,11 +64,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $logStmt->execute();
 
-        echo "<script>alert('Stok berhasil diperbarui!'); window.location.href='../index.php?menu=Barang&submenu=DataBarang';</script>";
+        $_SESSION['toastr'] = [
+            'type' => 'success',
+            'message' => 'Stok berhasil diperbarui!'
+        ];
+        header('Location: ../index.php?menu=Barang&submenu=DataBarang');
+        exit;
     } else {
-        echo "<script>alert('Jaket tidak ditemukan!'); window.history.back();</script>";
+        $_SESSION['toastr'] = [
+            'type' => 'error',
+            'message' => 'Jaket tidak ditemukan!'
+        ];
+        header('Location: ../index.php?menu=Barang&submenu=DataBarang');
+        exit;
     }
 } else {
-    echo "<script>alert('Metode tidak valid!'); window.history.back();</script>";
+    $_SESSION['toastr'] = [
+        'type' => 'error',
+        'message' => 'Metode tidak valid!'
+    ];
+    header('Location: ../index.php?menu=Barang&submenu=DataBarang');
+    exit;
 }
 ?>
