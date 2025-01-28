@@ -1,56 +1,4 @@
 <?php
-// data.php - Menyimpan data statis
-class DataRepository
-{
-
-    public static function getPenagihan()
-    {
-        return [
-            [
-                'tanggal' => '7 Januari 2007',
-                'customer' => 'Wawan',
-                'total' => 'Rp. 2.500.000',
-                'dp' => '1 dari 3',
-                'pelunasan' => 'Rp. 2.500.000',
-                'tgllunas' => '',
-                'status' => '1', //1 = Belum Lunas, 2 = Lunas - Belum Siap, 3 = Lunas - Tinggal Ambil, 4 = Selesai, 5 = Dibatalkan
-                'alasan_batal' => ''
-            ],
-            [
-                'tanggal' => '17 September 2009',
-                'customer' => 'Saleh',
-                'total' => 'Rp. 3.000.000',
-                'dp' => '2 dari 2',
-                'pelunasan' => 'Rp. 2.500.000',
-                'tgllunas' => '11 September 2011',
-                'status' => '3',
-                'alasan_batal' => ''
-            ],
-            [
-                'tanggal' => '23 Oktober 2023',
-                'customer' => 'Dedi',
-                'total' => 'Rp. 4.500.000',
-                'dp' => '1 dari 4',
-                'pelunasan' => 'Rp. 1.125.000',
-                'tgllunas' => '',
-                'status' => '5',
-                'alasan_batal' => 'Permintaan customer - perubahan desain'
-            ],
-            [
-                'tanggal' => '15 November 2023',
-                'customer' => 'Sinta',
-                'total' => 'Rp. 1.800.000',
-                'dp' => '1 dari 2',
-                'pelunasan' => 'Rp. 900.000',
-                'tgllunas' => '',
-                'status' => '5',
-                'alasan_batal' => 'Masalah teknis produksi'
-            ]
-        ];
-    }
-}
-
-// index.php
 $menu = $_GET['menu'] ?? '';
 $submenu = $_GET['submenu'] ?? '';
 
@@ -255,8 +203,64 @@ if ($menu == "Tabel") { ?>
                     </thead>
                     <tbody>
                         <?php
-                        $penagihan = DataRepository::getPenagihan();
-                        foreach ($penagihan as $index => $p):
+                        // Query untuk mengambil data penagihan
+                        $sql = "SELECT 
+                            p.*,
+                            CASE 
+                                WHEN jumlah_dp = 1 THEN 
+                                    CONCAT(
+                                        COALESCE(dp1_nominal, 0),
+                                        ' dari ',
+                                        1
+                                    )
+                                WHEN jumlah_dp = 2 THEN 
+                                    CONCAT(
+                                        CASE 
+                                            WHEN dp2_nominal IS NOT NULL THEN 2
+                                            WHEN dp1_nominal IS NOT NULL THEN 1
+                                            ELSE 0
+                                        END,
+                                        ' dari ',
+                                        2
+                                    )
+                                WHEN jumlah_dp = 3 THEN 
+                                    CONCAT(
+                                        CASE 
+                                            WHEN dp3_nominal IS NOT NULL THEN 3
+                                            WHEN dp2_nominal IS NOT NULL THEN 2
+                                            WHEN dp1_nominal IS NOT NULL THEN 1
+                                            ELSE 0
+                                        END,
+                                        ' dari ',
+                                        3
+                                    )
+                            END as dp,
+                            COALESCE(
+                                CASE 
+                                    WHEN status = '2' OR status = '3' OR status = '4' THEN tgllunas
+                                    ELSE NULL
+                                END,
+                                ''
+                            ) as tgllunas
+                            FROM penagihan p
+                            ORDER BY tanggal DESC";
+
+                        $result = mysqli_query($db, $sql);
+
+                        if (!$result) {
+                            die("Query gagal: " . mysqli_error($db));
+                        }
+
+                        while ($p = mysqli_fetch_assoc($result)) {
+                            // Format currency
+                            $p['total'] = 'Rp ' . number_format($p['total'], 0, ',', '.');
+
+                            // Format tanggal
+                            $p['tanggal'] = date('d/m/Y', strtotime($p['tanggal']));
+                            if (!empty($p['tgllunas'])) {
+                                $p['tgllunas'] = date('d/m/Y', strtotime($p['tgllunas']));
+                            }
+
                             $statusBadge = '';
                             $actionButton = '';
 
@@ -269,50 +273,50 @@ if ($menu == "Tabel") { ?>
 
                                     $actionButton = '<div class="btn-group">';
                                     if ($currentCicilan < $totalCicilan) {
-                                        $actionButton .= '<button class="btn btn-warning btn-sm" onclick="showCicilanModal(' . $index . ', ' . ($currentCicilan + 1) . ', ' . $totalCicilan . ')">
-                    <i class="fas fa-money-bill"></i> Cicilan ke-' . ($currentCicilan + 1) . '
-                </button>';
+                                        $actionButton .= '<button class="btn btn-warning btn-sm" onclick="showCicilanModal(' . $p['id'] . ', ' . ($currentCicilan + 1) . ', ' . $totalCicilan . ')">
+                                        <i class="fas fa-money-bill"></i> Cicilan ke-' . ($currentCicilan + 1) . '
+                                    </button>';
                                     } else {
-                                        $actionButton .= '<button class="btn btn-success btn-sm" onclick="showCicilanModal(' . $index . ', ' . ($currentCicilan + 1) . ', ' . $totalCicilan . ')">
-                    <i class="fas fa-check"></i> Pelunasan
-                </button>';
+                                        $actionButton .= '<button class="btn btn-success btn-sm" onclick="showCicilanModal(' . $p['id'] . ', ' . ($currentCicilan + 1) . ', ' . $totalCicilan . ')">
+                                        <i class="fas fa-check"></i> Pelunasan
+                                    </button>';
                                     }
-                                    $actionButton .= '<button class="btn btn-danger btn-sm" onclick="showBatalkanModal(' . $index . ')">
-                <i class="fas fa-times"></i> Batalkan
-            </button></div>';
+                                    $actionButton .= '<button class="btn btn-danger btn-sm" onclick="showBatalkanModal(' . $p['id'] . ')">
+                                    <i class="fas fa-times"></i> Batalkan
+                                </button></div>';
                                     break;
 
                                 case '2': // Lunas - Belum Siap
                                     $statusBadge = '<span class="badge badge-info">Lunas - Proses</span>';
                                     $actionButton = '<div class="btn-group">
-                <button class="btn btn-info btn-sm" onclick="updateStatus(' . $index . ', 3)">
-                    <i class="fas fa-box"></i> Barang Sudah Siap
-                </button>
-                <button class="btn btn-danger btn-sm" onclick="showBatalkanModal(' . $index . ')">
-                    <i class="fas fa-times"></i> Batalkan
-                </button>
-            </div>';
+                                    <button class="btn btn-info btn-sm" onclick="updateStatus(' . $p['id'] . ', 3)">
+                                        <i class="fas fa-box"></i> Barang Sudah Siap
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="showBatalkanModal(' . $p['id'] . ')">
+                                        <i class="fas fa-times"></i> Batalkan
+                                    </button>
+                                </div>';
                                     break;
 
                                 case '3': // Lunas - Tinggal Ambil
                                     $statusBadge = '<span class="badge badge-success">Lunas - Siap Diambil</span>';
-                                    $actionButton = '<button class="btn btn-success btn-sm" onclick="updateStatus(' . $index . ', 4)">
-                <i class="fas fa-hand-holding"></i> Barang Sudah Diambil
-            </button>';
+                                    $actionButton = '<button class="btn btn-success btn-sm" onclick="updateStatus(' . $p['id'] . ', 4)">
+                                    <i class="fas fa-hand-holding"></i> Barang Sudah Diambil
+                                </button>';
                                     break;
 
                                 case '4': // Selesai
                                     $statusBadge = '<span class="badge badge-secondary">Selesai</span>';
                                     $actionButton = '<button class="btn btn-secondary btn-sm" disabled>
-                <i class="fas fa-check-circle"></i> Selesai
-            </button>';
+                                    <i class="fas fa-check-circle"></i> Selesai
+                                </button>';
                                     break;
 
                                 case '5': // Dibatalkan
                                     $statusBadge = '<span class="badge badge-danger">Dibatalkan</span>';
                                     $actionButton = '<button class="btn btn-secondary btn-sm" onclick="showAlasanBatal(\'' . htmlspecialchars($p['alasan_batal']) . '\')">
-                <i class="fas fa-info-circle"></i> Lihat Alasan
-            </button>';
+                                    <i class="fas fa-info-circle"></i> Lihat Alasan
+                                </button>';
                                     break;
                             }
                             ?>
@@ -325,7 +329,7 @@ if ($menu == "Tabel") { ?>
                                 <td><?= $statusBadge ?></td>
                                 <td><?= $actionButton ?></td>
                             </tr>
-                    <?php endforeach; ?>
+                    <?php } ?>
                     </tbody>
                 </table>
             </div>
@@ -337,8 +341,8 @@ if ($menu == "Tabel") { ?>
         <!-- Scripts for handling actions -->
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script>
-            function showCicilanModal(index, cicilanKe, totalCicilan) {
-                $('#custId').val(index);
+            function showCicilanModal(id, cicilanKe, totalCicilan) {
+                $('#custId').val(id);
                 $('#cicilanKe').val(cicilanKe);
                 $('#modalCicilan').modal('show');
             }
@@ -358,7 +362,7 @@ if ($menu == "Tabel") { ?>
                 });
             }
 
-            function updateStatus(index, newStatus) {
+            function updateStatus(id, newStatus) {
                 let title, text, icon;
 
                 if (newStatus === 3) {
@@ -393,10 +397,49 @@ if ($menu == "Tabel") { ?>
                     }
                 });
             }
+
+            function showBatalkanModal(id) {
+                $('#custIdBatal').val(id);
+                $('#modalBatalkan').modal('show');
+            }
+
+            function batalkanPesanan() {
+                const id = $('#custIdBatal').val();
+                const alasan = $('#alasanBatal').val();
+
+                if (!alasan) {
+                    Swal.fire('Error', 'Alasan pembatalan harus diisi', 'error');
+                    return;
+                }
+
+                // Here you would normally send the data to the server
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: 'Pesanan telah dibatalkan',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#modalBatalkan').modal('hide');
+                        location.reload();
+                    }
+                });
+            }
+
+            function showAlasanBatal(alasan) {
+                Swal.fire({
+                    title: 'Alasan Pembatalan',
+                    text: alasan,
+                    icon: 'info',
+                    confirmButtonText: 'OK'
+                });
+            }
         </script>
 <?php } else { ?>
         <h1>Tidak Ada</h1>
 <?php } ?>
+
+<!-- Modal for Batalkan Pesanan -->
 <div class="modal fade" id="modalBatalkan" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
