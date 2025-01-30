@@ -30,7 +30,6 @@ class DiesNatalisNotification
 
         // Cek jika gagal parse tanggal
         if (!$dn_with_year) {
-          // Log kesalahan atau beri default value
           error_log("Gagal memparsing tanggal: " . $dn_date);
           continue; // Lewati iterasi ini jika parsing gagal
         }
@@ -54,7 +53,7 @@ class DiesNatalisNotification
             'status' => $this->getNotificationStatus($days_until)
           ];
 
-          // Aktifkan flag notifikasi hanya sekali
+          // Aktifkan flag notifikasi jika ada setidaknya satu Dies Natalis
           $showNotificationScript = true;
         }
       }
@@ -90,11 +89,31 @@ class DiesNatalisNotification
   {
     return <<<SCRIPT
       <script>
-        title = 'Penting';
-        message = 'Ada Dies Natalis yang sudah dekat!';
-        if ('Notification' in window) {
-          showNotification(title, message);
+        function showNotification(title, message) {
+          if (Notification.permission === 'granted') {
+            new Notification(title, { body: message });
+          } else if (Notification.permission !== 'denied') {
+            Notification.requestPermission().then(function (permission) {
+              if (permission === 'granted') {
+                new Notification(title, { body: message });
+              }
+            });
+          }
         }
+
+        function checkAndNotify() {
+          title = 'Penting';
+          message = 'Ada Dies Natalis yang sudah dekat!';
+          if ('Notification' in window) {
+            showNotification(title, message);
+          }
+        }
+
+        // Jalankan notifikasi pertama kali
+        checkAndNotify();
+
+        // Jalankan notifikasi setiap 30 menit
+        setInterval(checkAndNotify, 30 * 60 * 1000);
       </script>
     SCRIPT;
   }
@@ -105,7 +124,6 @@ $dnNotification = new DiesNatalisNotification($db);
 $notifications = $dnNotification->getActiveNotifications();
 $notificationCount = $dnNotification->getNotificationCount();
 ?>
-
 <!-- Navbar -->
 <nav class="main-header navbar navbar-expand">
   <!-- Left navbar links -->
