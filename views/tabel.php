@@ -200,40 +200,65 @@ if ($menu == "Tabel") { ?>
                     </thead>
                     <tbody>
                         <?php
+                        function generateInstallmentBadge($current, $total)
+                        {
+                            $badgeClass = 'badge ';
+
+                            // Determine badge color based on progress
+                            if ($current == $total) {
+                                $badgeClass .= 'badge-success'; // Completed all installments
+                            } elseif ($current == 0) {
+                                $badgeClass .= 'badge-secondary'; // No installments yet
+                            } else {
+                                $badgeClass .= 'badge-info'; // In progress
+                            }
+
+                            return sprintf(
+                                '<div class="d-flex align-items-center">
+                                    <span class="%s" style="font-size: 0.9rem; padding: 6px 12px;">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        Cicilan %d dari %d
+                                    </span>
+                                </div>',
+                                $badgeClass,
+                                $current,
+                                $total
+                            );
+                        }
                         $sql = "SELECT 
-                        p.*,
-                        CASE 
-                            WHEN jumlah_dp = 1 THEN 
-                                CONCAT(
-                                    CASE 
-                                        WHEN dp1_nominal IS NOT NULL THEN 1
-                                        ELSE 0
-                                    END,
-                                    ' dari ',
-                                    1
-                                )
-                            WHEN jumlah_dp = 2 THEN 
-                                CONCAT(
-                                    CASE 
-                                        WHEN dp2_nominal IS NOT NULL THEN 2
-                                        WHEN dp1_nominal IS NOT NULL THEN 1
-                                        ELSE 0
-                                    END,
-                                    ' dari ',
-                                    2
-                                )
-                            WHEN jumlah_dp = 3 THEN 
-                                CONCAT(
-                                    CASE 
-                                        WHEN dp3_nominal IS NOT NULL THEN 3
-                                        WHEN dp2_nominal IS NOT NULL THEN 2
-                                        WHEN dp1_nominal IS NOT NULL THEN 1
-                                        ELSE 0
-                                    END,
-                                    ' dari ',
-                                    3
-                                )
-                        END as dp,
+                            p.*,
+                            CASE 
+                                WHEN jumlah_dp = 1 THEN 
+                                    CONCAT(
+                                        CASE 
+                                            WHEN dp1_nominal IS NOT NULL THEN 1
+                                            ELSE 0
+                                        END,
+                                        ' dari ',
+                                        1
+                                    )
+                                WHEN jumlah_dp = 2 THEN 
+                                    CONCAT(
+                                        CASE 
+                                            WHEN dp2_nominal IS NOT NULL THEN 2
+                                            WHEN dp1_nominal IS NOT NULL THEN 1
+                                            ELSE 0
+                                        END,
+                                        ' dari ',
+                                        2
+                                    )
+                                WHEN jumlah_dp = 3 THEN 
+                                    CONCAT(
+                                        CASE 
+                                            WHEN dp3_nominal IS NOT NULL THEN 3
+                                            WHEN dp2_nominal IS NOT NULL THEN 2
+                                            WHEN dp1_nominal IS NOT NULL THEN 1
+                                            ELSE 0
+                                        END,
+                                        ' dari ',
+                                        3
+                                    )
+                            END as dp,
                         COALESCE(dp1_nominal, 0) + COALESCE(dp2_nominal, 0) + COALESCE(dp3_nominal, 0) as total_dibayar,
                         total as total_tagihan,
                         COALESCE(
@@ -261,6 +286,19 @@ if ($menu == "Tabel") { ?>
                             $p['tanggal'] = date('d/m/Y', strtotime($p['tanggal']));
                             if (!empty($p['tgllunas'])) {
                                 $p['tgllunas'] = date('d/m/Y', strtotime($p['tgllunas']));
+                            }
+
+                            $dpDisplay = '';
+                            if ($p['status'] == 4) { // Lunas
+                                $dpDisplay = '<span class="badge badge-success">Lunas</span>';
+                            } elseif ($p['status'] == 5) { // Dibatalkan
+                                $dpDisplay = '<span class="badge badge-danger">Batal</span>';
+                            } else {
+                                // Tampilkan informasi cicilan menggunakan fungsi generateInstallmentBadge
+                                $dpParts = explode(" dari ", $p['dp']);
+                                $currentCicilan = (int) $dpParts[0];
+                                $totalCicilan = (int) $dpParts[1];
+                                $dpDisplay = generateInstallmentBadge($currentCicilan, $totalCicilan);
                             }
 
                             $dpParts = explode(" dari ", $p['dp']);
@@ -353,36 +391,30 @@ if ($menu == "Tabel") { ?>
                                 <td><?= htmlspecialchars($p['tanggal']) ?></td>
                                 <td><?= htmlspecialchars($p['customer']) ?></td>
                                 <td><?= htmlspecialchars($p['total_display']) ?></td>
-                                <td><?= htmlspecialchars($p['dp']) ?></td>
-                                <td>
-                                    <?php
-                                    // Cek apakah status pesanan dibatalkan (status = 5)
-                                    if ($p['status'] == 5) {
-                                        echo '<span class="badge badge-danger">Pesanan dibatalkan</span>';
-                                    } else {
-                                        // Cek apakah tgllunas kosong
+                            <?php if ($p['status'] == '5'): // If canceled ?>
+                                    <td colspan="3">
+                                        <span class="badge badge-danger">Dibatalkan</span>
+                                    </td>
+                            <?php else: // Not canceled ?>
+                                    <td><?= $dpDisplay ?></td>
+                                    <td>
+                                        <?php
                                         if (empty($p['tgllunas'])) {
-                                            // Hitung total pembayaran
                                             $totalPembayaran = $p['dp1_nominal'] + $p['dp2_nominal'] + $p['dp3_nominal'];
-
-                                            // Hitung sisa pembayaran
                                             $sisaPembayaran = $p['total'] - $totalPembayaran;
 
-                                            // Jika ada pembayaran (totalPembayaran > 0), tampilkan sisa pembayaran dalam format Rupiah
                                             if ($totalPembayaran > 0) {
                                                 echo "Rp " . number_format($sisaPembayaran, 2, ',', '.');
                                             } else {
-                                                // Jika belum ada pembayaran sama sekali, tampilkan pesan dengan badge
                                                 echo '<span class="badge badge-warning">belum membayar sepeserpun</span>';
                                             }
                                         } else {
-                                            // Jika tgllunas tidak kosong, tampilkan tgllunas
                                             echo $p['tgllunas'];
                                         }
-                                    }
-                                    ?>
-                                </td>
-                                <td><?= $statusBadge ?></td>
+                                        ?>
+                                    </td>
+                                    <td><?= $statusBadge ?></td>
+                            <?php endif; ?>
                                 <td><?= $actionButton ?></td>
                             </tr>
                     <?php } ?>
