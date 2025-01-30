@@ -32,35 +32,15 @@
             <p>Dashboard</p>
           </a>
         </li>
-        <li class="nav-item <?php if ($menu == "Barang" || $menu == "Stiker") {
-          echo "menu-is-opening menu-open";
-        } ?>">
-          <a href="#" class="nav-link">
-            <i class="nav-icon fas fa-box"></i>
-            <p>
-              Data Barang
-              <i class="fas fa-angle-left right"></i>
-            </p>
-          </a>
-          <ul class="nav nav-treeview">
+        <li class="nav-item">
             <li class="nav-item">
-              <a href="index.php?menu=Barang&submenu=DataBarang" class="nav-link <?php if ($submenu == "DataBarang") {
+              <a href="index.php?menu=Barang&submenu=StockBarang" class="nav-link <?php if ($menu == "Barang") {
                 echo "active";
               } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Barang</p>
+                <i class="nav-item fas fa-box"></i>
+                <p>Stock Barang</p>
               </a>
             </li>
-            <li class="nav-item">
-              <a href="index.php?menu=Stiker&submenu=DataStiker" class="nav-link <?php if ($submenu == "DataStiker") {
-                echo "active";
-              } ?>">
-                <i class="far fa-circle nav-icon"></i>
-                <p>Data Stiker</p>
-              </a>
-            </li>
-          </ul>
-        </li>
         <li class="nav-header">Data Dies Natalis</li>
         <!-- New Data Barang Section -->
         <li class="nav-item <?php if ($menu == "Tabel" || $menu == "Penagihan") {

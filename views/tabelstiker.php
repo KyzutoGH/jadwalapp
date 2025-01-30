@@ -2,28 +2,37 @@
 if ($menu == "Stiker") {
     ?>
     <div class="card">
-        <div class="card-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h3 class="card-title">Data Stiker</h3>
-                <div>
-                    <a href="index.php?menu=CreateStiker&submenu=StikerAdd" class="btn btn-primary">
-                        Tambah Stiker
-                    </a>
-                </div>
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <h3 class="card-title mb-0 mr-4">
+                    <a href="index.php?menu=DataBarang" class="text-dark">Data Barang</a>
+                </h3>
+                <h3 class="card-title mb-0">
+                    <a href="tabelstiker.php" class="text-secondary">Stock Sablon</a>
+                </h3>
+            </div>
+            <div>
+                <a href="index.php?menu=CreateBarang&submenu=BarangAdd" class="btn btn-primary">
+                    Tambah Barang
+                </a>
             </div>
         </div>
-        <div class="card-body">
-            <ul class="nav nav-tabs" id="custom-tabs" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link" id="tab-masuk" data-toggle="pill" href="#masuk" role="tab">Stiker Masuk</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" id="tab-data" data-toggle="pill" href="#data" role="tab">Data Stiker</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="tab-keluar" data-toggle="pill" href="#keluar" role="tab">Stiker Keluar</a>
-                </li>
-            </ul>
+    </div>
+    <div class="card-body">
+        <ul class="nav nav-tabs" id="custom-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link" id="tab-masuk" data-toggle="pill" href="#masuk" role="tab">Barang Masuk</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" id="tab-data" data-toggle="pill" href="#data" role="tab">Data Barang</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-keluar" data-toggle="pill" href="#keluar" role="tab">Barang Keluar</a>
+            </li>
+        </ul>
+    </div>
+</div>
 
             <div class="tab-content" id="custom-tabs-content">
                 <!-- Tab Stiker Masuk -->
