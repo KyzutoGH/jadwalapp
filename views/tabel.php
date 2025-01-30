@@ -174,10 +174,7 @@ if ($menu == "Tabel") { ?>
             </table>
         </div>
     </div>
-
-
     <?php
-    // Modifikasi pada bagian tabel penagihan
 } else if ($menu == "Penagihan") { ?>
         <div class="card">
             <div class="card-header">
@@ -196,136 +193,195 @@ if ($menu == "Tabel") { ?>
                             <th>NAMA CUSTOMER</th>
                             <th>TOTAL</th>
                             <th>DP</th>
-                            <th>TGL LUNAS</th>
+                            <th>TGL LUNAS/SISA TAGIHAN</th>
                             <th>STATUS</th>
                             <th>AKSI</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        // Query untuk mengambil data penagihan
                         $sql = "SELECT 
-                            p.*,
+                        p.*,
+                        CASE 
+                            WHEN jumlah_dp = 1 THEN 
+                                CONCAT(
+                                    CASE 
+                                        WHEN dp1_nominal IS NOT NULL THEN 1
+                                        ELSE 0
+                                    END,
+                                    ' dari ',
+                                    1
+                                )
+                            WHEN jumlah_dp = 2 THEN 
+                                CONCAT(
+                                    CASE 
+                                        WHEN dp2_nominal IS NOT NULL THEN 2
+                                        WHEN dp1_nominal IS NOT NULL THEN 1
+                                        ELSE 0
+                                    END,
+                                    ' dari ',
+                                    2
+                                )
+                            WHEN jumlah_dp = 3 THEN 
+                                CONCAT(
+                                    CASE 
+                                        WHEN dp3_nominal IS NOT NULL THEN 3
+                                        WHEN dp2_nominal IS NOT NULL THEN 2
+                                        WHEN dp1_nominal IS NOT NULL THEN 1
+                                        ELSE 0
+                                    END,
+                                    ' dari ',
+                                    3
+                                )
+                        END as dp,
+                        COALESCE(dp1_nominal, 0) + COALESCE(dp2_nominal, 0) + COALESCE(dp3_nominal, 0) as total_dibayar,
+                        total as total_tagihan,
+                        COALESCE(
                             CASE 
-                                WHEN jumlah_dp = 1 THEN 
-                                    CONCAT(
-                                        COALESCE(dp1_nominal, 0),
-                                        ' dari ',
-                                        1
-                                    )
-                                WHEN jumlah_dp = 2 THEN 
-                                    CONCAT(
-                                        CASE 
-                                            WHEN dp2_nominal IS NOT NULL THEN 2
-                                            WHEN dp1_nominal IS NOT NULL THEN 1
-                                            ELSE 0
-                                        END,
-                                        ' dari ',
-                                        2
-                                    )
-                                WHEN jumlah_dp = 3 THEN 
-                                    CONCAT(
-                                        CASE 
-                                            WHEN dp3_nominal IS NOT NULL THEN 3
-                                            WHEN dp2_nominal IS NOT NULL THEN 2
-                                            WHEN dp1_nominal IS NOT NULL THEN 1
-                                            ELSE 0
-                                        END,
-                                        ' dari ',
-                                        3
-                                    )
-                            END as dp,
-                            COALESCE(
-                                CASE 
-                                    WHEN status = '2' OR status = '3' OR status = '4' THEN tgllunas
-                                    ELSE NULL
-                                END,
-                                ''
-                            ) as tgllunas
-                            FROM penagihan p
-                            ORDER BY tanggal DESC";
+                                WHEN status = '2' OR status = '3' OR status = '4' THEN tgllunas
+                                ELSE NULL
+                            END,
+                            ''
+                        ) as tgllunas
+                        FROM penagihan p
+                        ORDER BY tanggal DESC";
 
                         $result = mysqli_query($db, $sql);
-
-                        if (!$result) {
+                        if (!$result)
                             die("Query gagal: " . mysqli_error($db));
-                        }
 
                         while ($p = mysqli_fetch_assoc($result)) {
-                            // Format currency
-                            $p['total'] = 'Rp ' . number_format($p['total'], 0, ',', '.');
+                            // Keep numeric values for calculations
+                            $total_numeric = $p['total_tagihan'];
+                            $total_dibayar_numeric = $p['total_dibayar'];
+                            $sisaPembayaran = $total_numeric - $total_dibayar_numeric;
 
-                            // Format tanggal
+                            // Format for display
+                            $p['total_display'] = 'Rp ' . number_format($total_numeric, 0, ',', '.');
                             $p['tanggal'] = date('d/m/Y', strtotime($p['tanggal']));
                             if (!empty($p['tgllunas'])) {
                                 $p['tgllunas'] = date('d/m/Y', strtotime($p['tgllunas']));
                             }
 
+                            $dpParts = explode(" dari ", $p['dp']);
+                            $currentCicilan = (int) $dpParts[0];
+                            $totalCicilan = (int) $dpParts[1];
+
                             $statusBadge = '';
                             $actionButton = '';
+                            // Hitung total pembayaran yang sudah dilakukan
+                            $totalPembayaran = $p['dp1_nominal'] + $p['dp2_nominal'] + $p['dp3_nominal'];
 
+                            // Hitung sisa pembayaran
+                            $sisaPembayaran = $p['total'] - $totalPembayaran;
+
+                            // Tentukan jumlah cicilan yang sudah dilakukan
+                            $currentCicilan = 0;
+                            if ($p['dp1_nominal'] > 0)
+                                $currentCicilan++;
+                            if ($p['dp2_nominal'] > 0)
+                                $currentCicilan++;
+                            if ($p['dp3_nominal'] > 0)
+                                $currentCicilan++;
+
+                            // Tentukan total cicilan maksimal berdasarkan jumlah_dp
+                            $totalCicilan = $p['jumlah_dp'];
+
+                            // Tentukan status badge
                             switch ($p['status']) {
                                 case '1': // Belum Lunas
                                     $statusBadge = '<span class="badge badge-warning">Belum Lunas</span>';
-                                    $dpParts = explode(" dari ", $p['dp']);
-                                    $currentCicilan = (int) $dpParts[0];
-                                    $totalCicilan = (int) $dpParts[1];
-
                                     $actionButton = '<div class="btn-group">';
-                                    if ($currentCicilan < $totalCicilan) {
-                                        $actionButton .= '<button class="btn btn-warning btn-sm" onclick="showCicilanModal(' . $p['id'] . ', ' . ($currentCicilan + 1) . ', ' . $totalCicilan . ')">
-                                        <i class="fas fa-money-bill"></i> Cicilan ke-' . ($currentCicilan + 1) . '
-                                    </button>';
-                                    } else {
-                                        $actionButton .= '<button class="btn btn-success btn-sm" onclick="showCicilanModal(' . $p['id'] . ', ' . ($currentCicilan + 1) . ', ' . $totalCicilan . ')">
-                                        <i class="fas fa-check"></i> Pelunasan
-                                    </button>';
+
+                                    // Jika cicilan sudah mencapai jumlah_dp dan sisa pembayaran > 0, tampilkan tombol pelunasan
+                                    if ($currentCicilan >= $totalCicilan && $sisaPembayaran > 0) {
+                                        $actionButton .= "
+            <button class='btn btn-success btn-sm' onclick='showCicilanModal({$p['id']}, {$currentCicilan}, {$totalCicilan}, {$sisaPembayaran})'>
+                <i class='fas fa-check'></i> Pelunasan
+            </button>";
                                     }
-                                    $actionButton .= '<button class="btn btn-danger btn-sm" onclick="showBatalkanModal(' . $p['id'] . ')">
-                                    <i class="fas fa-times"></i> Batalkan
-                                </button></div>';
-                                    break;
+                                    // Jika cicilan belum mencapai jumlah_dp, tampilkan tombol cicilan berikutnya
+                                    elseif ($currentCicilan < $totalCicilan) {
+                                        $nextCicilan = $currentCicilan + 1;
+                                        $actionButton .= "
+            <button class='btn btn-warning btn-sm' onclick='showCicilanModal({$p['id']}, {$nextCicilan}, {$totalCicilan}, {$sisaPembayaran})'>
+                <i class='fas fa-money-bill'></i> Cicilan ke-{$nextCicilan}
+            </button>";
+                                    }
 
-                                case '2': // Lunas - Belum Siap
+                                    // Tombol batalkan
+                                    $actionButton .= "
+        <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})'>
+            <i class='fas fa-times'></i> Batalkan
+        </button>
+        </div>";
+                                    break;
+                                case '2': // Lunas - Proses
                                     $statusBadge = '<span class="badge badge-info">Lunas - Proses</span>';
-                                    $actionButton = '<div class="btn-group">
-                                    <button class="btn btn-info btn-sm" onclick="updateStatus(' . $p['id'] . ', 3)">
-                                        <i class="fas fa-box"></i> Barang Sudah Siap
+                                    $actionButton = "<div class='btn-group'>
+                                    <button class='btn btn-info btn-sm' onclick='updateStatus({$p['id']}, 3)'>
+                                        <i class='fas fa-box'></i> Barang Sudah Siap
                                     </button>
-                                    <button class="btn btn-danger btn-sm" onclick="showBatalkanModal(' . $p['id'] . ')">
-                                        <i class="fas fa-times"></i> Batalkan
+                                    <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})'>
+                                        <i class='fas fa-times'></i> Batalkan
                                     </button>
-                                </div>';
+                                </div>";
                                     break;
 
-                                case '3': // Lunas - Tinggal Ambil
+                                case '3': // Lunas - Siap Diambil
                                     $statusBadge = '<span class="badge badge-success">Lunas - Siap Diambil</span>';
-                                    $actionButton = '<button class="btn btn-success btn-sm" onclick="updateStatus(' . $p['id'] . ', 4)">
-                                    <i class="fas fa-hand-holding"></i> Barang Sudah Diambil
-                                </button>';
+                                    $actionButton = "<button class='btn btn-success btn-sm' onclick='updateStatus({$p['id']}, 4)'>
+                                    <i class='fas fa-hand-holding'></i> Barang Sudah Diambil
+                                </button>";
                                     break;
 
                                 case '4': // Selesai
                                     $statusBadge = '<span class="badge badge-secondary">Selesai</span>';
-                                    $actionButton = '<button class="btn btn-secondary btn-sm" disabled>
-                                    <i class="fas fa-check-circle"></i> Selesai
-                                </button>';
+                                    $actionButton = "<button class='btn btn-secondary btn-sm' disabled>
+                                    <i class='fas fa-check-circle'></i> Selesai
+                                </button>";
                                     break;
-
                                 case '5': // Dibatalkan
                                     $statusBadge = '<span class="badge badge-danger">Dibatalkan</span>';
-                                    $actionButton = '<button class="btn btn-secondary btn-sm" onclick="showAlasanBatal(\'' . htmlspecialchars($p['alasan_batal']) . '\')">
-                                    <i class="fas fa-info-circle"></i> Lihat Alasan
-                                </button>';
+                                    $actionButton = "<button class='btn btn-secondary btn-sm' data-toggle='modal' data-target='#alasanModal' onclick='tampilkanAlasan(\"" . htmlspecialchars($p['alasan_batal']) . "\")'>
+                                            <i class='fas fa-info-circle'></i> Lihat Alasan
+                                        </button>";
                                     break;
                             }
                             ?>
                             <tr>
                                 <td><?= htmlspecialchars($p['tanggal']) ?></td>
                                 <td><?= htmlspecialchars($p['customer']) ?></td>
-                                <td><?= htmlspecialchars($p['total']) ?></td>
+                                <td><?= htmlspecialchars($p['total_display']) ?></td>
                                 <td><?= htmlspecialchars($p['dp']) ?></td>
-                                <td><?= htmlspecialchars($p['tgllunas']) ?></td>
+                                <td>
+                                    <?php
+                                    // Cek apakah status pesanan dibatalkan (status = 5)
+                                    if ($p['status'] == 5) {
+                                        echo '<span class="badge badge-danger">Pesanan dibatalkan</span>';
+                                    } else {
+                                        // Cek apakah tgllunas kosong
+                                        if (empty($p['tgllunas'])) {
+                                            // Hitung total pembayaran
+                                            $totalPembayaran = $p['dp1_nominal'] + $p['dp2_nominal'] + $p['dp3_nominal'];
+
+                                            // Hitung sisa pembayaran
+                                            $sisaPembayaran = $p['total'] - $totalPembayaran;
+
+                                            // Jika ada pembayaran (totalPembayaran > 0), tampilkan sisa pembayaran dalam format Rupiah
+                                            if ($totalPembayaran > 0) {
+                                                echo "Rp " . number_format($sisaPembayaran, 2, ',', '.');
+                                            } else {
+                                                // Jika belum ada pembayaran sama sekali, tampilkan pesan dengan badge
+                                                echo '<span class="badge badge-warning">belum membayar sepeserpun</span>';
+                                            }
+                                        } else {
+                                            // Jika tgllunas tidak kosong, tampilkan tgllunas
+                                            echo $p['tgllunas'];
+                                        }
+                                    }
+                                    ?>
+                                </td>
                                 <td><?= $statusBadge ?></td>
                                 <td><?= $actionButton ?></td>
                             </tr>
@@ -335,50 +391,141 @@ if ($menu == "Tabel") { ?>
             </div>
         </div>
 
-        <!-- Include Modal -->
-    <?php include 'bagian/modal/cicilan_modal.php'; ?>
+        <!-- Modal Cicilan -->
+        <div class="modal fade" id="modalCicilan" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Form Cicilan Pembayaran</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="formCicilan" action="config/proses_cicilan.php" method="GET">
+                            <input type="hidden" id="custId" name="custId">
+                            <input type="hidden" id="cicilanKe" name="cicilanKe">
+                            <input type="hidden" id="tanggalPembayaran" name="tanggalPembayaran">
 
-        <!-- Scripts for handling actions -->
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                            <div class="form-group">
+                                <label>Jumlah Pembayaran</label>
+                                <input type="number" class="form-control" id="jumlahBayar" name="jumlahBayar" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Keterangan</label>
+                                <textarea class="form-control" id="keterangan" name="keterangan"></textarea>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                                <button type="submit" class="btn btn-primary">Simpan Pembayaran</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Batalkan -->
+        <div class="modal fade" id="modalBatalkan" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Batalkan Pesanan</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="formBatalkan" action="config/batalkan_pesanan.php" method="GET">
+                            <input type="hidden" id="custIdBatal" name="id">
+                            <div class="form-group">
+                                <label for="alasanBatal">Alasan Pembatalan:</label>
+                                <textarea class="form-control" id="alasanBatal" name="alasan" rows="3" required></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-danger">Konfirmasi Pembatalan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Alasan Batal -->
+        <div class="modal fade" id="alasanModal" tabindex="-1" role="dialog" aria-labelledby="alasanModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="alasanModalLabel">Alasan Pembatalan</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="alasanText"></p> <!-- Tempat untuk menampilkan alasan -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <script>
-            function showCicilanModal(id, cicilanKe, totalCicilan) {
+            function showCicilanModal(id, cicilanKe, totalCicilan, sisaPembayaran) {
                 $('#custId').val(id);
                 $('#cicilanKe').val(cicilanKe);
+
+                // Set tanggal otomatis ke hari ini
+                const today = new Date().toISOString().split('T')[0];
+                $('#tanggalPembayaran').val(today);
+
+                // Logic for payment amount field
+                const $jumlahBayar = $('#jumlahBayar');
+
+                if (cicilanKe > totalCicilan) {
+                    // Pelunasan (after all installments)
+                    $jumlahBayar.val(sisaPembayaran);
+                    $jumlahBayar.prop('readonly', true);
+                    $('.modal-title').text('Form Pelunasan');
+                } else if (cicilanKe === totalCicilan && sisaPembayaran > 0) {
+                    // If it's the third payment and there's remaining balance, it's pelunasan
+                    $jumlahBayar.val(sisaPembayaran);
+                    $jumlahBayar.prop('readonly', true);
+                    $('.modal-title').text('Form Pelunasan');
+                } else {
+                    // Regular installments (cicilan 1-2)
+                    $jumlahBayar.val('');
+                    $jumlahBayar.prop('readonly', false);
+                    $('.modal-title').text(`Form Cicilan ke-${cicilanKe}`);
+                }
+
+                // Show the modal
                 $('#modalCicilan').modal('show');
             }
-
-            function saveCicilan() {
-                // Here you would normally save to database
-                Swal.fire({
-                    title: 'Berhasil!',
-                    text: 'Pembayaran cicilan telah disimpan',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $('#modalCicilan').modal('hide');
-                        location.reload();
-                    }
-                });
+            function showBatalkanModal(id) {
+                $('#custIdBatal').val(id);
+                $('#modalBatalkan').modal('show');
             }
 
             function updateStatus(id, newStatus) {
-                let title, text, icon;
+                let title, text;
 
                 if (newStatus === 3) {
                     title = 'Konfirmasi Barang Siap';
                     text = 'Apakah barang sudah selesai diproduksi dan siap diambil?';
-                    icon = 'question';
                 } else if (newStatus === 4) {
                     title = 'Konfirmasi Pengambilan';
                     text = 'Apakah barang sudah diambil oleh customer?';
-                    icon = 'question';
                 }
 
                 Swal.fire({
                     title: title,
                     text: text,
-                    icon: icon,
+                    icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
@@ -386,82 +533,14 @@ if ($menu == "Tabel") { ?>
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Here you would normally update the database
-                        Swal.fire(
-                            'Berhasil!',
-                            'Status telah diperbarui',
-                            'success'
-                        ).then(() => {
-                            location.reload();
-                        });
+                        window.location.href = `config/update_status.php?id=${id}&status=${newStatus}`;
                     }
                 });
             }
 
-            function showBatalkanModal(id) {
-                $('#custIdBatal').val(id);
-                $('#modalBatalkan').modal('show');
-            }
-
-            function batalkanPesanan() {
-                const id = $('#custIdBatal').val();
-                const alasan = $('#alasanBatal').val();
-
-                if (!alasan) {
-                    Swal.fire('Error', 'Alasan pembatalan harus diisi', 'error');
-                    return;
-                }
-
-                // Here you would normally send the data to the server
-                Swal.fire({
-                    title: 'Berhasil!',
-                    text: 'Pesanan telah dibatalkan',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $('#modalBatalkan').modal('hide');
-                        location.reload();
-                    }
-                });
-            }
-
-            function showAlasanBatal(alasan) {
-                Swal.fire({
-                    title: 'Alasan Pembatalan',
-                    text: alasan,
-                    icon: 'info',
-                    confirmButtonText: 'OK'
-                });
+            function tampilkanAlasan(alasan) {
+                // Isi teks alasan ke dalam modal
+                document.getElementById('alasanText').innerText = alasan;
             }
         </script>
-<?php } else { ?>
-        <h1>Tidak Ada</h1>
 <?php } ?>
-
-<!-- Modal for Batalkan Pesanan -->
-<div class="modal fade" id="modalBatalkan" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Batalkan Pesanan</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="formBatalkan">
-                    <input type="hidden" id="custIdBatal">
-                    <div class="form-group">
-                        <label for="alasanBatal">Alasan Pembatalan:</label>
-                        <textarea class="form-control" id="alasanBatal" rows="3" required></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-danger" onclick="batalkanPesanan()">Konfirmasi Pembatalan</button>
-            </div>
-        </div>
-    </div>
-</div>

@@ -90,8 +90,8 @@ class DiesNatalisNotification
   {
     return <<<SCRIPT
       <script>
-        const title = 'Penting';
-        const message = 'Ada Dies Natalis yang sudah dekat!';
+        title = 'Penting';
+        message = 'Ada Dies Natalis yang sudah dekat!';
         if ('Notification' in window) {
           showNotification(title, message);
         }
