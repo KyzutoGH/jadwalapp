@@ -59,76 +59,249 @@
 <!-- Toastr -->
 <script src="assets/plugins/toastr/toastr.min.js"></script>
 <script>
-  $(document).ready(function () {
-    // Inisialisasi DataTables untuk semua tabel yang ada
-    ['#tabelSekolah', '#tabelContact', '#tabelPenagihan', '#tabelBarang, #tabelBarangKeluar', '#tabelBarangMasuk'].forEach(function (tableId) {
-      if ($(tableId).length) {
-        $(tableId).DataTable({
-          "paging": true,
-          "lengthChange": true,
-          "searching": true,
-          "ordering": true,
-          "info": true,
-          "autoWidth": false,
-          "responsive": true,
-          "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
-          }
-        });
-      }
-    });
-  });
-  $(document).ready(function () {
-    // When modal is about to be shown
-    $('#modalEdit').on('show.bs.modal', function (event) {
-      var button = $(event.relatedTarget); // Button that triggered the modal
-      var modal = $(this);
+  // Global configuration objects
+  const toastrConfig = {
+    closeButton: true,
+    debug: false,
+    newestOnTop: true,
+    progressBar: true,
+    positionClass: "toast-top-right",
+    preventDuplicates: true,
+    showDuration: "300",
+    hideDuration: "1000",
+    timeOut: "5000",
+    extendedTimeOut: "1000",
+    showEasing: "swing",
+    hideEasing: "linear",
+    showMethod: "fadeIn",
+    hideMethod: "fadeOut"
+  };
 
-      // Debug the data attributes
-      console.log('Data from button:', {
-        id: button.data('id'),
-        nama_sekolah: button.data('nama_sekolah'),
-        alamat: button.data('alamat'),
-        nomor: button.data('nomor_kontak'),
-        pemilik_kontak: button.data('pemilik_kontak'),
-        jabatan: button.data('jabatan'),
-        tanggal_dn: button.data('tanggal_dn'),
-        status_kontak: button.data('status_kontak')
+  const dataTableLanguage = {
+    emptyTable: "Tidak ada data yang tersedia",
+    info: "Menampilkan _START_ hingga _END_ dari _TOTAL_ entri",
+    infoEmpty: "Menampilkan 0 hingga 0 dari 0 entri",
+    infoFiltered: "(difilter dari _MAX_ total entri)",
+    lengthMenu: "Tampilkan _MENU_ entri",
+    loadingRecords: "Memuat...",
+    processing: "Memproses...",
+    search: "Pencarian:",
+    zeroRecords: "Tidak ditemukan data yang sesuai",
+    paginate: {
+      first: "Pertama",
+      last: "Terakhir",
+      next: "Selanjutnya",
+      previous: "Sebelumnya"
+    }
+  };
+
+  $(document).ready(function () {
+    // Custom date range filter function
+    const dateRangeFilter = (settings, data, dataIndex) => {
+      if (settings.nTable.id !== 'tabelPenagihan') return true;
+
+      const startDate = $('#tgl_mulai').val();
+      const endDate = $('#tgl_akhir').val();
+
+      if (!startDate && !endDate) return true;
+
+      const dateInTable = moment(data[0], 'DD/MM/YYYY', true);
+
+      if (!dateInTable.isValid()) return false;
+
+      const start = startDate ? moment(startDate, 'YYYY-MM-DD', true) : null;
+      const end = endDate ? moment(endDate, 'YYYY-MM-DD', true) : null;
+
+      if (start && end) {
+        return dateInTable.isBetween(start, end, 'day', '[]');
+      } else if (start) {
+        return dateInTable.isSameOrAfter(start, 'day');
+      } else if (end) {
+        return dateInTable.isSameOrBefore(end, 'day');
+      }
+
+      return true;
+    };
+
+    // Remove any existing filter before adding new one
+    $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(filter =>
+      filter.toString() !== dateRangeFilter.toString()
+    );
+
+    // Add the optimized date range filter
+    $.fn.dataTable.ext.search.push(dateRangeFilter);
+
+    // Initialize DataTable with optimized configuration
+    let penaginhanTable;
+    if ($('#tabelPenagihan').length) {
+      penaginhanTable = $('#tabelPenagihan').DataTable({
+        paging: true,
+        lengthChange: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: false,
+        responsive: true,
+        language: dataTableLanguage,
+        stateSave: true,
+        deferRender: true,
+        initComplete: function (settings, json) {
+          $('.dataTables_filter input, .dataTables_length select').addClass('form-control');
+
+          if (!$('#reset_filter').length) {
+            const resetButton = $('<button>', {
+              id: 'reset_filter',
+              class: 'btn btn-secondary mb-3',
+              html: '<i class="fas fa-sync-alt"></i> Reset Filter'
+            });
+
+            $('.card-body').prepend(resetButton);
+          }
+
+          const savedFilters = localStorage.getItem('tabelPenagihanFilters');
+          if (savedFilters) {
+            const filters = JSON.parse(savedFilters);
+            $('#tgl_mulai').val(filters.startDate);
+            $('#tgl_akhir').val(filters.endDate);
+            $('#filter_status').val(filters.status).trigger('change');
+          }
+        }
       });
 
-      // Set values to form fields
-      modal.find('input[name="nama_sekolah"]').val(button.data('nama_sekolah'));
-      modal.find('input[name="alamat"]').val(button.data('alamat'));
-      modal.find('input[name="nomor_kontak"]').val(button.data('nomor_kontak'));
-      modal.find('input[name="pemilik_kontak"]').val(button.data('pemilik_kontak'));
-      modal.find('input[name="jabatan"]').val(button.data('jabatan'));
-      modal.find('input[name="tanggal_dn"]').val(button.data('tanggal_dn'));
-      modal.find('select[name="status_kontak"]').val(button.data('status_kontak'));
+      let dateFilterTimeout;
+      $('#tgl_mulai, #tgl_akhir').on('change', function () {
+        const filters = {
+          startDate: $('#tgl_mulai').val(),
+          endDate: $('#tgl_akhir').val(),
+          status: $('#filter_status').val()
+        };
+        localStorage.setItem('tabelPenagihanFilters', JSON.stringify(filters));
+
+        clearTimeout(dateFilterTimeout);
+        dateFilterTimeout = setTimeout(() => {
+          penaginhanTable.draw();
+        }, 300);
+      });
+
+      let statusFilterTimeout;
+      $('#filter_status').on('change', function () {
+        const searchTerm = $(this).val();
+
+        const filters = {
+          startDate: $('#tgl_mulai').val(),
+          endDate: $('#tgl_akhir').val(),
+          status: searchTerm
+        };
+        localStorage.setItem('tabelPenagihanFilters', JSON.stringify(filters));
+
+        clearTimeout(statusFilterTimeout);
+        statusFilterTimeout = setTimeout(() => {
+          penaginhanTable
+            .column(5)
+            .search(searchTerm)
+            .draw();
+        }, 300);
+      });
+
+      $(document).on('click', '#reset_filter', function () {
+        $('#tgl_mulai, #tgl_akhir').val('');
+        $('#filter_status').val('').trigger('change');
+
+        localStorage.removeItem('tabelPenagihanFilters');
+
+        penaginhanTable
+          .search('')
+          .columns()
+          .search('')
+          .draw();
+
+        toastr.success('Filter berhasil direset');
+      });
+    }
+
+    // Initialize Select2
+    $('.select2bs4').select2({
+      theme: 'bootstrap4',
+      width: '100%',
+      language: {
+        noResults: () => "Data tidak ditemukan",
+        searching: () => "Mencari..."
+      }
     });
 
-    // Add form submission handling
+    // Initialize DataTables
+    function initializeDataTable(tableId, options = {}) {
+      if (!$(tableId).length) return null;
+
+      const defaultOptions = {
+        paging: true,
+        lengthChange: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: false,
+        responsive: true,
+        language: dataTableLanguage
+      };
+
+      try {
+        return $(tableId).DataTable({ ...defaultOptions, ...options });
+      } catch (error) {
+        console.error(`Error initializing DataTable for ${tableId}:`, error);
+        return null;
+      }
+    }
+
+    // Initialize specific DataTables
+    const tables = {
+      '#example1': {
+        lengthChange: false,
+        buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"]
+      },
+      '#tabelSekolah': {},
+      '#tabelContact': {},
+      '#tabelBarang': {},
+      '#tabelBarangKeluar': {},
+      '#tabelBarangMasuk': {}
+    };
+
+    Object.entries(tables).forEach(([tableId, options]) => {
+      const table = initializeDataTable(tableId, options);
+      if (table && tableId === '#example1') {
+        table.buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+      }
+    });
+
+    // Modal handling
+    $('#modalEdit').on('show.bs.modal', function (event) {
+      const button = $(event.relatedTarget);
+      const modal = $(this);
+      const fields = [
+        'nama_sekolah', 'alamat', 'nomor_kontak',
+        'pemilik_kontak', 'jabatan', 'tanggal_dn', 'status_kontak'
+      ];
+
+      fields.forEach(field => {
+        modal.find(`[name="${field}"]`).val(button.data(field));
+      });
+    });
+
+    // Form submission handling
     $('#editForm').on('submit', function (e) {
       e.preventDefault();
-
-      // Get form data
-      var formData = $(this).serialize();
-
-      // Submit using AJAX
       $.ajax({
         type: 'POST',
         url: $(this).attr('action'),
-        data: formData,
-        success: function (response) {
+        data: $(this).serialize(),
+        success: () => {
           $('#modalEdit').modal('hide');
           Swal.fire({
             title: 'Berhasil!',
             text: 'Data berhasil diperbarui',
             icon: 'success'
-          }).then((result) => {
-            location.reload();
-          });
+          }).then(() => location.reload());
         },
-        error: function (xhr, status, error) {
+        error: () => {
           Swal.fire({
             title: 'Error!',
             text: 'Terjadi kesalahan saat menyimpan data',
@@ -138,23 +311,15 @@
       });
     });
   });
-  // Fungsi-fungsi CRUD
-  function editSekolah(id) {
-    document.getElementById('editContact').submit();
-  }
 
-  function hapusSekolah(id) {
-    if (confirm('Apakah Anda yakin ingin menghapus data sekolah ini?')) {
-      document.getElementById('hapusSekolahForm').submit();
-    }
-  }
-  function showBatalkanModal(index) {
+  // Standalone functions for order cancellation
+  const showBatalkanModal = (index) => {
     $('#custIdBatal').val(index);
     $('#alasanBatal').val('');
     $('#modalBatalkan').modal('show');
-  }
+  };
 
-  function batalkanPesanan() {
+  const batalkanPesanan = () => {
     const alasan = $('#alasanBatal').val().trim();
     if (!alasan) {
       Swal.fire({
@@ -176,7 +341,6 @@
       cancelButtonText: 'Tidak'
     }).then((result) => {
       if (result.isConfirmed) {
-        // Here you would normally update the database
         Swal.fire(
           'Dibatalkan!',
           'Pesanan telah dibatalkan.',
@@ -187,100 +351,16 @@
         });
       }
     });
-  }
+  };
 
-  function showAlasanBatal(alasan) {
+  const showAlasanBatal = (alasan) => {
     Swal.fire({
       title: 'Alasan Pembatalan',
       text: alasan,
       icon: 'info'
     });
-  }
-  $(function () {
-    $("#example1").DataTable({
-      "responsive": true,
-      "lengthChange": false,
-      "autoWidth": false,
-      "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
-    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
-    $('#example2').DataTable({
-      "paging": true,
-      "lengthChange": false,
-      "searching": false,
-      "ordering": true,
-      "info": true,
-      "autoWidth": false,
-      "responsive": true,
-    });
-  });
-  $(function () {
-    //Enable check and uncheck all functionality
-    $('.checkbox-toggle').click(function () {
-      var clicks = $(this).data('clicks')
-      if (clicks) {
-        //Uncheck all checkboxes
-        $('.mailbox-messages input[type=\'checkbox\']').prop('checked', false)
-        $('.checkbox-toggle .far.fa-check-square').removeClass('fa-check-square').addClass('fa-square')
-      } else {
-        //Check all checkboxes
-        $('.mailbox-messages input[type=\'checkbox\']').prop('checked', true)
-        $('.checkbox-toggle .far.fa-square').removeClass('fa-square').addClass('fa-check-square')
-      }
-      $(this).data('clicks', !clicks)
-    })
-
-    //Handle starring for font awesome
-    $('.mailbox-star').click(function (e) {
-      e.preventDefault()
-      //detect type
-      var $this = $(this).find('a > i')
-      var fa = $this.hasClass('fa')
-
-      //Switch states
-      if (fa) {
-        $this.toggleClass('fa-star')
-        $this.toggleClass('fa-star-o')
-      }
-    })
-  })
-</script>
-<script>
-  $(function () {
-    // Inisialisasi Select2
-    $('.select2bs4').select2({
-      theme: 'bootstrap4',
-      width: '100%',
-      language: {
-        noResults: function () {
-          return "Data tidak ditemukan";
-        },
-        searching: function () {
-          return "Mencari...";
-        }
-      }
-    })
-  });
-</script>
-<script>
-  toastr.options = {
-    "closeButton": true,
-    "debug": false,
-    "newestOnTop": true,
-    "progressBar": true,
-    "positionClass": "toast-top-right", // Ubah posisi jika perlu
-    "preventDuplicates": true,
-    "onclick": null,
-    "showDuration": "300",
-    "hideDuration": "1000",
-    "timeOut": "5000",
-    "extendedTimeOut": "1000",
-    "showEasing": "swing",
-    "hideEasing": "linear",
-    "showMethod": "fadeIn",
-    "hideMethod": "fadeOut"
   };
 </script>
-
 </body>
 
 </html>
