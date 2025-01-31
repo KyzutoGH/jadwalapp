@@ -186,6 +186,33 @@ if ($menu == "Tabel") { ?>
                 </div>
             </div>
             <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Filter Tanggal Mulai:</label>
+                            <input type="date" id="tgl_mulai" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Filter Tanggal Akhir:</label>
+                            <input type="date" id="tgl_akhir" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Filter Status:</label>
+                            <select id="filter_status" class="form-control">
+                                <option value="">Semua Status</option>
+                                <option value="Belum Lunas">Belum Lunas</option>
+                                <option value="Lunas - Proses">Lunas - Proses</option>
+                                <option value="Lunas - Siap Diambil">Lunas - Siap Diambil</option>
+                                <option value="Selesai">Selesai</option>
+                                <option value="Dibatalkan">Dibatalkan</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                 <table id="tabelPenagihan" class="table table-bordered table-striped">
                     <thead>
                         <tr>
@@ -391,13 +418,12 @@ if ($menu == "Tabel") { ?>
                                 <td><?= htmlspecialchars($p['tanggal']) ?></td>
                                 <td><?= htmlspecialchars($p['customer']) ?></td>
                                 <td><?= htmlspecialchars($p['total_display']) ?></td>
-                            <?php if ($p['status'] == '5'): // If canceled ?>
-                                    <td colspan="3">
+                                <td><?= $p['status'] == '5' ? '<span class="badge badge-danger">Dibatalkan</span>' : $dpDisplay ?>
+                                </td>
+                                <td>
+                                <?php if ($p['status'] == '5'): ?>
                                         <span class="badge badge-danger">Dibatalkan</span>
-                                    </td>
-                            <?php else: // Not canceled ?>
-                                    <td><?= $dpDisplay ?></td>
-                                    <td>
+                                <?php else: ?>
                                         <?php
                                         if (empty($p['tgllunas'])) {
                                             $totalPembayaran = $p['dp1_nominal'] + $p['dp2_nominal'] + $p['dp3_nominal'];
@@ -412,9 +438,9 @@ if ($menu == "Tabel") { ?>
                                             echo $p['tgllunas'];
                                         }
                                         ?>
-                                    </td>
-                                    <td><?= $statusBadge ?></td>
-                            <?php endif; ?>
+                                <?php endif; ?>
+                                </td>
+                                <td><?= $statusBadge ?></td>
                                 <td><?= $actionButton ?></td>
                             </tr>
                     <?php } ?>
@@ -537,10 +563,6 @@ if ($menu == "Tabel") { ?>
 
                 // Show the modal
                 $('#modalCicilan').modal('show');
-            }
-            function showBatalkanModal(id) {
-                $('#custIdBatal').val(id);
-                $('#modalBatalkan').modal('show');
             }
 
             function updateStatus(id, newStatus) {
