@@ -69,7 +69,7 @@ if ($menu == "Barang") {
                                                     if (!empty($bm['id_jaket'])) {
                                                         echo htmlspecialchars($bm['namabarang']);
                                                     } elseif (!empty($bm['id_sticker'])) {
-                                                        echo htmlspecialchars($bm['nama'] . ' ' . $bm['bagian']);
+                                                        echo htmlspecialchars($bm['nama']);
                                                     } else {
                                                         echo '-';
                                                     }
@@ -218,7 +218,7 @@ if ($menu == "Barang") {
                                                     if (!empty($bm['id_jaket'])) {
                                                         echo htmlspecialchars($bm['namabarang']);
                                                     } elseif (!empty($bm['id_sticker'])) {
-                                                        echo htmlspecialchars($bm['nama'] . ' ' . $bm['bagian']);
+                                                        echo htmlspecialchars($bm['nama']);
                                                     } else {
                                                         echo '-';
                                                     }
@@ -273,7 +273,7 @@ if ($menu == "Barang") {
                                             ?>
                                             <tr>
                                                 <td><?= htmlspecialchars($bm['tanggal']) ?></td>
-                                                <td><?= htmlspecialchars($bm['nama'] . ' ' . $bm['bagian']) ?></td>
+                                                <td><?= htmlspecialchars($bm['nama']) ?></td>
                                                 <td><?= "+ " . htmlspecialchars($bm['jumlah']) ?></td>
                                             </tr>
                                         <?php } ?>
@@ -290,7 +290,6 @@ if ($menu == "Barang") {
                                         <tr>
                                             <th>Kode</th>
                                             <th>Nama</th>
-                                            <th>Bagian</th>
                                             <th>Stock</th>
                                             <th>Status</th>
                                             <th>Aksi</th>
@@ -304,7 +303,6 @@ if ($menu == "Barang") {
                                             <tr>
                                                 <td><?= "STK" . $s["id_sticker"] ?></td>
                                                 <td><?= htmlspecialchars($s['nama']) ?></td>
-                                                <td><?= htmlspecialchars($s['bagian']) ?></td>
                                                 <td><?= htmlspecialchars($s['stock']) ?></td>
                                                 <td>
                                                     <span class="badge badge-<?= $s['stock'] > 0 ? 'success' : 'danger' ?>">
@@ -350,13 +348,6 @@ if ($menu == "Barang") {
                                                                                 value="<?= htmlspecialchars($s['nama']) ?>"
                                                                                 required>
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>Bagian</label>
-                                                                            <input type="text" class="form-control"
-                                                                                name="bagian"
-                                                                                value="<?= htmlspecialchars($s['bagian']) ?>"
-                                                                                required>
-                                                                        </div>
                                                                     </div>
                                                                     <div class="modal-footer">
                                                                         <button type="button" class="btn btn-secondary"
@@ -397,7 +388,7 @@ if ($menu == "Barang") {
                                             ?>
                                             <tr>
                                                 <td><?= htmlspecialchars($bm['tanggal']) ?></td>
-                                                <td><?= htmlspecialchars($bm['nama'] . ' ' . $bm['bagian']) ?></td>
+                                                <td><?= htmlspecialchars($bm['nama']) ?></td>
                                                 <td><?= "- " . htmlspecialchars($bm['jumlah']) ?></td>
                                             </tr>
                                         <?php } ?>
