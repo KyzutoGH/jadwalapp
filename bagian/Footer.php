@@ -59,6 +59,215 @@
 <script src="assets/plugins/toastr/toastr.min.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('diesNatalisChart').getContext('2d');
+
+    const data = {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+      datasets: [{
+        label: 'Jumlah Dies Natalis',
+        data: <?php echo json_encode($data_dies_natalis); ?>,
+        backgroundColor: 'rgba(60,141,188,0.9)',
+        borderColor: 'rgba(60,141,188,0.8)',
+        borderWidth: 1
+      }]
+    };
+
+    const config = {
+      type: 'bar',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              precision: 0
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        }
+      }
+    };
+
+    new Chart(ctx, config);
+  });
+</script>
+<!-- Dies Natalis Chart Script -->
+<script>
+  // Enhanced Dies Natalis Chart Configuration
+  const initDiesNatalisChart = () => {
+    const ctx = document.getElementById('diesNatalisChart').getContext('2d');
+
+    // Custom gradient background
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(60,141,188,0.9)');
+    gradient.addColorStop(1, 'rgba(60,141,188,0.4)');
+
+    const data = {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+      datasets: [{
+        label: 'Jumlah Dies Natalis',
+        data: diesNatalisData, // Data dari PHP
+        backgroundColor: gradient,
+        borderColor: 'rgba(60,141,188,0.8)',
+        borderWidth: 1,
+        borderRadius: 5,
+        barThickness: 'flex',
+        maxBarThickness: 35,
+        minBarLength: 2
+      }]
+    };
+
+    const config = {
+      type: 'bar',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 20,
+            right: 20,
+            bottom: 20,
+            left: 20
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              precision: 0,
+              font: {
+                size: 12
+              }
+            },
+            grid: {
+              display: true,
+              drawBorder: false,
+              color: 'rgba(200, 200, 200, 0.2)'
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              font: {
+                size: 12
+              }
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              boxWidth: 20,
+              padding: 20,
+              font: {
+                size: 12
+              }
+            }
+          },
+          tooltip: {
+            enabled: true,
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleFont: {
+              size: 13
+            },
+            bodyFont: {
+              size: 13
+            },
+            padding: 12,
+            callbacks: {
+              label: function (context) {
+                return `Jumlah: ${context.parsed.y} sekolah`;
+              }
+            }
+          }
+        },
+        animation: {
+          duration: 1000,
+          easing: 'easeInOutQuart'
+        },
+        onHover: (event, chartElement) => {
+          event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+        }
+      }
+    };
+
+    // Destroy existing chart if it exists
+    if (window.diesNatalisChart instanceof Chart) {
+      window.diesNatalisChart.destroy();
+    }
+
+    // Create new chart and store reference
+    window.diesNatalisChart = new Chart(ctx, config);
+
+    // Add click handler for drill-down if needed
+    ctx.canvas.onclick = function (evt) {
+      const points = window.diesNatalisChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+      if (points.length) {
+        const firstPoint = points[0];
+        const month = firstPoint.index + 1;
+        const value = window.diesNatalisChart.data.datasets[0].data[firstPoint.index];
+
+        // You can add click handling here, e.g., showing details for the selected month
+        console.log(`Month: ${month}, Value: ${value}`);
+      }
+    };
+  };
+
+  // Initialize chart when DOM is ready
+  document.addEventListener('DOMContentLoaded', function () {
+    try {
+      initDiesNatalisChart();
+
+      // Optional: Add window resize handler with debounce
+      let resizeTimeout;
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function () {
+          initDiesNatalisChart();
+        }, 250);
+      });
+    } catch (error) {
+      console.error('Error initializing chart:', error);
+    }
+  });
+  var ctx = document.getElementById('diesNatalisChart').getContext('2d');
+  var diesNatalisChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+      datasets: [{
+        label: 'Jumlah Dies Natalis',
+        data: <?php echo json_encode($data_dies_natalis); ?>,
+        backgroundColor: 'rgba(60,141,188,0.9)',
+        borderColor: 'rgba(60,141,188,0.8)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function () {
     // Global Configuration Objects
     const toastrConfig = {
       closeButton: true,

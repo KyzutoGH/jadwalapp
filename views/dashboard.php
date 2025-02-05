@@ -5,7 +5,7 @@ $total_sekolah = $db->query("SELECT COUNT(*) as total FROM datadn")->fetch_assoc
 $dies_natalis_bulan_ini = $db->query("
     SELECT COUNT(*) as total 
     FROM datadn 
-    WHERE MONTH(tanggal_dn) = MONTH(CURRENT_DATE())
+    WHERE MONTH(STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y')) = MONTH(CURRENT_DATE())
 ")->fetch_assoc()['total'];
 
 $total_tagihan = $db->query("
@@ -59,17 +59,32 @@ $jatuh_tempo = $db->query("
     AND status != '4'
 ")->fetch_assoc()['total'];
 
-// Dies Natalis Chart Data
-$data_dies_natalis = [];
-$query = $db->query("
-    SELECT MONTH(tanggal_dn) as bulan, COUNT(*) as total 
+$data_dies_natalis = array_fill(0, 12, 0); // Initialize array with 0 for 12 months
+
+// Query untuk mengambil data dies natalis per bulan
+$query = $db->query("SELECT 
+        MONTH(STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y')) as bulan,
+        COUNT(*) as total,
+        GROUP_CONCAT(nama_sekolah) as sekolah_list
     FROM datadn 
-    WHERE YEAR(tanggal_dn) = YEAR(CURRENT_DATE())
-    GROUP BY MONTH(tanggal_dn)
-");
+    WHERE YEAR(STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y')) = YEAR(CURRENT_DATE())
+    GROUP BY bulan
+    ORDER BY bulan");
+
+$data_dies_natalis = array_fill(0, 12, 0); // Inisialisasi array dengan 0 untuk 12 bulan
+
 while ($row = $query->fetch_assoc()) {
-  $data_dies_natalis[$row['bulan'] - 1] = $row['total'];
+  $data_dies_natalis[$row['bulan'] - 1] = (int) $row['total'];
 }
+
+// Data for tooltip/detail
+$chart_details = [
+  'current_year' => date('Y'),
+  'total_annual' => array_sum($data_dies_natalis),
+  'highest_month' => array_search(max($data_dies_natalis), $data_dies_natalis) + 1,
+  'lowest_month' => array_search(min(array_filter($data_dies_natalis)), $data_dies_natalis) + 1
+];
+
 // Fill empty months with 0
 for ($i = 0; $i < 12; $i++) {
   if (!isset($data_dies_natalis[$i])) {
@@ -77,7 +92,6 @@ for ($i = 0; $i < 12; $i++) {
   }
 }
 ksort($data_dies_natalis);
-
 // Dies Natalis Table Data
 $bulan = [
   '01' => 'Januari',
@@ -93,7 +107,6 @@ $bulan = [
   '11' => 'November',
   '12' => 'Desember'
 ];
-
 $query_dies_natalis = "SELECT * FROM datadn 
     WHERE STR_TO_DATE(CONCAT(tanggal_dn, '-' , YEAR(CURRENT_DATE())), '%d-%m-%Y') >= CURRENT_DATE()
     ORDER BY 
@@ -151,146 +164,68 @@ $data = mysqli_query($db, $query_dies_natalis);
         </div>
       </div>
     </div>
+    <?php
+    $data_dies_natalis = [];
+    for ($i = 1; $i <= 12; $i++) {
+      $query = "SELECT COUNT(*) as jumlah FROM datadn WHERE MONTH(tanggal_dn) = $i";
+      $result = $db->query($query);
+      $row = $result->fetch_assoc();
+      $data_dies_natalis[] = (int) $row['jumlah'];
+    }
+
+    // Query untuk status tagihan
+    $query_tagihan = "SELECT 
+                    SUM(CASE WHEN status = 'Lunas' THEN 1 ELSE 0 END) AS lunas,
+                    SUM(CASE WHEN status = 'Cicilan' THEN 1 ELSE 0 END) AS cicilan,
+                    SUM(CASE WHEN status = 'Belum Lunas' THEN 1 ELSE 0 END) AS belum_lunas,
+                    COUNT(*) AS total
+                FROM penagihan";
+    $result_tagihan = $db->query($query_tagihan);
+    $tagihan = $result_tagihan->fetch_assoc();
+
+    $tagihan_lunas = $tagihan['lunas'];
+    $tagihan_cicilan = $tagihan['cicilan'];
+    $tagihan_belum_lunas = $tagihan['belum_lunas'];
+    $total_tagihan = $tagihan['total'];
+
+    // Query untuk mendapatkan stok kritis
+    $query_stok = "
+    SELECT
+        (SELECT COUNT(*) FROM jaket WHERE stock < 5) + (SELECT COUNT(*) FROM stiker WHERE stock < 5) AS stok_kritis_total;
+";
+    $result_stok = $db->query($query_stok);
+    $row_stok = $result_stok->fetch_assoc();
+    $stok_kritis = $row_stok['stok_kritis_total'];
+
+    // Query untuk mendapatkan total pembayaran
+    $query_pembayaran = "SELECT SUM(total) AS total_terbayar 
+FROM penagihan 
+WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
+";
+    $result_pembayaran = $db->query($query_pembayaran);
+    $row_pembayaran = $result_pembayaran->fetch_assoc();
+    $total_terbayar = $row_pembayaran['total_terbayar'];
+    ?>
 
     <!-- Monthly Recap and Status Tagihan Row -->
     <div class="row">
-      <div class="col-md-8">
-        <!-- Monthly Recap Card -->
+      <div class="col-md-12">
         <div class="card">
           <div class="card-header">
-            <h5 class="card-title">Monthly Recap Report</h5>
-            <div class="card-tools">
-              <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                <i class="fas fa-minus"></i>
-              </button>
-              <div class="btn-group">
-                <button type="button" class="btn btn-tool dropdown-toggle" data-toggle="dropdown">
-                  <i class="fas fa-wrench"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-right" role="menu">
-                  <a href="#" class="dropdown-item">Action</a>
-                  <a href="#" class="dropdown-item">Another action</a>
-                  <a href="#" class="dropdown-item">Something else here</a>
-                  <a class="dropdown-divider"></a>
-                  <a href="#" class="dropdown-item">Separated link</a>
-                </div>
-              </div>
-              <button type="button" class="btn btn-tool" data-card-widget="remove">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
+            <h5 class="card-title">Laporan Bulanan</h5>
           </div>
           <div class="card-body">
             <div class="row">
-              <div class="col-md-8">
+              <div class="col-md-12">
                 <p class="text-center">
                   <strong>Dies Natalis: Januari - Desember <?php echo date('Y'); ?></strong>
                 </p>
                 <div class="chart">
                   <canvas id="diesNatalisChart" height="180" style="height: 180px;"></canvas>
+                  <script>
+                    const diesNatalisData = <?php echo json_encode($data_dies_natalis); ?>;
+                  </script>
                 </div>
-              </div>
-              <div class="col-md-4">
-                <p class="text-center">
-                  <strong>Status Pencapaian</strong>
-                </p>
-                <div class="progress-group">
-                  Add Products to Cart
-                  <span class="float-right"><b>160</b>/200</span>
-                  <div class="progress progress-sm">
-                    <div class="progress-bar bg-primary" style="width: 80%"></div>
-                  </div>
-                </div>
-                <div class="progress-group">
-                  Complete Purchase
-                  <span class="float-right"><b>310</b>/400</span>
-                  <div class="progress progress-sm">
-                    <div class="progress-bar bg-danger" style="width: 75%"></div>
-                  </div>
-                </div>
-                <div class="progress-group">
-                  <span class="progress-text">Visit Premium Page</span>
-                  <span class="float-right"><b>480</b>/800</span>
-                  <div class="progress progress-sm">
-                    <div class="progress-bar bg-success" style="width: 60%"></div>
-                  </div>
-                </div>
-                <div class="progress-group">
-                  Send Inquiries
-                  <span class="float-right"><b>250</b>/500</span>
-                  <div class="progress progress-sm">
-                    <div class="progress-bar bg-warning" style="width: 50%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="row">
-              <div class="col-sm-3 col-6">
-                <div class="description-block border-right">
-                  <span class="description-percentage text-success"><i class="fas fa-caret-up"></i> 17%</span>
-                  <h5 class="description-header">$35,210.43</h5>
-                  <span class="description-text">TOTAL REVENUE</span>
-                </div>
-              </div>
-              <div class="col-sm-3 col-6">
-                <div class="description-block border-right">
-                  <span class="description-percentage text-warning"><i class="fas fa-caret-left"></i> 0%</span>
-                  <h5 class="description-header">$10,390.90</h5>
-                  <span class="description-text">TOTAL COST</span>
-                </div>
-              </div>
-              <div class="col-sm-3 col-6">
-                <div class="description-block border-right">
-                  <span class="description-percentage text-success"><i class="fas fa-caret-up"></i> 20%</span>
-                  <h5 class="description-header">$24,813.53</h5>
-                  <span class="description-text">TOTAL PROFIT</span>
-                </div>
-              </div>
-              <div class="col-sm-3 col-6">
-                <div class="description-block">
-                  <span class="description-percentage text-danger"><i class="fas fa-caret-down"></i> 18%</span>
-                  <h5 class="description-header">1200</h5>
-                  <span class="description-text">GOAL COMPLETIONS</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <!-- Status Tagihan Card -->
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Status Tagihan</h3>
-          </div>
-          <div class="card-body">
-            <div class="progress-group">
-              Lunas
-              <span class="float-right"><b><?php echo $tagihan_lunas; ?></b></span>
-              <div class="progress progress-sm">
-                <div class="progress-bar bg-success"
-                  style="width: <?php echo ($tagihan_lunas / $total_tagihan) * 100; ?>%"></div>
-              </div>
-            </div>
-
-            <div class="progress-group">
-              Cicilan
-              <span class="float-right"><b><?php echo $tagihan_cicilan; ?></b></span>
-              <div class="progress progress-sm">
-                <div class="progress-bar bg-warning"
-                  style="width: <?php echo ($tagihan_cicilan / $total_tagihan) * 100; ?>%"></div>
-              </div>
-            </div>
-
-            <div class="progress-group">
-              Belum Lunas
-              <span class="float-right"><b><?php echo $tagihan_belum_lunas; ?></b></span>
-              <div class="progress progress-sm">
-                <div class="progress-bar bg-danger"
-                  style="width: <?php echo ($tagihan_belum_lunas / $total_tagihan) * 100; ?>%"></div>
               </div>
             </div>
           </div>
@@ -300,7 +235,7 @@ $data = mysqli_query($db, $query_dies_natalis);
 
     <!-- Dies Natalis and Info Boxes Row -->
     <div class="row">
-      <div class="col-md-8">
+      <div class="col-md-12">
         <!-- Dies Natalis Table Card -->
         <div class="card">
           <div class="card-header">
@@ -355,33 +290,6 @@ $data = mysqli_query($db, $query_dies_natalis);
                 ?>
               </tbody>
             </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <!-- Info Boxes -->
-        <div class="info-box mb-3 bg-warning">
-          <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
-          <div class="info-box-content">
-            <span class="info-box-text">Stok Kritis</span>
-            <span class="info-box-number"><?php echo $stok_kritis; ?> Item</span>
-          </div>
-        </div>
-
-        <div class="info-box mb-3 bg-success">
-          <span class="info-box-icon"><i class="fas fa-money-bill-wave"></i></span>
-          <div class="info-box-content">
-            <span class="info-box-text">Total Terbayar</span>
-            <span class="info-box-number">Rp <?php echo number_format($total_terbayar, 0, ',', '.'); ?></span>
-          </div>
-        </div>
-
-        <div class="info-box mb-3 bg-danger">
-          <span class="info-box-icon"><i class="fas fa-clock"></i></span>
-          <div class="info-box-content">
-            <span class="info-box-text">Jatuh Tempo Minggu Ini</span>
-            <span class="info-box-number"><?php echo $jatuh_tempo; ?> Tagihan</span>
           </div>
         </div>
       </div>
@@ -449,31 +357,3 @@ if (mysqli_num_rows($data) > 0) {
   }
 }
 ?>
-
-<!-- Dies Natalis Chart Script -->
-<script>
-  var ctx = document.getElementById('diesNatalisChart').getContext('2d');
-  var diesNatalisChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
-      datasets: [{
-        label: 'Jumlah Dies Natalis',
-        data: <?php echo json_encode($data_dies_natalis); ?>,
-        backgroundColor: 'rgba(60,141,188,0.9)',
-        borderColor: 'rgba(60,141,188,0.8)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
-</script>
-</body>
-
-</html>
