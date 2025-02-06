@@ -1,4 +1,5 @@
 <?php
+$data_dies_natalis = array_fill(0, 12, 0); // Initialize array with 0 for 12 months
 $formatter = new IntlDateFormatter('id_ID', IntlDateFormatter::FULL, IntlDateFormatter::NONE);
 $formatter->setPattern('MMMM');
 require_once('config/koneksi.php');

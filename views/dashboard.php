@@ -59,8 +59,6 @@ $jatuh_tempo = $db->query("
     AND status != '4'
 ")->fetch_assoc()['total'];
 
-$data_dies_natalis = array_fill(0, 12, 0); // Initialize array with 0 for 12 months
-
 // Query untuk mengambil data dies natalis per bulan
 $query = $db->query("SELECT 
         MONTH(STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y')) as bulan,
@@ -71,7 +69,6 @@ $query = $db->query("SELECT
     GROUP BY bulan
     ORDER BY bulan");
 
-$data_dies_natalis = array_fill(0, 12, 0); // Inisialisasi array dengan 0 untuk 12 bulan
 
 while ($row = $query->fetch_assoc()) {
   $data_dies_natalis[$row['bulan'] - 1] = (int) $row['total'];
