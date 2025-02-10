@@ -39,12 +39,12 @@
                                                             <i class="far fa-edit"></i>
                                                         </button>
                                                         <button class="btn btn-sm btn-success"
-                                                            onclick="showModalBarang(<?= $b['id_jaket'] ?>, 'tambah')"
+                                                            onclick="showModal('barang',<?= $b['id_jaket'] ?>, 'tambah')"
                                                             title="Tambah Stock">
                                                             <i class="fas fa-plus"></i>
                                                         </button>
                                                         <button class="btn btn-sm btn-danger"
-                                                            onclick="showModalBarang(<?= $b['id_jaket'] ?>, 'kurangi')"
+                                                            onclick="showModal('barang',<?= $b['id_jaket'] ?>, 'kurangi')"
                                                             title="Kurangi Stock">
                                                             <i class="fas fa-minus"></i>
                                                         </button>

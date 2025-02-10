@@ -123,202 +123,202 @@ if ($menu == "Barang") {
         </div>
 
         <!-- Modal Stock Barang -->
-            <div class="modal fade" id="stockModalBarang" tabindex="-1" role="dialog">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="stockModalLabel">Update Stock</h5>
-                            <button type="button" class="close" data-dismiss="modal">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="config/update_stock.php" method="POST">
-                            <div class="modal-body">
-                                <input type="hidden" name="id_jaket" id="id_jaket">
-                                <input type="hidden" name="action" id="action">
-                                <div class="form-group">
-                                    <label>Jumlah</label>
-                                    <input type="number" class="form-control" name="jumlah" required min="1">
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-primary">Simpan</button>
-                            </div>
-                        </form>
+        <div class="modal fade" id="stockModalBarang" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="stockModalLabel">Update Stock</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
+                    <form action="config/update_stock.php" method="POST">
+                        <div class="modal-body">
+                            <input type="hidden" name="id_jaket" id="id_jaket">
+                            <input type="hidden" name="action" id="action">
+                            <div class="form-group">
+                                <label>Jumlah</label>
+                                <input type="number" class="form-control" name="jumlah" required min="1">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </form>
                 </div>
             </div>
+        </div>
 
-            <!-- Modal Stock Stiker -->
-            <div class="modal fade" id="stockModalStiker" tabindex="-1" role="dialog">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="stockModalLabelStiker">Update Stock Stiker</h5>
-                            <button type="button" class="close" data-dismiss="modal">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="config/update_stock_sticker.php" method="POST">
-                            <div class="modal-body">
-                                <input type="hidden" name="id_sticker" id="id_sticker_modal">
-                                <input type="hidden" name="action" id="action_stiker">
-                                <div class="form-group">
-                                    <label>Jumlah</label>
-                                    <input type="number" class="form-control" name="jumlah" required min="1">
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-primary">Simpan</button>
-                            </div>
-                        </form>
+        <!-- Modal Stock Stiker -->
+        <div class="modal fade" id="stockModalStiker" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="stockModalLabelStiker">Update Stock Stiker</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
+                    <form action="config/update_stock_sticker.php" method="POST">
+                        <div class="modal-body">
+                            <input type="hidden" name="id_sticker" id="id_sticker_modal">
+                            <input type="hidden" name="action" id="action_stiker">
+                            <div class="form-group">
+                                <label>Jumlah</label>
+                                <input type="number" class="form-control" name="jumlah" required min="1">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </form>
                 </div>
             </div>
+        </div>
 
-            <!-- Modal Stock Sablon -->
-            <div class="modal fade" id="stockModalSablon" tabindex="-1" role="dialog">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="stockModalLabelSablon">Update Stock Sablon</h5>
-                            <button type="button" class="close" data-dismiss="modal">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="config/update_stock_sablon.php" method="POST">
-                            <div class="modal-body">
-                                <input type="hidden" name="id_barang" id="id_barang">
-                                <input type="hidden" name="action" id="actionSablon">
-                                <div class="form-group">
-                                    <label>Jumlah</label>
-                                    <input type="number" class="form-control" name="jumlah" required min="1">
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-primary">Simpan</button>
-                            </div>
-                        </form>
+        <!-- Modal Stock Sablon -->
+        <div class="modal fade" id="stockModalSablon" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="stockModalLabelSablon">Update Stock Sablon</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
+                    <form action="config/update_stock_sablon.php" method="POST">
+                        <div class="modal-body">
+                            <input type="hidden" name="id_barang" id="id_barang">
+                            <input type="hidden" name="action" id="actionSablon">
+                            <div class="form-group">
+                                <label>Jumlah</label>
+                                <input type="number" class="form-control" name="jumlah" required min="1">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan</button>
+                        </div>
+                    </form>
                 </div>
             </div>
+        </div>
 
-            <!-- Modal Edit Sablon -->
-            <div class="modal fade" id="modalEditSablon<?= $b['id_barang'] ?>" tabindex="-1" role="dialog">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Edit Data Sablon</h5>
-                            <button type="button" class="close" data-dismiss="modal">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="config/edit_sablon.php" method="POST">
-                            <div class="modal-body">
-                                <input type="hidden" name="id" value="<?= $b['id_barang'] ?>">
-                                <div class="form-group">
-                                    <label>Nama Barang</label>
-                                    <input type="text" class="form-control" name="nama_barang"
-                                        value="<?= htmlspecialchars($b['nama_barang']) ?>" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Keterangan</label>
-                                    <textarea class="form-control" name="keterangan" rows="3"><?= htmlspecialchars($b['keterangan']) ?></textarea>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                            </div>
-                        </form>
+        <!-- Modal Edit Sablon -->
+        <div class="modal fade" id="modalEditSablon<?= $b['id_barang'] ?>" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Data Sablon</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
+                    <form action="config/edit_sablon.php" method="POST">
+                        <div class="modal-body">
+                            <input type="hidden" name="id" value="<?= $b['id_barang'] ?>">
+                            <div class="form-group">
+                                <label>Nama Barang</label>
+                                <input type="text" class="form-control" name="nama_barang"
+                                    value="<?= htmlspecialchars($b['nama_barang']) ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Keterangan</label>
+                                <textarea class="form-control" name="keterangan"
+                                    rows="3"><?= htmlspecialchars($b['keterangan']) ?></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                        </div>
+                    </form>
                 </div>
             </div>
+        </div>
 
-            <script>
-                $(document).ready(function () {
-                    // DataTables configuration
-                    const dataTableConfig = {
-                        paging: true,
-                        lengthChange: true,
-                        searching: true,
-                        ordering: true,
-                        info: true,
-                        autoWidth: false,
-                        responsive: true,
-                        language: {
-                            url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
-                        }
-                    };
-
-                    // Initialize all tables
-                    $('.table').DataTable(dataTableConfig);
-
-                    // Fix column sizes when switching tabs
-                    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-                        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-                    });
-
-                    // Handle all tab switches to ensure proper table rendering
-                    $('.nav-tabs a').on('shown.bs.tab', function(e) {
-                        $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
-                    });
-
-                    // Initialize tooltips
-                    $('[data-toggle="tooltip"]').tooltip();
-                });
-
-                // Unified modal handling function
-                window.showModal = function(type, id, action) {
-                    const modalConfig = {
-                        barang: {
-                            modalId: '#stockModalBarang',
-                            labelId: 'stockModalLabel',
-                            actionId: 'action',
-                            inputId: 'id_jaket'
-                        },
-                        stiker: {
-                            modalId: '#stockModalStiker',
-                            labelId: 'stockModalLabelStiker',
-                            actionId: 'action_stiker',
-                            inputId: 'id_sticker_modal'
-                        },
-                        sablon: {
-                            modalId: '#stockModalSablon',
-                            labelId: 'stockModalLabelSablon',
-                            actionId: 'actionSablon',
-                            inputId: 'id_barang'
-                        }
-                    };
-
-                    const config = modalConfig[type];
-                    if (!config) return;
-
-                    const modalLabel = document.getElementById(config.labelId);
-                    const actionInput = document.getElementById(config.actionId);
-                    const idInput = document.getElementById(config.inputId);
-
-                    idInput.value = id;
-                    actionInput.value = action;
-                    modalLabel.textContent = `${action === 'tambah' ? 'Tambah' : 'Kurangi'} Stock ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-
-                    $(config.modalId).modal('show');
-                };
-
-                // Function to handle edit modals
-                window.showEditModal = function(type, id) {
-                    $(`#modalEdit${type}${id}`).modal('show');
-                };
-
-                // Confirm delete function
-                window.confirmDelete = function(type, id) {
-                    if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-                        window.location.href = `config/delete_${type.toLowerCase()}.php?id=${id}`;
+        <script>
+            $(document).ready(function () {
+                // DataTables configuration
+                const dataTableConfig = {
+                    paging: true,
+                    lengthChange: true,
+                    searching: true,
+                    ordering: true,
+                    info: true,
+                    autoWidth: false,
+                    responsive: true,
+                    language: {
+                        url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
                     }
                 };
-            </script>
-        </div>
+
+                // Initialize all tables
+                $('.table').DataTable(dataTableConfig);
+
+                // Fix column sizes when switching tabs
+                $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                    $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+                });
+
+                // Handle all tab switches to ensure proper table rendering
+                $('.nav-tabs a').on('shown.bs.tab', function (e) {
+                    $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
+                });
+
+                // Initialize tooltips
+                $('[data-toggle="tooltip"]').tooltip();
+            });
+
+            // Unified modal handling function
+            function showModal(type, id, action) {
+                const modalConfig = {
+                    barang: {
+                        modalId: '#stockModalBarang',
+                        labelId: 'stockModalLabel',
+                        actionId: 'action',
+                        inputId: 'id_jaket'
+                    },
+                    stiker: {
+                        modalId: '#stockModalStiker',
+                        labelId: 'stockModalLabelStiker',
+                        actionId: 'action_stiker',
+                        inputId: 'id_sticker_modal'
+                    },
+                    sablon: {
+                        modalId: '#stockModalSablon',
+                        labelId: 'stockModalLabelSablon',
+                        actionId: 'actionSablon',
+                        inputId: 'id_barang'
+                    }
+                };
+
+                // Default to 'barang' if type is not specified (for backward compatibility)
+                const config = modalConfig[type] || modalConfig.barang;
+
+                const modalLabel = document.getElementById(config.labelId);
+                const actionInput = document.getElementById(config.actionId);
+                const idInput = document.getElementById(config.inputId);
+
+                idInput.value = id;
+                actionInput.value = action;
+                modalLabel.textContent = `${action === 'tambah' ? 'Tambah' : 'Kurangi'} Stock ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+
+                $(config.modalId).modal('show');
+            }
+            // Function to handle edit modals
+            window.showEditModal = function (type, id) {
+                $(`#modalEdit${type}${id}`).modal('show');
+            };
+
+            // Confirm delete function
+            window.confirmDelete = function (type, id) {
+                if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                    window.location.href = `config/delete_${type.toLowerCase()}.php?id=${id}`;
+                }
+            };
+        </script>
+    </div>
 <?php } ?>
