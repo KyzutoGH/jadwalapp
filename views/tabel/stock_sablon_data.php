@@ -14,17 +14,21 @@
         </thead>
         <tbody>
             <?php
-            // Query untuk mengambil data barang_jadi dan menggabungkan stiker dalam satu kolom
+            // Query untuk mengambil data barang_jadi, jaket, dan daftar stiker dalam 1 baris
             $query = "
-                SELECT bj.*, 
-                       j.namabarang AS nama_jaket, 
-                       bj.gambar, 
-                       GROUP_CONCAT(CONCAT(s.nama, ' (', s.bagian, ')') SEPARATOR '\n') AS daftar_stiker
-                FROM barang_jadi bj
-                LEFT JOIN jaket j ON bj.id_jaket = j.id_jaket
-                LEFT JOIN stiker s ON bj.id_sticker = s.id_sticker
-                GROUP BY bj.id_barang
-            ";
+    SELECT 
+        ANY_VALUE(bj.id_barang) AS id_barang, 
+        bj.nama_produk, 
+        ANY_VALUE(bj.gambar) AS gambar, 
+        ANY_VALUE(bj.stock) AS stock, 
+        j.namabarang AS nama_jaket, 
+        j.ukuran, 
+        GROUP_CONCAT(DISTINCT CONCAT(s.nama, ' (', s.bagian, ')') ORDER BY s.nama SEPARATOR ', ') AS daftar_stiker
+    FROM barang_jadi bj
+    LEFT JOIN jaket j ON bj.id_jaket = j.id_jaket
+    LEFT JOIN stiker s ON bj.id_sticker = s.id_sticker
+    GROUP BY bj.nama_produk, j.namabarang, j.ukuran
+";
 
             $data = mysqli_query($db, $query);
 
@@ -32,14 +36,17 @@
                 ?>
                 <tr>
                     <td><?= "BJ" . $bj["id_barang"] ?></td>
-                    <td><?= htmlspecialchars($bj['nama_produk']) ?></td>
+                    <td><?= htmlspecialchars($bj['nama_produk']) . " - " . htmlspecialchars($bj['ukuran']) ?></td>
                     <td><?= htmlspecialchars($bj['nama_jaket']) ?></td>
-                    <td><?= nl2br(htmlspecialchars($bj['daftar_stiker'])) ?></td>
-                    <!-- Menampilkan stiker dengan baris baru -->
+                    <td><?= nl2br(htmlspecialchars($bj['daftar_stiker'])) ?></td> <!-- Stiker dalam 1 sel -->
                     <td><?= htmlspecialchars($bj['stock']) ?></td>
                     <td>
-                        <img src="uploads/<?= htmlspecialchars($bj['gambar']) ?>" width="80" height="80"
-                            alt="Gambar Produk">
+                        <?php if (!empty($bj['gambar'])): ?>
+                            <img src="uploads/<?= htmlspecialchars($bj['gambar']) ?>" width="80" height="80"
+                                alt="Gambar Produk">
+                        <?php else: ?>
+                            <span class="text-muted">Tidak Ada Gambar</span>
+                        <?php endif; ?>
                     </td>
                     <td>
                         <span class="badge badge-<?= $bj['stock'] > 0 ? 'success' : 'danger' ?>">
@@ -60,53 +67,6 @@
                                 onclick="showModalBarangJadi(<?= $bj['id_barang'] ?>, 'kurangi')" title="Kurangi Stock">
                                 <i class="fas fa-minus"></i>
                             </button>
-                        </div>
-
-                        <!-- Modal Edit Barang Jadi -->
-                        <div class="modal fade" id="modalEditBarangJadi<?= $bj['id_barang'] ?>" tabindex="-1" role="dialog">
-                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Edit Data Barang Jadi</h5>
-                                        <button type="button" class="close" data-dismiss="modal">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <form action="config/edit_barang_jadi.php" method="POST" enctype="multipart/form-data">
-                                        <div class="modal-body">
-                                            <input type="hidden" name="id" value="<?= $bj['id_barang'] ?>">
-                                            <div class="form-group">
-                                                <label>Nama Produk</label>
-                                                <input type="text" class="form-control" name="nama_produk"
-                                                    value="<?= htmlspecialchars($bj['nama_produk']) ?>" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Jaket</label>
-                                                <select class="form-control" name="id_jaket" required>
-                                                    <?php
-                                                    $jaket_query = mysqli_query($db, "SELECT * FROM jaket");
-                                                    while ($jaket = mysqli_fetch_array($jaket_query)) {
-                                                        $selected = ($jaket['id_jaket'] == $bj['id_jaket']) ? 'selected' : '';
-                                                        echo "<option value='" . $jaket['id_jaket'] . "' " . $selected . ">" .
-                                                            htmlspecialchars($jaket['namabarang']) . "</option>";
-                                                    }
-                                                    ?>
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Upload Gambar</label>
-                                                <input type="file" class="form-control" name="gambar">
-                                                <small>Format: JPG, PNG, Max 2MB</small>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary"
-                                                data-dismiss="modal">Batal</button>
-                                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
                         </div>
                     </td>
                 </tr>

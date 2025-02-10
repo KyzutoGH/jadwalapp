@@ -2,11 +2,19 @@
 session_start();
 include("koneksi.php");
 
+// Tangkap data dari form
 $nama_produk = mysqli_real_escape_string($db, $_POST['nama_produk']);
 $id_jaket = mysqli_real_escape_string($db, $_POST['id_jaket']);
 $existing_stickers = isset($_POST['existing_sticker']) ? array_filter($_POST['existing_sticker']) : [];
 $new_stiker_nama = isset($_POST['new_stiker_nama']) ? array_filter($_POST['new_stiker_nama']) : [];
 $new_stiker_bagian = isset($_POST['new_stiker_bagian']) ? array_filter($_POST['new_stiker_bagian']) : [];
+
+// Debugging: Cek apakah data baru masuk
+if (empty($new_stiker_nama) || empty($new_stiker_bagian)) {
+    $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Stiker baru tidak ditemukan dalam request!'];
+    header("Location: ../index.php?menu=Barang&submenu=DataBarang");
+    exit();
+}
 
 // Proses upload gambar jika ada
 $gambar_jadi = null;
@@ -63,9 +71,8 @@ for ($i = 0; $i < count($new_stiker_nama); $i++) {
         $check_result = mysqli_query($db, $check_query);
 
         if (mysqli_num_rows($check_result) > 0) {
-            $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Stiker dengan nama dan bagian yang sama sudah ada!'];
-            header("Location: ../index.php?menu=Barang&submenu=DataBarang");
-            exit();
+            $_SESSION['toastr'] = ['type' => 'error', 'message' => "Stiker '$nama' pada bagian '$bagian' sudah ada!"];
+            continue; // Lewati proses insert jika sudah ada
         }
 
         // Insert stiker baru
@@ -73,7 +80,7 @@ for ($i = 0; $i < count($new_stiker_nama); $i++) {
         if (mysqli_query($db, $insert_query)) {
             $all_sticker_ids[] = mysqli_insert_id($db);
         } else {
-            $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Gagal menambahkan stiker baru!'];
+            $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Gagal menambahkan stiker baru: ' . mysqli_error($db)];
             header("Location: ../index.php?menu=Barang&submenu=DataBarang");
             exit();
         }
@@ -87,13 +94,20 @@ foreach ($existing_stickers as $sticker_id) {
     }
 }
 
+// Debugging: Cek apakah ada stiker yang berhasil dikumpulkan
+if (empty($all_sticker_ids)) {
+    $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Tidak ada stiker yang berhasil ditambahkan!'];
+    header("Location: ../index.php?menu=Barang&submenu=DataBarang");
+    exit();
+}
+
 // 3. Tambahkan barang jadi dengan setiap stiker
 foreach ($all_sticker_ids as $sticker_id) {
     $insert_barang_query = "INSERT INTO barang_jadi (nama_produk, id_jaket, id_sticker, stock, gambar) 
                             VALUES ('$nama_produk', '$id_jaket', '$sticker_id', 0, '$gambar_jadi')";
 
     if (!mysqli_query($db, $insert_barang_query)) {
-        $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Gagal menambahkan barang jadi!'];
+        $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Gagal menambahkan barang jadi: ' . mysqli_error($db)];
         header("Location: ../index.php?menu=Barang&submenu=DataBarang");
         exit();
     }
