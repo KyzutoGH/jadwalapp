@@ -1,98 +1,108 @@
 <div class="pt-3">
-    <table id="tabelSablon" class="table table-bordered table-striped">
+    <table id="tabelBarangJadi" class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th>Kode</th>
-                <th>Nama</th>
+                <th>Nama Produk</th>
+                <th>Jaket</th>
+                <th>Stiker</th>
                 <th>Stock</th>
+                <th>Gambar</th>
                 <th>Status</th>
                 <th>Aksi</th>
             </tr>
         </thead>
         <tbody>
             <?php
-            $data = mysqli_query($db, "SELECT * FROM stiker");
-            while ($s = mysqli_fetch_array($data)) {
+            // Query untuk mengambil data barang_jadi dan menggabungkan stiker dalam satu kolom
+            $query = "
+                SELECT bj.*, 
+                       j.namabarang AS nama_jaket, 
+                       bj.gambar, 
+                       GROUP_CONCAT(CONCAT(s.nama, ' (', s.bagian, ')') SEPARATOR '\n') AS daftar_stiker
+                FROM barang_jadi bj
+                LEFT JOIN jaket j ON bj.id_jaket = j.id_jaket
+                LEFT JOIN stiker s ON bj.id_sticker = s.id_sticker
+                GROUP BY bj.id_barang
+            ";
+
+            $data = mysqli_query($db, $query);
+
+            while ($bj = mysqli_fetch_array($data)) {
                 ?>
                 <tr>
-                    <td><?= "STK" . $s["id_sticker"] ?></td>
-                    <td><?= htmlspecialchars($s['nama']) ?></td>
-                    <td><?= htmlspecialchars($s['stock']) ?></td>
+                    <td><?= "BJ" . $bj["id_barang"] ?></td>
+                    <td><?= htmlspecialchars($bj['nama_produk']) ?></td>
+                    <td><?= htmlspecialchars($bj['nama_jaket']) ?></td>
+                    <td><?= nl2br(htmlspecialchars($bj['daftar_stiker'])) ?></td>
+                    <!-- Menampilkan stiker dengan baris baru -->
+                    <td><?= htmlspecialchars($bj['stock']) ?></td>
                     <td>
-                        <span class="badge badge-<?= $s['stock'] > 0 ? 'success' : 'danger' ?>">
-                            <?= $s['stock'] > 0 ? 'Tersedia' : 'Habis' ?>
+                        <img src="uploads/<?= htmlspecialchars($bj['gambar']) ?>" width="80" height="80"
+                            alt="Gambar Produk">
+                    </td>
+                    <td>
+                        <span class="badge badge-<?= $bj['stock'] > 0 ? 'success' : 'danger' ?>">
+                            <?= $bj['stock'] > 0 ? 'Tersedia' : 'Habis' ?>
                         </span>
                     </td>
                     <td class="text-center">
                         <div class="btn-group" role="group">
                             <button class="btn btn-sm btn-primary" data-toggle="modal"
-                                data-target="#modalEditSablon<?= $s['id_sticker'] ?>">
+                                data-target="#modalEditBarangJadi<?= $bj['id_barang'] ?>">
                                 <i class="far fa-edit"></i>
                             </button>
                             <button class="btn btn-sm btn-success"
-                                onclick="showModalSablon(<?= $s['id_sticker'] ?>, 'tambah')" title="Tambah Stock">
+                                onclick="showModalBarangJadi(<?= $bj['id_barang'] ?>, 'tambah')" title="Tambah Stock">
                                 <i class="fas fa-plus"></i>
                             </button>
                             <button class="btn btn-sm btn-danger"
-                                onclick="showModalSablon(<?= $s['id_sticker'] ?>, 'kurangi')" title="Kurangi Stock">
+                                onclick="showModalBarangJadi(<?= $bj['id_barang'] ?>, 'kurangi')" title="Kurangi Stock">
                                 <i class="fas fa-minus"></i>
                             </button>
                         </div>
 
-                        <!-- Modal Edit Sablon -->
-                        <div class="modal fade" id="modalEditSablon<?= $s['id_sticker'] ?>" tabindex="-1" role="dialog">
-                            <div class="modal-dialog modal-dialog-centered" role="document">
+                        <!-- Modal Edit Barang Jadi -->
+                        <div class="modal fade" id="modalEditBarangJadi<?= $bj['id_barang'] ?>" tabindex="-1" role="dialog">
+                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title">Edit Data Sablon</h5>
+                                        <h5 class="modal-title">Edit Data Barang Jadi</h5>
                                         <button type="button" class="close" data-dismiss="modal">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
-                                    <form action="config/edit_sablon.php" method="POST">
+                                    <form action="config/edit_barang_jadi.php" method="POST" enctype="multipart/form-data">
                                         <div class="modal-body">
-                                            <input type="hidden" name="id" value="<?= $s['id_sticker'] ?>">
+                                            <input type="hidden" name="id" value="<?= $bj['id_barang'] ?>">
                                             <div class="form-group">
-                                                <label>Nama</label>
-                                                <input type="text" class="form-control" name="nama"
-                                                    value="<?= htmlspecialchars($s['nama']) ?>" required>
+                                                <label>Nama Produk</label>
+                                                <input type="text" class="form-control" name="nama_produk"
+                                                    value="<?= htmlspecialchars($bj['nama_produk']) ?>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Jaket</label>
+                                                <select class="form-control" name="id_jaket" required>
+                                                    <?php
+                                                    $jaket_query = mysqli_query($db, "SELECT * FROM jaket");
+                                                    while ($jaket = mysqli_fetch_array($jaket_query)) {
+                                                        $selected = ($jaket['id_jaket'] == $bj['id_jaket']) ? 'selected' : '';
+                                                        echo "<option value='" . $jaket['id_jaket'] . "' " . $selected . ">" .
+                                                            htmlspecialchars($jaket['namabarang']) . "</option>";
+                                                    }
+                                                    ?>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Upload Gambar</label>
+                                                <input type="file" class="form-control" name="gambar">
+                                                <small>Format: JPG, PNG, Max 2MB</small>
                                             </div>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary"
                                                 data-dismiss="modal">Batal</button>
-                                            <button type="submit" class="btn btn-primary">Simpan
-                                                Perubahan</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Modal Stock Sablon -->
-                        <div class="modal fade" id="stockModalSablon" tabindex="-1" role="dialog">
-                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="stockModalLabelSablon">Update
-                                            Stock Sablon</h5>
-                                        <button type="button" class="close" data-dismiss="modal">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <form action="config/update_stock_sablon.php" method="POST">
-                                        <div class="modal-body">
-                                            <input type="hidden" name="id_sticker" id="id_sticker">
-                                            <input type="hidden" name="action" id="actionSablon">
-                                            <div class="form-group">
-                                                <label>Jumlah</label>
-                                                <input type="number" class="form-control" name="jumlah" required min="1">
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary"
-                                                data-dismiss="modal">Batal</button>
-                                            <button type="submit" class="btn btn-primary">Simpan</button>
+                                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                                         </div>
                                     </form>
                                 </div>
@@ -104,3 +114,11 @@
         </tbody>
     </table>
 </div>
+
+<script>
+    function showModalBarangJadi(id, action) {
+        $('#id_barang').val(id);
+        $('#actionBarangJadi').val(action);
+        $('#stockModalBarangJadi').modal('show');
+    }
+</script>

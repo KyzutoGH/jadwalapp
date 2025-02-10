@@ -105,184 +105,133 @@
                 </div>
             </div>
         </div>
-
-        <!-- Billing Form Tab -->
         <div class="tab-pane fade" id="sablon" role="tabpanel">
-            <div class="card card-default">
+            <div class="card">
                 <div class="card-body">
-                    <form id="barangJadiForm" action="config/create_sablon.php" method="POST">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="nama_produk">Nama Produk</label>
-                                    <input type="text" class="form-control" id="nama_produk" name="nama_produk"
-                                        required>
-                                </div>
+                    <form action="config/create_sablon.php" method="POST" enctype="multipart/form-data">
+                        <!-- Nama Produk -->
+                        <div class="form-group">
+                            <label>Nama Produk</label>
+                            <input type="text" class="form-control" name="nama_produk" required>
+                        </div>
 
-                                <div class="form-group">
-                                    <label for="id_jaket">Pilih Jaket</label>
-                                    <select class="form-control" name="id_jaket" id="id_jaket" required>
-                                        <option value="">Pilih Jaket</option>
-                                        <?php
-                                        $query_jaket = "SELECT id_jaket, namabarang, ukuran, jenis FROM jaket";
-                                        $result_jaket = mysqli_query($db, $query_jaket);
-                                        while ($jaket = mysqli_fetch_assoc($result_jaket)) {
-                                            echo "<option value='{$jaket['id_jaket']}'>{$jaket['namabarang']} - {$jaket['jenis']} ({$jaket['ukuran']})</option>";
-                                        }
-                                        ?>
-                                    </select>
-                                </div>
-                            </div>
+                        <!-- Pilih Jaket -->
+                        <div class="form-group">
+                            <label>Pilih Jaket</label>
+                            <select class="form-control" name="id_jaket" required>
+                                <option value="">Pilih Jaket</option>
+                                <?php
+                                $query = "SELECT * FROM jaket";
+                                $result = mysqli_query($db, $query);
+                                while ($row = mysqli_fetch_array($result)) {
+                                    echo "<option value='{$row['id_jaket']}'>{$row['namabarang']}</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
 
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Pilih atau Tambah Stiker</label>
-                                    <div id="stikerContainer">
-                                        <div class="stiker-item mb-3">
-                                            <div class="card">
-                                                <div class="card-body">
-                                                    <div class="form-check mb-2">
-                                                        <input class="form-check-input stiker-type" type="checkbox"
-                                                            data-target="new-stiker-1">
-                                                        <label class="form-check-label">
-                                                            Tambah Stiker Baru
-                                                        </label>
-                                                    </div>
+                        <!-- Upload Gambar -->
+                        <div class="form-group">
+                            <label>Upload Gambar</label>
+                            <input type="file" class="form-control-file" name="gambar_jadi" accept="image/*" required>
+                        </div>
 
-                                                    <!-- Existing Stiker Selection -->
-                                                    <div class="existing-stiker-select">
-                                                        <select class="form-control stiker-select" name="stiker_ids[]">
-                                                            <option value="">Pilih Stiker</option>
-                                                            <?php
-                                                            $query_stiker = "SELECT id_sticker, nama, bagian FROM stiker";
-                                                            $result_stiker = mysqli_query($db, $query_stiker);
-                                                            while ($stiker = mysqli_fetch_assoc($result_stiker)) {
-                                                                echo "<option value='{$stiker['id_sticker']}'>{$stiker['nama']} - {$stiker['bagian']}</option>";
-                                                            }
-                                                            ?>
-                                                        </select>
-                                                    </div>
-
-                                                    <!-- New Stiker Form -->
-                                                    <div class="new-stiker-form" style="display: none;">
-                                                        <div class="form-group">
-                                                            <input type="text" class="form-control mb-2"
-                                                                name="new_stiker_nama[]" placeholder="Nama Stiker">
-                                                            <input type="text" class="form-control"
-                                                                name="new_stiker_bagian[]" placeholder="Bagian">
-                                                        </div>
-                                                    </div>
-
-                                                    <button type="button" class="btn btn-danger btn-sm remove-stiker"
-                                                        style="display: none;">
-                                                        Hapus Stiker
-                                                    </button>
+                        <!-- Container untuk Stiker -->
+                        <div class="form-group">
+                            <label>Stiker</label>
+                            <div id="stikerContainer">
+                                <div class="stiker-row mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <!-- Radio untuk pilih tipe stiker -->
+                                            <div class="form-group d-flex align-items-center">
+                                                <div class="form-check mr-3">
+                                                    <input type="radio" name="stiker_type_0" value="existing" checked
+                                                        class="form-check-input" onchange="toggleStikerForm(0)">
+                                                    <label class="form-check-label">Pilih Stiker Yang Ada</label>
                                                 </div>
+                                                <div class="form-check">
+                                                    <input type="radio" name="stiker_type_0" value="new"
+                                                        class="form-check-input" onchange="toggleStikerForm(0)">
+                                                    <label class="form-check-label">Tambah Stiker Baru</label>
+                                                </div>
+                                            </div>
+
+                                            <!-- Form untuk pilih stiker yang ada -->
+                                            <div id="existing_stiker_0">
+                                                <select class="form-control" name="existing_sticker[]">
+                                                    <option value="">Pilih Stiker</option>
+                                                    <?php
+                                                    $query = "SELECT * FROM stiker";
+                                                    $result = mysqli_query($db, $query);
+                                                    while ($row = mysqli_fetch_array($result)) {
+                                                        echo "<option value='{$row['id_sticker']}'>{$row['nama']}</option>";
+                                                    }
+                                                    ?>
+                                                </select>
+                                            </div>
+
+                                            <!-- Form untuk stiker baru -->
+                                            <div id="new_stiker_0" style="display:none;">
+                                                <input type="text" class="form-control mb-2" name="new_stiker_nama[]"
+                                                    placeholder="Nama Stiker">
+                                                <input type="text" class="form-control" name="new_stiker_bagian[]"
+                                                    placeholder="Bagian">
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button" class="btn btn-success btn-sm mt-2" id="addStiker">
-                                        <i class="fas fa-plus"></i> Tambah Stiker Lain
-                                    </button>
                                 </div>
                             </div>
+                            <button type="button" class="btn btn-success btn-sm mt-2" onclick="tambahStiker()">+ Tambah
+                                Stiker Lain</button>
                         </div>
 
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-primary float-right">Simpan</button>
-                                <button type="reset" class="btn btn-secondary float-right mr-2">Batal</button>
-                            </div>
-                        </div>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
                     </form>
                 </div>
             </div>
+        </div>
 
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const stikerContainer = document.getElementById('stikerContainer');
-                    const addStikerBtn = document.getElementById('addStiker');
-                    const form = document.getElementById('barangJadiForm');
+        <script>
+            let stikerCount = 1;
 
-                    // Toggle between new and existing stiker
-                    function setupStikerTypeToggle(container) {
-                        const checkbox = container.querySelector('.stiker-type');
-                        const existingSelect = container.querySelector('.existing-stiker-select');
-                        const newForm = container.querySelector('.new-stiker-form');
+            function toggleStikerForm(index) {
+                const existingForm = document.getElementById(`existing_stiker_${index}`);
+                const newForm = document.getElementById(`new_stiker_${index}`);
+                const radioValue = document.querySelector(`input[name="stiker_type_${index}"]:checked`).value;
 
-                        checkbox.addEventListener('change', function () {
-                            if (this.checked) {
-                                existingSelect.style.display = 'none';
-                                newForm.style.display = 'block';
-                                existingSelect.querySelector('select').removeAttribute('required');
-                                newForm.querySelectorAll('input').forEach(input => input.setAttribute('required', ''));
-                            } else {
-                                existingSelect.style.display = 'block';
-                                newForm.style.display = 'none';
-                                existingSelect.querySelector('select').setAttribute('required', '');
-                                newForm.querySelectorAll('input').forEach(input => input.removeAttribute('required'));
-                            }
-                        });
-                    }
+                if (radioValue === 'existing') {
+                    existingForm.style.display = 'block';
+                    newForm.style.display = 'none';
+                } else {
+                    existingForm.style.display = 'none';
+                    newForm.style.display = 'block';
+                }
+            }
 
-                    // Show/hide remove buttons
-                    function updateRemoveButtons() {
-                        const removeButtons = document.querySelectorAll('.remove-stiker');
-                        removeButtons.forEach(button => {
-                            button.style.display = removeButtons.length > 1 ? 'block' : 'none';
-                        });
-                    }
+            function tambahStiker() {
+                const container = document.getElementById('stikerContainer');
+                const original = document.querySelector('.stiker-row');
+                const newRow = original.cloneNode(true);
 
-                    // Add new stiker section
-                    addStikerBtn.addEventListener('click', function () {
-                        const stikerItems = document.querySelectorAll('.stiker-item');
-                        const newItem = stikerItems[0].cloneNode(true);
-                        const index = stikerItems.length + 1;
-
-                        // Reset form values
-                        newItem.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
-                        newItem.querySelector('.stiker-type').checked = false;
-                        newItem.querySelector('.existing-stiker-select').style.display = 'block';
-                        newItem.querySelector('.new-stiker-form').style.display = 'none';
-
-                        // Update IDs and names
-                        newItem.querySelector('.stiker-type').dataset.target = `new-stiker-${index}`;
-
-                        stikerContainer.appendChild(newItem);
-                        setupStikerTypeToggle(newItem);
-                        updateRemoveButtons();
-                    });
-
-                    // Remove stiker section
-                    stikerContainer.addEventListener('click', function (e) {
-                        if (e.target.classList.contains('remove-stiker')) {
-                            const item = e.target.closest('.stiker-item');
-                            item.remove();
-                            updateRemoveButtons();
-                        }
-                    });
-
-                    // Setup initial stiker type toggle
-                    setupStikerTypeToggle(document.querySelector('.stiker-item'));
-
-                    // Form validation
-                    form.addEventListener('submit', function (e) {
-                        e.preventDefault();
-
-                        // Get all selected existing stiker IDs
-                        const selectedStikers = Array.from(document.querySelectorAll('.stiker-select:required'))
-                            .map(select => select.value)
-                            .filter(value => value !== '');
-
-                        // Check for duplicate selections
-                        const uniqueStikers = new Set(selectedStikers);
-                        if (selectedStikers.length !== uniqueStikers.size) {
-                            alert('Stiker tidak boleh duplikat!');
-                            return;
-                        }
-
-                        // If all validations pass, submit the form
-                        this.submit();
-                    });
+                // Update semua ID dan name untuk elemen yang baru
+                newRow.querySelectorAll('[id]').forEach(el => {
+                    el.id = el.id.replace(/\d+/, stikerCount);
                 });
-            </script>
+
+                // Update name dan event listener untuk radio button baru
+                newRow.querySelectorAll('input[type="radio"]').forEach((radio, i) => {
+                    radio.name = `stiker_type_${stikerCount}`;
+                    radio.checked = i === 0;
+                    radio.setAttribute("onchange", `toggleStikerForm(${stikerCount})`);
+                });
+
+                // Reset input values
+                newRow.querySelector('select').value = "";
+                newRow.querySelectorAll('input[type="text"]').forEach(input => input.value = "");
+
+                // Tambahkan ke dalam container
+                container.appendChild(newRow);
+                stikerCount++;
+            }
+        </script>
