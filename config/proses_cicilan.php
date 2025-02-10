@@ -9,36 +9,79 @@ $tanggalPembayaran = isset($_GET['tanggalPembayaran']) ? $_GET['tanggalPembayara
 $keterangan = isset($_GET['keterangan']) ? mysqli_real_escape_string($db, $_GET['keterangan']) : '';
 
 if ($id && $cicilanKe && $jumlahBayar) {
-    $columnNominal = "dp{$cicilanKe}_nominal";
-    $columnTanggal = "dp{$cicilanKe}_tenggat";
+    // Get current payment status
+    $checkSql = "SELECT 
+                        total,
+                        jumlah_dp,
+                        COALESCE(dp1_nominal, 0) as dp1_nominal,
+                        COALESCE(dp2_nominal, 0) as dp2_nominal,
+                        COALESCE(dp3_nominal, 0) as dp3_nominal
+                    FROM penagihan 
+                    WHERE id = $id";
 
-    // Update pembayaran
-    $sql = "UPDATE penagihan 
-            SET $columnNominal = $jumlahBayar,
-                $columnTanggal = '$tanggalPembayaran'
-            WHERE id = $id";
+    $result = $db->query($checkSql);
+    if (!$result) {
+        $_SESSION['toastr'] = [
+            'type' => 'error',
+            'message' => 'Error checking payment status: ' . $db->error
+        ];
+        header('Location: ../index.php?menu=Penagihan');
+        exit;
+    }
+
+    $row = $result->fetch_assoc();
+    $totalPaid = $row['dp1_nominal'] + $row['dp2_nominal'] + $row['dp3_nominal'];
+    $remainingBalance = $row['total'] - $totalPaid;
+
+    // Handle final payment
+    if ($cicilanKe > $row['jumlah_dp']) {
+        $jumlahBayar = $remainingBalance;
+
+        $sql = "UPDATE penagihan 
+                    SET pelunasan = $jumlahBayar,
+                        tgllunas = '$tanggalPembayaran',
+                        status = '2'
+                    WHERE id = $id";
+    } else {
+        // Regular installment payment
+        $columnNominal = "dp{$cicilanKe}_nominal";
+        $columnTanggal = "dp{$cicilanKe}_tenggat";
+        $columnStatus = "dp{$cicilanKe}_status";
+
+        if (($totalPaid + $jumlahBayar) > $row['total']) {
+            $_SESSION['toastr'] = [
+                'type' => 'error',
+                'message' => 'Jumlah pembayaran melebihi total tagihan'
+            ];
+            header('Location: ../index.php?menu=Penagihan');
+            exit;
+        }
+
+        $sql = "UPDATE penagihan 
+                    SET $columnNominal = $jumlahBayar,
+                        $columnTanggal = '$tanggalPembayaran',
+                        $columnStatus = '1'
+                    WHERE id = $id";
+    }
 
     if ($db->query($sql)) {
-        // Check if this is the final payment
-        $checkSql = "SELECT total, 
-                    COALESCE(dp1_nominal, 0) + COALESCE(dp2_nominal, 0) + COALESCE(dp3_nominal, 0) as total_dibayar 
-                    FROM penagihan WHERE id = $id";
+        // Update overall status after payment
+        $newTotalPaid = $totalPaid + $jumlahBayar;
 
-        $result = $db->query($checkSql);
-        if ($result && $row = $result->fetch_assoc()) {
-            // Jika total pembayaran sama dengan total tagihan, update status menjadi lunas
-            if ($row['total_dibayar'] >= $row['total']) {
-                $updateStatus = "UPDATE penagihan 
-                                SET status = '2',
-                                    tgllunas = '$tanggalPembayaran'
-                                WHERE id = $id";
-                $db->query($updateStatus);
-            }
+        if ($newTotalPaid >= $row['total']) {
+            $db->query("UPDATE penagihan 
+                           SET status = '2',
+                               tgllunas = '$tanggalPembayaran'
+                           WHERE id = $id");
+        } else if ($cicilanKe == $row['jumlah_dp']) {
+            $db->query("UPDATE penagihan SET status = '1' WHERE id = $id");
         }
 
         $_SESSION['toastr'] = [
             'type' => 'success',
-            'message' => 'Pembayaran cicilan berhasil disimpan'
+            'message' => ($cicilanKe > $row['jumlah_dp']) ?
+                'Pelunasan berhasil disimpan' :
+                'Pembayaran cicilan berhasil disimpan'
         ];
     } else {
         $_SESSION['toastr'] = [
