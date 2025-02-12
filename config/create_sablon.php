@@ -9,12 +9,8 @@ $existing_stickers = isset($_POST['existing_sticker']) ? array_filter($_POST['ex
 $new_stiker_nama = isset($_POST['new_stiker_nama']) ? array_filter($_POST['new_stiker_nama']) : [];
 $new_stiker_bagian = isset($_POST['new_stiker_bagian']) ? array_filter($_POST['new_stiker_bagian']) : [];
 
-// Debugging: Cek apakah data baru masuk
-if (empty($new_stiker_nama) || empty($new_stiker_bagian)) {
-    $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Stiker baru tidak ditemukan dalam request!'];
-    header("Location: ../index.php?menu=Barang&submenu=DataBarang");
-    exit();
-}
+// Removed the validation that was causing the error
+// Now we'll check if there are either existing stickers or new stickers
 
 // Proses upload gambar jika ada
 $gambar_jadi = null;
@@ -60,29 +56,31 @@ $gambar_jadi = mysqli_real_escape_string($db, $gambar_jadi);
 // Array untuk menyimpan semua ID stiker (existing dan baru)
 $all_sticker_ids = [];
 
-// 1. Proses stiker baru terlebih dahulu
-for ($i = 0; $i < count($new_stiker_nama); $i++) {
-    if (!empty($new_stiker_nama[$i]) && !empty($new_stiker_bagian[$i])) {
-        $nama = mysqli_real_escape_string($db, $new_stiker_nama[$i]);
-        $bagian = mysqli_real_escape_string($db, $new_stiker_bagian[$i]);
+// 1. Proses stiker baru jika ada
+if (!empty($new_stiker_nama) && !empty($new_stiker_bagian)) {
+    for ($i = 0; $i < count($new_stiker_nama); $i++) {
+        if (!empty($new_stiker_nama[$i]) && !empty($new_stiker_bagian[$i])) {
+            $nama = mysqli_real_escape_string($db, $new_stiker_nama[$i]);
+            $bagian = mysqli_real_escape_string($db, $new_stiker_bagian[$i]);
 
-        // Cek apakah stiker dengan nama dan bagian yang sama sudah ada
-        $check_query = "SELECT id_sticker FROM stiker WHERE nama = '$nama' AND bagian = '$bagian'";
-        $check_result = mysqli_query($db, $check_query);
+            // Cek apakah stiker dengan nama dan bagian yang sama sudah ada
+            $check_query = "SELECT id_sticker FROM stiker WHERE nama = '$nama' AND bagian = '$bagian'";
+            $check_result = mysqli_query($db, $check_query);
 
-        if (mysqli_num_rows($check_result) > 0) {
-            $_SESSION['toastr'] = ['type' => 'error', 'message' => "Stiker '$nama' pada bagian '$bagian' sudah ada!"];
-            continue; // Lewati proses insert jika sudah ada
-        }
+            if (mysqli_num_rows($check_result) > 0) {
+                $_SESSION['toastr'] = ['type' => 'warning', 'message' => "Stiker '$nama' pada bagian '$bagian' sudah ada!"];
+                continue; // Lewati proses insert jika sudah ada
+            }
 
-        // Insert stiker baru
-        $insert_query = "INSERT INTO stiker (nama, bagian, stock) VALUES ('$nama', '$bagian', 0)";
-        if (mysqli_query($db, $insert_query)) {
-            $all_sticker_ids[] = mysqli_insert_id($db);
-        } else {
-            $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Gagal menambahkan stiker baru: ' . mysqli_error($db)];
-            header("Location: ../index.php?menu=Barang&submenu=DataBarang");
-            exit();
+            // Insert stiker baru
+            $insert_query = "INSERT INTO stiker (nama, bagian, stock) VALUES ('$nama', '$bagian', 0)";
+            if (mysqli_query($db, $insert_query)) {
+                $all_sticker_ids[] = mysqli_insert_id($db);
+            } else {
+                $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Gagal menambahkan stiker baru: ' . mysqli_error($db)];
+                header("Location: ../index.php?menu=Barang&submenu=DataBarang");
+                exit();
+            }
         }
     }
 }
@@ -94,9 +92,9 @@ foreach ($existing_stickers as $sticker_id) {
     }
 }
 
-// Debugging: Cek apakah ada stiker yang berhasil dikumpulkan
+// Validasi: harus ada minimal satu stiker (baru atau existing)
 if (empty($all_sticker_ids)) {
-    $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Tidak ada stiker yang berhasil ditambahkan!'];
+    $_SESSION['toastr'] = ['type' => 'error', 'message' => 'Minimal harus ada satu stiker untuk produk ini!'];
     header("Location: ../index.php?menu=Barang&submenu=DataBarang");
     exit();
 }

@@ -124,7 +124,7 @@
                                 $query = "SELECT * FROM jaket";
                                 $result = mysqli_query($db, $query);
                                 while ($row = mysqli_fetch_array($result)) {
-                                    echo "<option value='{$row['id_jaket']}'>{$row['namabarang']}</option>";
+                                    echo "<option value='{$row['id_jaket']}'>{$row['namabarang']} - {$row['ukuran']}</option>";
                                 }
                                 ?>
                             </select>
@@ -165,7 +165,7 @@
                                                     $query = "SELECT * FROM stiker";
                                                     $result = mysqli_query($db, $query);
                                                     while ($row = mysqli_fetch_array($result)) {
-                                                        echo "<option value='{$row['id_sticker']}'>{$row['nama']}</option>";
+                                                        echo "<option value='{$row['id_sticker']}'>{$row['nama']} - {$row['bagian']}</option>";
                                                     }
                                                     ?>
                                                 </select>

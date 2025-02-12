@@ -78,6 +78,34 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="modal fade" id="stockModalStiker" tabindex="-1" role="dialog">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="stockModalLabelStiker">Update Stock Stiker</h5>
+                                            <button type="button" class="close" data-dismiss="modal">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <form action="config/update_stock_sticker.php" method="POST">
+                                            <div class="modal-body">
+                                                <input type="hidden" id="id_sticker_modal" name="id_sticker">
+                                                <input type="hidden" id="action_stiker" name="action">
+                                                <div class="form-group">
+                                                    <label>Jumlah</label>
+                                                    <input type="number" class="form-control" name="jumlah" min="1"
+                                                        required>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Batal</button>
+                                                <button type="submit" class="btn btn-primary">Simpan</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 <?php } ?>

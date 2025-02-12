@@ -1,5 +1,5 @@
 <div class="pt-3">
-    <table id="tabelBarangJadi" class="table table-bordered table-striped">
+    <table id="tabelBarangJadi" class="table table-bordered table-striped" width="100%">
         <thead>
             <tr>
                 <th>Kode</th>
@@ -73,6 +73,35 @@
             <?php } ?>
         </tbody>
     </table>
+</div>
+<!-- Modal Tambah/Kurangi Stok -->
+<div class="modal fade" id="stockModalBarangJadi" tabindex="-1" role="dialog" aria-labelledby="stockModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="stockModalLabel">Ubah Stok Barang Jadi</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="config/update_stock_sablon.php" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id_barang" id="id_barang">
+                    <input type="hidden" name="action" id="actionBarangJadi">
+
+                    <div class="form-group">
+                        <label for="jumlah">Jumlah:</label>
+                        <input type="number" name="jumlah" id="jumlah" class="form-control" required min="1">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>

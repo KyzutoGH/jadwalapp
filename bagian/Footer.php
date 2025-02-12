@@ -1,4 +1,5 @@
 <!-- REQUIRED SCRIPTS -->
+<script src="https://cdn.datatables.net/fixedheader/3.3.2/js/dataTables.fixedHeader.min.js"></script>
 <!-- jQuery -->
 <script src="assets/plugins/jquery/jquery.min.js"></script>
 <!-- Bootstrap -->
@@ -58,218 +59,9 @@
 <!-- Toastr -->
 <script src="assets/plugins/toastr/toastr.min.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const ctx = document.getElementById('diesNatalisChart').getContext('2d');
-
-    const data = {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
-      datasets: [{
-        label: 'Jumlah Dies Natalis',
-        data: <?php echo json_encode($data_dies_natalis); ?>,
-        backgroundColor: 'rgba(60,141,188,0.9)',
-        borderColor: 'rgba(60,141,188,0.8)',
-        borderWidth: 1
-      }]
-    };
-
-    const config = {
-      type: 'bar',
-      data: data,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1,
-              precision: 0
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top'
-          }
-        }
-      }
-    };
-
-    new Chart(ctx, config);
-  });
-</script>
-<!-- Dies Natalis Chart Script -->
-<script>
-  // Enhanced Dies Natalis Chart Configuration
-  const initDiesNatalisChart = () => {
-    const ctx = document.getElementById('diesNatalisChart').getContext('2d');
-
-    // Custom gradient background
-    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(60,141,188,0.9)');
-    gradient.addColorStop(1, 'rgba(60,141,188,0.4)');
-
-    const data = {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
-      datasets: [{
-        label: 'Jumlah Dies Natalis',
-        data: diesNatalisData, // Data dari PHP
-        backgroundColor: gradient,
-        borderColor: 'rgba(60,141,188,0.8)',
-        borderWidth: 1,
-        borderRadius: 5,
-        barThickness: 'flex',
-        maxBarThickness: 35,
-        minBarLength: 2
-      }]
-    };
-
-    const config = {
-      type: 'bar',
-      data: data,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-          padding: {
-            top: 20,
-            right: 20,
-            bottom: 20,
-            left: 20
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1,
-              precision: 0,
-              font: {
-                size: 12
-              }
-            },
-            grid: {
-              display: true,
-              drawBorder: false,
-              color: 'rgba(200, 200, 200, 0.2)'
-            }
-          },
-          x: {
-            grid: {
-              display: false
-            },
-            ticks: {
-              font: {
-                size: 12
-              }
-            }
-          }
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              boxWidth: 20,
-              padding: 20,
-              font: {
-                size: 12
-              }
-            }
-          },
-          tooltip: {
-            enabled: true,
-            mode: 'index',
-            intersect: false,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            titleFont: {
-              size: 13
-            },
-            bodyFont: {
-              size: 13
-            },
-            padding: 12,
-            callbacks: {
-              label: function (context) {
-                return `Jumlah: ${context.parsed.y} sekolah`;
-              }
-            }
-          }
-        },
-        animation: {
-          duration: 1000,
-          easing: 'easeInOutQuart'
-        },
-        onHover: (event, chartElement) => {
-          event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
-        }
-      }
-    };
-
-    // Destroy existing chart if it exists
-    if (window.diesNatalisChart instanceof Chart) {
-      window.diesNatalisChart.destroy();
-    }
-
-    // Create new chart and store reference
-    window.diesNatalisChart = new Chart(ctx, config);
-
-    // Add click handler for drill-down if needed
-    ctx.canvas.onclick = function (evt) {
-      const points = window.diesNatalisChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-      if (points.length) {
-        const firstPoint = points[0];
-        const month = firstPoint.index + 1;
-        const value = window.diesNatalisChart.data.datasets[0].data[firstPoint.index];
-
-        // You can add click handling here, e.g., showing details for the selected month
-        console.log(`Month: ${month}, Value: ${value}`);
-      }
-    };
-  };
-
-  // Initialize chart when DOM is ready
-  document.addEventListener('DOMContentLoaded', function () {
-    try {
-      initDiesNatalisChart();
-
-      // Optional: Add window resize handler with debounce
-      let resizeTimeout;
-      window.addEventListener('resize', function () {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(function () {
-          initDiesNatalisChart();
-        }, 250);
-      });
-    } catch (error) {
-      console.error('Error initializing chart:', error);
-    }
-  });
-  var ctx = document.getElementById('diesNatalisChart').getContext('2d');
-  var diesNatalisChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
-      datasets: [{
-        label: 'Jumlah Dies Natalis',
-        data: <?php echo json_encode($data_dies_natalis); ?>,
-        backgroundColor: 'rgba(60,141,188,0.9)',
-        borderColor: 'rgba(60,141,188,0.8)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
-  document.addEventListener('DOMContentLoaded', function () {
-    // Global Configuration Objects
-    const toastrConfig = {
+  // Configuration Objects
+  const CONFIG = {
+    toastr: {
       closeButton: true,
       debug: false,
       newestOnTop: true,
@@ -284,267 +76,236 @@
       hideEasing: "linear",
       showMethod: "fadeIn",
       hideMethod: "fadeOut"
-    };
-
-    const dataTableLanguage = {
-      emptyTable: "Tidak ada data yang tersedia",
-      info: "Menampilkan _START_ hingga _END_ dari _TOTAL_ entri",
-      infoEmpty: "Menampilkan 0 hingga 0 dari 0 entri",
-      infoFiltered: "(difilter dari _MAX_ total entri)",
-      lengthMenu: "Tampilkan _MENU_ entri",
-      loadingRecords: "Memuat...",
-      processing: "Memproses...",
-      search: "Pencarian:",
-      zeroRecords: "Tidak ditemukan data yang sesuai",
-      paginate: {
-        first: "Pertama",
-        last: "Terakhir",
-        next: "Selanjutnya",
-        previous: "Sebelumnya"
+    },
+    dataTable: {
+      language: {
+        emptyTable: "Tidak ada data yang tersedia",
+        info: "Menampilkan _START_ hingga _END_ dari _TOTAL_ entri",
+        infoEmpty: "Menampilkan 0 hingga 0 dari 0 entri",
+        infoFiltered: "(difilter dari _MAX_ total entri)",
+        lengthMenu: "Tampilkan _MENU_ entri",
+        loadingRecords: "Memuat...",
+        processing: "Memproses...",
+        search: "Pencarian:",
+        zeroRecords: "Tidak ditemukan data yang sesuai",
+        paginate: {
+          first: "Pertama",
+          last: "Terakhir",
+          next: "Selanjutnya",
+          previous: "Sebelumnya"
+        }
+      },
+      defaultOptions: {
+        paging: true,
+        lengthChange: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        autoWidth: false,
+        responsive: true,
+        deferRender: true
       }
-    };
+    },
+    chart: {
+      defaultOptions: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1, precision: 0 }
+          }
+        },
+        plugins: {
+          legend: { display: true, position: 'top' }
+        }
+      }
+    }
+  };
 
-    // Chart Initialization
-    const initializeChart = () => {
-      const chartCanvas = document.getElementById('diesNatalisChart');
-      if (!chartCanvas) {
-        console.warn('Chart canvas not found');
-        return;
+  // Chart Management
+  class ChartManager {
+    static init(canvasId, data) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) {
+        console.warn(`Canvas ${canvasId} not found`);
+        return null;
       }
 
-      // Destroy existing chart if it exists
-      const existingChart = Chart.getChart(chartCanvas);
+      // Destroy existing chart
+      const existingChart = Chart.getChart(canvas);
       if (existingChart) {
         existingChart.destroy();
       }
 
-      const chartData = {
+      return new Chart(canvas, {
+        type: 'bar',
+        data: data || this.getDefaultData(),
+        options: CONFIG.chart.defaultOptions
+      });
+    }
+
+    static getDefaultData() {
+      return {
         labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
         datasets: [{
           label: 'Jumlah Dies Natalis',
-          data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          data: new Array(12).fill(0),
           backgroundColor: 'rgba(60,141,188,0.9)',
           borderColor: 'rgba(60,141,188,0.8)',
           borderWidth: 1
         }]
       };
+    }
+  }
 
-      const config = {
-        type: 'bar',
-        data: chartData,
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                stepSize: 1,
-                precision: 0
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top'
-            }
-          }
+  // DataTable Management
+  class DataTableManager {
+    static tables = new Map();
+
+    static init(selector, customOptions = {}) {
+      if (!$(selector).length) return null;
+
+      const options = {
+        ...CONFIG.dataTable.defaultOptions,
+        ...customOptions,
+        language: CONFIG.dataTable.language
+      };
+
+      // Destroy if exists
+      if ($.fn.DataTable.isDataTable(selector)) {
+        $(selector).DataTable().destroy();
+      }
+
+      const table = $(selector).DataTable(options);
+      this.tables.set(selector, table);
+      return table;
+    }
+
+    static refresh(selector) {
+      const table = this.tables.get(selector);
+      if (table) {
+        table.ajax.reload();
+      }
+    }
+
+    static initializeAll() {
+      const tableConfigs = {
+        '#example1': {
+          lengthChange: false,
+          buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"]
+        },
+        '#tabelPenagihan': {
+          order: [[0, 'desc']],
+          pageLength: 25
         }
       };
 
-      try {
-        new Chart(chartCanvas, config);
-        console.log('Chart initialized successfully');
-      } catch (error) {
-        console.error('Error initializing chart:', error);
-      }
-    };
+      Object.entries(tableConfigs).forEach(([selector, options]) => {
+        const table = this.init(selector, options);
+        if (table && selector === '#example1') {
+          table.buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        }
+      });
+    }
+  }
 
-    // DataTable Filter Functions
-    const createDateRangeFilter = () => {
+  // Filter Management
+  class FilterManager {
+    static createDateRangeFilter() {
       return (settings, data, dataIndex) => {
         if (settings.nTable.id !== 'tabelPenagihan') return true;
 
         const startDate = $('#tgl_mulai').val();
         const endDate = $('#tgl_akhir').val();
-
         if (!startDate && !endDate) return true;
 
         const dateInTable = moment(data[0], 'DD/MM/YYYY', true);
         if (!dateInTable.isValid()) return false;
 
-        const start = startDate ? moment(startDate, 'YYYY-MM-DD', true) : null;
-        const end = endDate ? moment(endDate, 'YYYY-MM-DD', true) : null;
+        const start = startDate ? moment(startDate) : null;
+        const end = endDate ? moment(endDate) : null;
 
-        if (start && end) {
-          return dateInTable.isBetween(start, end, 'day', '[]');
-        } else if (start) {
-          return dateInTable.isSameOrAfter(start, 'day');
-        } else if (end) {
-          return dateInTable.isSameOrBefore(end, 'day');
-        }
+        if (start && end) return dateInTable.isBetween(start, end, 'day', '[]');
+        if (start) return dateInTable.isSameOrAfter(start, 'day');
+        if (end) return dateInTable.isSameOrBefore(end, 'day');
 
         return true;
       };
-    };
+    }
 
-    // Local Storage Handlers
-    const saveFilters = (filters) => {
+    static setupFilters() {
+      const debounce = (fn, delay) => {
+        let timeoutId;
+        return (...args) => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => fn(...args), delay);
+        };
+      };
+
+      $('#tgl_mulai, #tgl_akhir').on('change', debounce(() => {
+        this.saveFilters();
+        DataTableManager.tables.get('#tabelPenagihan')?.draw();
+      }, 300));
+
+      $('#filter_status').on('change', debounce(() => {
+        this.saveFilters();
+        const table = DataTableManager.tables.get('#tabelPenagihan');
+        if (table) {
+          table.column(5).search($('#filter_status').val()).draw();
+        }
+      }, 300));
+    }
+
+    static saveFilters() {
       try {
+        const filters = {
+          startDate: $('#tgl_mulai').val(),
+          endDate: $('#tgl_akhir').val(),
+          status: $('#filter_status').val()
+        };
         localStorage.setItem('tabelPenagihanFilters', JSON.stringify(filters));
       } catch (error) {
-        console.error('Error saving filters to localStorage:', error);
+        console.error('Error saving filters:', error);
       }
-    };
+    }
 
-    const loadSavedFilters = () => {
+    static loadSavedFilters() {
       try {
-        const savedFilters = localStorage.getItem('tabelPenagihanFilters');
+        const savedFilters = JSON.parse(localStorage.getItem('tabelPenagihanFilters'));
         if (savedFilters) {
-          const filters = JSON.parse(savedFilters);
-          $('#tgl_mulai').val(filters.startDate);
-          $('#tgl_akhir').val(filters.endDate);
-          $('#filter_status').val(filters.status).trigger('change');
+          $('#tgl_mulai').val(savedFilters.startDate);
+          $('#tgl_akhir').val(savedFilters.endDate);
+          $('#filter_status').val(savedFilters.status).trigger('change');
         }
       } catch (error) {
         console.error('Error loading saved filters:', error);
       }
-    };
+    }
+  }
 
-    // Initialize DataTables
-    const initializeDataTables = () => {
-      // Remove any existing filter before adding new one
-      $.fn.dataTable.ext.search = $.fn.dataTable.ext.search.filter(filter =>
-        filter.toString() !== createDateRangeFilter().toString()
-      );
+  // Initialize everything when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      // Initialize Chart
+      if (window.Chart) {
+        ChartManager.init('diesNatalisChart');
 
-      // Add the optimized date range filter
-      $.fn.dataTable.ext.search.push(createDateRangeFilter());
-
-      // Initialize main table
-      let penaginhanTable;
-      if ($('#tabelPenagihan').length) {
-        penaginhanTable = $('#tabelPenagihan').DataTable({
-          paging: true,
-          lengthChange: true,
-          searching: true,
-          ordering: true,
-          info: true,
-          autoWidth: false,
-          responsive: true,
-          language: dataTableLanguage,
-          stateSave: true,
-          deferRender: true,
-          initComplete: function () {
-            $('.dataTables_filter input, .dataTables_length select').addClass('form-control');
-
-            if (!$('#reset_filter').length) {
-              const resetButton = $('<button>', {
-                id: 'reset_filter',
-                class: 'btn btn-secondary mb-3',
-                html: '<i class="fas fa-sync-alt"></i> Reset Filter'
-              });
-              $('.card-body').prepend(resetButton);
-            }
-
-            loadSavedFilters();
-          }
-        });
-
-        // Event Handlers
-        const setupEventHandlers = () => {
-          let dateFilterTimeout;
-          $('#tgl_mulai, #tgl_akhir').on('change', function () {
-            const filters = {
-              startDate: $('#tgl_mulai').val(),
-              endDate: $('#tgl_akhir').val(),
-              status: $('#filter_status').val()
-            };
-            saveFilters(filters);
-
-            clearTimeout(dateFilterTimeout);
-            dateFilterTimeout = setTimeout(() => {
-              penaginhanTable.draw();
-            }, 300);
-          });
-
-          let statusFilterTimeout;
-          $('#filter_status').on('change', function () {
-            const searchTerm = $(this).val();
-            const filters = {
-              startDate: $('#tgl_mulai').val(),
-              endDate: $('#tgl_akhir').val(),
-              status: searchTerm
-            };
-            saveFilters(filters);
-
-            clearTimeout(statusFilterTimeout);
-            statusFilterTimeout = setTimeout(() => {
-              penaginhanTable.column(5).search(searchTerm).draw();
-            }, 300);
-          });
-
-          $(document).on('click', '#reset_filter', function () {
-            $('#tgl_mulai, #tgl_akhir').val('');
-            $('#filter_status').val('').trigger('change');
-            try {
-              localStorage.removeItem('tabelPenagihanFilters');
-            } catch (error) {
-              console.error('Error removing filters from localStorage:', error);
-            }
-            penaginhanTable.search('').columns().search('').draw();
-            toastr.success('Filter berhasil direset');
-          });
-        };
-
-        setupEventHandlers();
+        // Add resize handler
+        const debouncedResize = _.debounce(() => {
+          ChartManager.init('diesNatalisChart');
+        }, 250);
+        window.addEventListener('resize', debouncedResize);
       }
 
-      // Initialize other tables
-      const initializeOtherTables = () => {
-        const tables = {
-          '#example1': {
-            lengthChange: false,
-            buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"]
-          },
-          '#tabelSekolah': {},
-          '#tabelContact': {},
-          '#tabelBarang': {},
-          '#tabelBarangKeluar': {},
-          '#tabelBarangMasuk': {}
-        };
+      // Initialize DataTables
+      DataTableManager.initializeAll();
 
-        Object.entries(tables).forEach(([tableId, options]) => {
-          if (!$(tableId).length) return;
+      // Setup Filters
+      FilterManager.setupFilters();
+      FilterManager.loadSavedFilters();
 
-          const defaultOptions = {
-            paging: true,
-            lengthChange: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            autoWidth: false,
-            responsive: true,
-            language: dataTableLanguage
-          };
-
-          try {
-            const table = $(tableId).DataTable({ ...defaultOptions, ...options });
-            if (tableId === '#example1' && table) {
-              table.buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
-            }
-          } catch (error) {
-            console.error(`Error initializing DataTable for ${tableId}:`, error);
-          }
-        });
-      };
-
-      initializeOtherTables();
-    };
-
-    // Initialize Select2
-    const initializeSelect2 = () => {
+      // Initialize Select2
       $('.select2bs4').select2({
         theme: 'bootstrap4',
         width: '100%',
@@ -553,78 +314,46 @@
           searching: () => "Mencari..."
         }
       });
-    };
-
-    // Modal Functions
-    const modalFunctions = {
-      showBatalkanModal: (index) => {
-        $('#custIdBatal').val(index);
-        $('#alasanBatal').val('');
-        $('#modalBatalkan').modal('show');
-      },
-
-      batalkanPesanan: () => {
-        const alasan = $('#alasanBatal').val().trim();
-        if (!alasan || alasan.length < 10 || alasan.length > 500) {
-          Swal.fire({
-            title: 'Error!',
-            text: 'Alasan pembatalan harus diisi (min 10 karakter, max 500 karakter)',
-            icon: 'error'
-          });
-          return;
-        }
-
-        Swal.fire({
-          title: 'Konfirmasi Pembatalan',
-          text: 'Apakah Anda yakin ingin membatalkan pesanan ini?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Ya, Batalkan!',
-          cancelButtonText: 'Tidak'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            Swal.fire(
-              'Dibatalkan!',
-              'Pesanan telah dibatalkan.',
-              'success'
-            ).then(() => {
-              $('#modalBatalkan').modal('hide');
-              location.reload();
-            });
-          }
-        });
-      },
-
-      showAlasanBatal: (alasan) => {
-        Swal.fire({
-          title: 'Alasan Pembatalan',
-          text: alasan,
-          icon: 'info'
-        });
-      }
-    };
-
-    // Initialize everything
-    try {
-      if (window.Chart) {
-        initializeChart();
-      } else {
-        console.warn('Chart.js not loaded');
-      }
-
-      initializeDataTables();
-      initializeSelect2();
-
-      // Expose modal functions globally
-      window.showBatalkanModal = modalFunctions.showBatalkanModal;
-      window.batalkanPesanan = modalFunctions.batalkanPesanan;
-      window.showAlasanBatal = modalFunctions.showAlasanBatal;
 
       console.log('All initializations completed successfully');
     } catch (error) {
       console.error('Error during initialization:', error);
+    }
+  });
+  document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOM loaded');
+
+    if (typeof $.fn.DataTable !== 'undefined') {
+      try {
+        $('#tabelBarangJadi').DataTable({
+          processing: true,
+          pageLength: 10,
+          responsive: true,
+          lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+          language: {
+            "sEmptyTable": "Tidak ada data yang tersedia pada tabel ini",
+            "sProcessing": "Sedang memproses...",
+            "sLengthMenu": "Tampilkan _MENU_ entri",
+            "sZeroRecords": "Tidak ditemukan data yang sesuai",
+            "sInfo": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+            "sInfoEmpty": "Menampilkan 0 sampai 0 dari 0 entri",
+            "sInfoFiltered": "(disaring dari _MAX_ entri keseluruhan)",
+            "sInfoPostFix": "",
+            "sSearch": "Cari:",
+            "oPaginate": {
+              "sFirst": "Pertama",
+              "sPrevious": "Sebelumnya",
+              "sNext": "Selanjutnya",
+              "sLast": "Terakhir"
+            }
+          }
+        });
+        console.log('DataTable initialized');
+      } catch (e) {
+        console.error('Error initializing DataTable:', e);
+      }
+    } else {
+      console.error('DataTables not loaded');
     }
   });
 </script>
