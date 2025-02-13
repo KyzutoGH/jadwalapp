@@ -1,5 +1,5 @@
 <div class="pt-3">
-    <table id="tabelBarangJadi" class="table table-bordered table-striped" width="100%">
+    <table id="tabelBarangJadi" class="tabelBarang table table-bordered table-striped" width="100%">
         <thead>
             <tr>
                 <th>Kode</th>

@@ -1,7 +1,7 @@
 <!-- Tab Data Barang -->
 <div class="tab-pane fade show active" id="data" role="tabpanel">
     <div class="pt-3">
-        <table id="tabelBarang" class="table table-bordered table-striped">
+        <table id="tabelBarang" class="tabelBarang table table-bordered table-striped" width="100%">
             <thead>
                 <tr>
                     <th>Kode</th>

@@ -1,5 +1,5 @@
 <div class="pt-3">
-    <table id="tabelStikerKeluar" class="table table-bordered table-striped">
+    <table id="tabelStikerKeluar" class="tabelBarang table table-bordered table-striped" width="100%">
         <thead>
             <tr>
                 <th>Tanggal</th>

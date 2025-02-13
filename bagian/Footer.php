@@ -325,28 +325,30 @@
 
     if (typeof $.fn.DataTable !== 'undefined') {
       try {
-        $('#tabelBarangJadi').DataTable({
-          processing: true,
-          pageLength: 10,
-          responsive: true,
-          lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-          language: {
-            "sEmptyTable": "Tidak ada data yang tersedia pada tabel ini",
-            "sProcessing": "Sedang memproses...",
-            "sLengthMenu": "Tampilkan _MENU_ entri",
-            "sZeroRecords": "Tidak ditemukan data yang sesuai",
-            "sInfo": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-            "sInfoEmpty": "Menampilkan 0 sampai 0 dari 0 entri",
-            "sInfoFiltered": "(disaring dari _MAX_ entri keseluruhan)",
-            "sInfoPostFix": "",
-            "sSearch": "Cari:",
-            "oPaginate": {
-              "sFirst": "Pertama",
-              "sPrevious": "Sebelumnya",
-              "sNext": "Selanjutnya",
-              "sLast": "Terakhir"
+        $('.tabelBarang').each(function () {
+          $(this).DataTable({
+            processing: true,
+            pageLength: 10,
+            responsive: true,
+            lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            language: {
+              "sEmptyTable": "Tidak ada data yang tersedia pada tabel ini",
+              "sProcessing": "Sedang memproses...",
+              "sLengthMenu": "Tampilkan _MENU_ entri",
+              "sZeroRecords": "Tidak ditemukan data yang sesuai",
+              "sInfo": "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+              "sInfoEmpty": "Menampilkan 0 sampai 0 dari 0 entri",
+              "sInfoFiltered": "(disaring dari _MAX_ entri keseluruhan)",
+              "sInfoPostFix": "",
+              "sSearch": "Cari:",
+              "oPaginate": {
+                "sFirst": "Pertama",
+                "sPrevious": "Sebelumnya",
+                "sNext": "Selanjutnya",
+                "sLast": "Terakhir"
+              }
             }
-          }
+          });
         });
         console.log('DataTable initialized');
       } catch (e) {

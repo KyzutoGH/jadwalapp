@@ -1,5 +1,5 @@
 <div class="pt-3">
-    <table id="tabelSablonMasuk" class="table table-bordered table-striped">
+    <table id="tabelSablonMasuk" class="tabelBarang table table-bordered table-striped" width="100%">
         <thead>
             <tr>
                 <th>Tanggal</th>

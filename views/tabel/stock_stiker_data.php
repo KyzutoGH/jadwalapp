@@ -1,7 +1,7 @@
 <!-- tabel/stock_stiker_data.php -->
 <div class="tab-pane fade show active" id="stiker-data" role="tabpanel">
     <div class="pt-3">
-        <table id="tabelStiker" class="table table-bordered table-striped">
+        <table id="tabelStiker" class="tabelBarang table table-bordered table-striped" width="100%">
             <thead>
                 <tr>
                     <th>No</th>

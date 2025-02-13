@@ -9,7 +9,7 @@
         </div>
     </div>
     <div class="card-body">
-        <table id="tabelSekolah" class="table table-bordered table-striped">
+        <table id="tabelSekolah" class="tabelBarang table table-bordered table-striped" width="100%">
             <thead>
                 <tr>
                     <th>No</th>
