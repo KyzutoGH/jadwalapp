@@ -1,8 +1,48 @@
 <?php
+session_start();
 $data_dies_natalis = array_fill(0, 12, 0); // Initialize array with 0 for 12 months
 $formatter = new IntlDateFormatter('id_ID', IntlDateFormatter::FULL, IntlDateFormatter::NONE);
 $formatter->setPattern('MMMM');
 require_once('config/koneksi.php');
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
+// Get user role
+$userRole = $_SESSION['role'];
+
+// Define role-based access control
+$roleAccess = [
+    'owner' => [
+        'Dashboard',
+        'Tabel',
+        'Inbox',
+        'Kalender',
+        'Create',
+        'Penagihan',
+        'Barang',
+        'Stiker',
+        'CreateBarang'
+    ],
+    'marketing' => [
+        'Dashboard',
+        'Tabel',
+        'Inbox',
+        'Kalender',
+        'Create',
+        'Penagihan'
+    ],
+    'stock' => [
+        'Dashboard',
+        'Barang',
+        'Stiker',
+        'CreateBarang'
+    ]
+];
+
 // Konstanta untuk menu yang valid
 const VALID_MENUS = [
     'Dashboard' => [
@@ -50,16 +90,21 @@ const VALID_SUBMENUS = [
     'Barang' => ['DataBarang'],
     'Stiker' => ['DataStiker'],
     'CreateBarang' => ['BarangAdd', 'StikerAdd']
-    // Tambahkan menu lain yang memiliki submenu
 ];
 
 // Sanitasi input
-$menu = isset($_GET['menu']) ? htmlspecialchars($_GET['menu']) : '';
+$menu = isset($_GET['menu']) ? htmlspecialchars($_GET['menu']) : 'Dashboard';
 $submenu = isset($_GET['submenu']) ? htmlspecialchars($_GET['submenu']) : '';
 
-// Validasi menu
-$isValidMenu = array_key_exists($menu, VALID_MENUS);
-$currentMenu = $isValidMenu ? $menu : '404';
+// Validasi menu berdasarkan peran pengguna
+$isValidMenu = array_key_exists($menu, VALID_MENUS) && in_array($menu, $roleAccess[$userRole]);
+$currentMenu = $isValidMenu ? $menu : 'Dashboard';
+
+// Jika menu tidak valid, redirect ke Dashboard
+if (!$isValidMenu) {
+    header("Location: index.php?menu=Dashboard");
+    exit;
+}
 
 // Validasi submenu
 $isValidSubmenu = false;
@@ -77,28 +122,12 @@ if ($isValidMenu) {
         $judul_browser = "Fukubi Admin - $currentMenu";
     }
 } else {
-    $judul_browser = "Fukubi Admin - 404";
+    $judul_browser = "Fukubi Admin - Dashboard";
 }
 
 // Load templates
 require_once('bagian/Header.php');
 ?>
-<?php
-session_start();
-?>
-<script>
-    function showNotification(title, message) {
-        if (Notification.permission === "granted") {
-            new Notification(title, { body: message, icon: 'assets/img/date-of-birth.png' });
-        } else if (Notification.permission !== "denied") {
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    new Notification(title, { body: message, icon: 'assets/img/date-of-birth.png' });
-                }
-            });
-        }
-    }
-</script>
 
 <body class="hold-transition sidebar-mini layout-fixed layout-footer-fixed">
     <?php
@@ -126,9 +155,9 @@ session_start();
             <!-- Content Header -->
             <?php
             if ($isValidMenu) {
-                require_once(VALID_MENUS[$menu]['header']);
+                require_once(VALID_MENUS[$currentMenu]['header']);
             } else {
-                require_once('bagian/header/404.php');
+                require_once('bagian/header/dashboard.php');
             }
             ?>
             <!-- /.content-header -->
@@ -137,9 +166,9 @@ session_start();
             <section class="content">
                 <?php
                 if ($isValidMenu) {
-                    require_once(VALID_MENUS[$menu]['view']);
+                    require_once(VALID_MENUS[$currentMenu]['view']);
                 } else {
-                    require_once('views/404.php');
+                    require_once('views/dashboard.php');
                 }
                 ?>
             </section>
