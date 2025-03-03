@@ -38,7 +38,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Data Table -->
         <table id="tabelPenagihan" class="table table-bordered table-striped">
             <thead>
@@ -54,11 +53,13 @@
             </thead>
             <tbody>
                 <?php
-                // Helper function for installment badge
-                function generateInstallmentBadge($current, $total)
+                // Helper function untuk menampilkan badge cicilan
+                function generateInstallmentBadge($current, $total, $warning = false)
                 {
                     $badgeClass = 'badge ';
-                    if ($current == $total) {
+                    if ($warning) {
+                        $badgeClass .= 'badge-danger'; // Warna merah jika cicilan melewati tenggat
+                    } elseif ($current == $total) {
                         $badgeClass .= 'badge-success';
                     } elseif ($current == 0) {
                         $badgeClass .= 'badge-secondary';
@@ -66,197 +67,153 @@
                         $badgeClass .= 'badge-info';
                     }
 
+                    $icon = $warning ? "<i class='fas fa-exclamation-triangle mr-1'></i>" : "<i class='fas fa-clock mr-1'></i>";
+
                     return sprintf(
-                        '<div class="d-flex align-items-center">
-                            <span class="%s" style="font-size: 0.9rem; padding: 6px 12px;">
-                                <i class="fas fa-clock mr-1"></i>
-                                Cicilan %d dari %d
-                            </span>
-                        </div>',
+                        '<span class="%s" style="font-size: 0.9rem; padding: 6px 12px;">
+                    %s Cicilan %d dari %d
+                </span>',
                         $badgeClass,
+                        $icon,
                         $current,
                         $total
                     );
                 }
 
-                // Main query
+                // Query untuk mengambil data penagihan
                 $sql = "SELECT 
-                            p.*,
-                            CASE 
-                                WHEN jumlah_dp = 1 THEN 
-                                    CONCAT(
-                                        CASE 
-                                            WHEN dp1_nominal IS NOT NULL THEN 1
-                                            ELSE 0
-                                        END,
-                                        ' dari ',
-                                        1
-                                    )
-                                WHEN jumlah_dp = 2 THEN 
-                                    CONCAT(
-                                        CASE 
-                                            WHEN dp2_nominal IS NOT NULL THEN 2
-                                            WHEN dp1_nominal IS NOT NULL THEN 1
-                                            ELSE 0
-                                        END,
-                                        ' dari ',
-                                        2
-                                    )
-                                WHEN jumlah_dp = 3 THEN 
-                                    CONCAT(
-                                        CASE 
-                                            WHEN dp3_nominal IS NOT NULL THEN 3
-                                            WHEN dp2_nominal IS NOT NULL THEN 2
-                                            WHEN dp1_nominal IS NOT NULL THEN 1
-                                            ELSE 0
-                                        END,
-                                        ' dari ',
-                                        3
-                                    )
-                            END as dp,
-                            COALESCE(dp1_nominal, 0) + COALESCE(dp2_nominal, 0) + COALESCE(dp3_nominal, 0) as total_dibayar,
-                            total as total_tagihan,
-                            COALESCE(
+                    p.*, 
+                    p.dp1_tenggat, p.dp2_tenggat, p.dp3_tenggat,
+                    CASE 
+                        WHEN jumlah_dp = 1 THEN 
+                            CONCAT(
+                                CASE WHEN dp1_nominal > 0 THEN 1 ELSE 0 END, ' dari ', 1
+                            )
+                        WHEN jumlah_dp = 2 THEN 
+                            CONCAT(
                                 CASE 
-                                    WHEN status = '2' OR status = '3' OR status = '4' THEN tgllunas
-                                    ELSE NULL
-                                END,
-                                ''
-                            ) as tgllunas
-                        FROM penagihan p
-                        ORDER BY tanggal DESC";
+                                    WHEN dp2_nominal > 0 THEN 2
+                                    WHEN dp1_nominal > 0 THEN 1
+                                    ELSE 0 
+                                END, ' dari ', 2
+                            )
+                        WHEN jumlah_dp = 3 THEN 
+                            CONCAT(
+                                CASE 
+                                    WHEN dp3_nominal > 0 THEN 3
+                                    WHEN dp2_nominal > 0 THEN 2
+                                    WHEN dp1_nominal > 0 THEN 1
+                                    ELSE 0
+                                END, ' dari ', 3
+                            )
+                    END AS dp,
+                    COALESCE(dp1_nominal, 0) + COALESCE(dp2_nominal, 0) + COALESCE(dp3_nominal, 0) AS total_dibayar,
+                    total AS total_tagihan,
+                    tgllunas
+                FROM penagihan p
+                ORDER BY tanggal DESC";
 
                 $result = mysqli_query($db, $sql);
                 if (!$result)
                     die("Query gagal: " . mysqli_error($db));
 
                 while ($p = mysqli_fetch_assoc($result)) {
-                    // Process numeric values
+                    // Konversi nilai numerik
                     $total_numeric = $p['total_tagihan'];
                     $total_dibayar_numeric = $p['total_dibayar'];
                     $sisaPembayaran = $total_numeric - $total_dibayar_numeric;
 
-                    // Format display values
+                    // Format tampilan
                     $p['total_display'] = 'Rp ' . number_format($total_numeric, 0, ',', '.');
                     $p['tanggal'] = date('d/m/Y', strtotime($p['tanggal']));
                     if (!empty($p['tgllunas'])) {
                         $p['tgllunas'] = date('d/m/Y', strtotime($p['tgllunas']));
                     }
 
-                    // Process installment display
-                    $dpDisplay = '';
-                    if ($p['status'] == '4') {
-                        $dpDisplay = '<span class="badge badge-success">Lunas</span>';
-                    } elseif ($p['status'] == '5') {
-                        $dpDisplay = '<span class="badge badge-danger">Batal</span>';
-                    } else {
-                        $dpParts = explode(" dari ", $p['dp']);
-                        $currentCicilan = (int) $dpParts[0];
-                        $totalCicilan = (int) $dpParts[1];
-                        $dpDisplay = generateInstallmentBadge($currentCicilan, $totalCicilan);
+                    // Hitung cicilan yang telah dibayar
+                    $dpParts = explode(" dari ", $p['dp']);
+                    $currentCicilan = (int) $dpParts[0];
+                    $totalCicilan = (int) $dpParts[1];
+
+                    // Cek jika cicilan jatuh tempo dan belum dibayar
+                    $today = date('Y-m-d');
+                    $warning = false;
+                    if (
+                        ($p['jumlah_dp'] >= 1 && $p['dp1_nominal'] == 0 && !empty($p['dp1_tenggat']) && $today > $p['dp1_tenggat']) ||
+                        ($p['jumlah_dp'] >= 2 && $p['dp2_nominal'] == 0 && !empty($p['dp2_tenggat']) && $today > $p['dp2_tenggat']) ||
+                        ($p['jumlah_dp'] == 3 && $p['dp3_nominal'] == 0 && !empty($p['dp3_tenggat']) && $today > $p['dp3_tenggat'])
+                    ) {
+                        $warning = true;
                     }
 
-                    // Calculate status and action buttons
+                    // Tampilkan status cicilan
+                    $dpDisplay = generateInstallmentBadge($currentCicilan, $totalCicilan, $warning);
+
+                    // Status dan tombol aksi
                     $statusBadge = '';
                     $actionButton = '';
 
-                    // Di dalam loop while untuk menampilkan data
                     switch ($p['status']) {
                         case '1': // Belum Lunas
                             $statusBadge = '<span class="badge badge-warning">Belum Lunas</span>';
                             $actionButton = '<div class="btn-group">';
 
-                            if ($currentCicilan >= $totalCicilan && $sisaPembayaran > 0) {
-                                $actionButton .= "
-                <button class='btn btn-success btn-sm' 
-                        onclick='showCicilanModal({$p['id']}, {$currentCicilan}, {$totalCicilan}, {$sisaPembayaran})'>
-                    <i class='fas fa-check'></i> Pelunasan
-                </button>";
-                            } elseif ($currentCicilan < $totalCicilan) {
+                            if ($currentCicilan < $totalCicilan) {
                                 $nextCicilan = $currentCicilan + 1;
                                 $actionButton .= "
-                <button class='btn btn-warning btn-sm' 
-                        onclick='showCicilanModal({$p['id']}, {$nextCicilan}, {$totalCicilan}, {$sisaPembayaran})'>
-                    <i class='fas fa-money-bill'></i> Cicilan ke-{$nextCicilan}
-                </button>";
+                        <button class='btn btn-warning btn-sm' 
+                                onclick='showCicilanModal({$p['id']}, {$nextCicilan}, {$totalCicilan}, {$sisaPembayaran})'>
+                            <i class='fas fa-money-bill'></i> Cicilan ke-{$nextCicilan}
+                        </button>";
                             }
 
                             $actionButton .= "
-            <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})'>
-                <i class='fas fa-times'></i> Batalkan
-            </button>
-        </div>";
+                        <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})'>
+                            <i class='fas fa-times'></i> Batalkan
+                        </button>
+                    </div>";
                             break;
 
                         case '2': // Lunas - Proses
                             $statusBadge = '<span class="badge badge-info">Lunas - Proses</span>';
-                            $actionButton = "<div class='btn-group'>
-            <button class='btn btn-info btn-sm' onclick='updateStatus({$p['id']}, 3)'>
-                <i class='fas fa-box'></i> Barang Sudah Siap
-            </button>
-            <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})'>
-                <i class='fas fa-times'></i> Batalkan
-            </button>
-        </div>";
                             break;
 
                         case '3': // Lunas - Siap Diambil
                             $statusBadge = '<span class="badge badge-success">Lunas - Siap Diambil</span>';
-                            $actionButton = "<button class='btn btn-success btn-sm' onclick='updateStatus({$p['id']}, 4)'>
-            <i class='fas fa-hand-holding'></i> Barang Sudah Diambil
-        </button>";
                             break;
 
                         case '4': // Selesai
                             $statusBadge = '<span class="badge badge-secondary">Selesai</span>';
-                            $actionButton = "<button class='btn btn-secondary btn-sm' disabled>
-            <i class='fas fa-check-circle'></i> Selesai
-        </button>";
                             break;
 
                         case '5': // Dibatalkan
                             $statusBadge = '<span class="badge badge-danger">Dibatalkan</span>';
-                            $actionButton = "<button class='btn btn-secondary btn-sm' data-toggle='modal' data-target='#alasanModal' onclick='tampilkanAlasan(\"" . htmlspecialchars($p['alasan_batal']) . "\")'>
-            <i class='fas fa-info-circle'></i> Lihat Alasan
-        </button>";
-                            break;
-
-                        default:
-                            $statusBadge = '<span class="badge badge-secondary">Unknown</span>';
-                            $actionButton = '';
                             break;
                     }
 
-                    // Output the table row
+                    // Output row
                     echo "<tr>
-                            <td>" . htmlspecialchars($p['tanggal']) . "</td>
-                            <td>" . htmlspecialchars($p['customer']) . "</td>
-                            <td>" . htmlspecialchars($p['total_display']) . "</td>
-                            <td>$dpDisplay</td>
-                            <td>";
+                    <td>" . htmlspecialchars($p['tanggal']) . "</td>
+                    <td>" . htmlspecialchars($p['customer']) . "</td>
+                    <td>" . htmlspecialchars($p['total_display']) . "</td>
+                    <td>$dpDisplay</td>
+                    <td>";
 
                     if ($p['status'] == '5') {
                         echo '<span class="badge badge-danger">Dibatalkan</span>';
                     } else {
-                        if (empty($p['tgllunas'])) {
-                            if ($total_dibayar_numeric > 0) {
-                                echo "Rp " . number_format($sisaPembayaran, 2, ',', '.');
-                            } else {
-                                echo '<span class="badge badge-warning">belum membayar sepeserpun</span>';
-                            }
-                        } else {
-                            echo $p['tgllunas'];
-                        }
+                        echo empty($p['tgllunas']) ? "Rp " . number_format($sisaPembayaran, 2, ',', '.') : $p['tgllunas'];
                     }
 
                     echo "</td>
-                          <td>$statusBadge</td>
-                          <td>$actionButton</td>
-                        </tr>";
+                  <td>$statusBadge</td>
+                  <td>$actionButton</td>
+                </tr>";
                 }
                 ?>
             </tbody>
         </table>
+
     </div>
 </div>
 

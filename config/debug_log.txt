@@ -1,0 +1,21 @@
+Array
+(
+    [tanggal] => 2025-03-03
+    [customer] => BAHLIL LAHADALIA
+    [tanggal_pengambilan] => 2025-04-02
+    [keterangan] => Kaos Pasti Di Oplos
+    [total] => 1000000
+    [jumlah_dp] => 3
+    [dp1_tenggat] => 2025-03-03
+    [dp1_nominal] => 500000
+    [dp1_metode] => cash
+    [dp1_status] => lunas
+    [dp2_tenggat] => 2025-03-13
+    [dp2_nominal] => 0
+    [dp2_metode] => pending
+    [dp2_status] => pending
+    [dp3_tenggat] => 2025-03-23
+    [dp3_nominal] => 0
+    [dp3_metode] => pending
+    [dp3_status] => pending
+)
