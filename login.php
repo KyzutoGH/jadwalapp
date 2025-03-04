@@ -1,7 +1,13 @@
 <?php
+session_start();
 $judul_browser = 'Fukubi Admin - Login';
 require_once('bagian/Header.php');
-session_start(); // Make sure session is started
+
+// Redirect to 404 if accessing forgot-password.php or register.php directly
+if (basename($_SERVER['PHP_SELF']) === 'forgot-password.php' || basename($_SERVER['PHP_SELF']) === 'register.php') {
+    header("Location: bagian/header/404.php");
+    exit;
+}
 ?>
 
 <body class="hold-transition login-page">
@@ -46,13 +52,25 @@ session_start(); // Make sure session is started
           </div>
         </form>
         <p class="mb-1">
-          <a href="forgot-password.php">I forgot my password</a>
+          <a href="#" onclick="redirectTo404()">I forgot my password</a>
         </p>
         <p class="mb-0">
-          <a href="register.php" class="text-center">Register a new membership</a>
+          <a href="#" onclick="redirectTo404()" class="text-center">Register a new membership</a>
         </p>
       </div>
     </div>
   </div>
+
+  <script>
+    function redirectTo404() {
+        sessionStorage.setItem('redirected', 'true');
+        window.location.href = 'bagian/header/404.php';
+    }
+
+    if (sessionStorage.getItem('redirected')) {
+        sessionStorage.removeItem('redirected');
+        window.location.href = 'login.php';
+    }
+  </script>
 
   <?php require_once('bagian/Footer.php'); ?>
