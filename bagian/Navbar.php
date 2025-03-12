@@ -239,7 +239,7 @@ $notificationCount = $dnNotification->getNotificationCount();
             };
             ?>
             <span class="<?php echo $statusClass; ?>">
-              <?php echo htmlspecialchars($notif['nama_sekolah']); ?>
+              <?php echo $notif['nama_sekolah']; ?>
             </span>
             <br>
             <small class="text-muted">
