@@ -104,17 +104,19 @@ $bulan = [
   '11' => 'November',
   '12' => 'Desember'
 ];
-$query_dies_natalis = "SELECT * FROM datadn 
-    WHERE STR_TO_DATE(CONCAT(tanggal_dn, '-' , YEAR(CURRENT_DATE())), '%d-%m-%Y') >= CURRENT_DATE()
+// Dies Natalis Table Data
+$query_dies_natalis = "SELECT id, nama_sekolah, alamat, jenis, nomor, pemilik_kontak, jabatan, tanggal_dn, status 
+    FROM datadn 
+    WHERE STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y') >= CURRENT_DATE()
     ORDER BY 
         CASE 
-            WHEN STR_TO_DATE(CONCAT(tanggal_dn, '-' , YEAR(CURRENT_DATE())), '%d-%m-%Y') < CURRENT_DATE()
-            THEN STR_TO_DATE(CONCAT(tanggal_dn, '-' , YEAR(CURRENT_DATE()) + 1), '%d-%m-%Y')
-            ELSE STR_TO_DATE(CONCAT(tanggal_dn, '-' , YEAR(CURRENT_DATE())), '%d-%m-%Y')
+            WHEN STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y') < CURRENT_DATE()
+            THEN STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE()) + 1), '%d-%m-%Y')
+            ELSE STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y')
         END ASC
     LIMIT 5";
 
-$data = mysqli_query($db, $query_dies_natalis);
+$data_dn = mysqli_query($db, $query_dies_natalis);
 ?>
 
 <section class="content">
@@ -162,13 +164,6 @@ $data = mysqli_query($db, $query_dies_natalis);
       </div>
     </div>
     <?php
-    $data_dies_natalis = [];
-    for ($i = 1; $i <= 12; $i++) {
-      $query = "SELECT COUNT(*) as jumlah FROM datadn WHERE MONTH(tanggal_dn) = $i";
-      $result = $db->query($query);
-      $row = $result->fetch_assoc();
-      $data_dies_natalis[] = (int) $row['jumlah'];
-    }
 
     // Query untuk status tagihan
     $query_tagihan = "SELECT 
@@ -209,20 +204,76 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
       <div class="col-md-12">
         <div class="card">
           <div class="card-header">
-            <h5 class="card-title">Laporan Bulanan</h5>
+            <h5 class="card-title">Stock Barang Menipis</h5>
           </div>
           <div class="card-body">
             <div class="row">
               <div class="col-md-12">
-                <p class="text-center">
-                  <strong>Dies Natalis: Januari - Desember <?php echo date('Y'); ?></strong>
-                </p>
-                <div class="chart">
-                  <canvas id="diesNatalisChart" height="180" style="height: 180px;"></canvas>
-                  <script>
-                    const diesNatalisData = <?php echo json_encode($data_dies_natalis); ?>;
-                  </script>
-                </div>
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Nama Barang</th>
+                      <th>Kategori</th>
+                      <th>Stock</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php
+                    $no = 1;
+
+                    // Query untuk data jaket dengan stock < 5
+                    $query_jaket = "SELECT id_jaket as id, namabarang as nama, 'Jaket' as kategori, stock 
+                                FROM jaket 
+                                WHERE stock < 5 
+                                ORDER BY stock ASC";
+
+                    // Query untuk data stiker dengan stock < 5
+                    $query_stiker = "SELECT id_sticker as id, nama as nama, 'Stiker' as kategori, stock 
+                                FROM stiker 
+                                WHERE stock < 5 
+                                ORDER BY stock ASC";
+
+                    // Query untuk data barang_jadi dengan stock < 5
+                    // Asumsikan struktur tabel barang_jadi mirip dengan yang lain
+                    $query_barang_jadi = "SELECT id_barang as id, nama_produk as nama, 'Barang Jadi' as kategori, stock 
+                                      FROM barang_jadi 
+                                      WHERE stock < 5 
+                                      ORDER BY stock ASC";
+
+                    // Union semua query
+                    $query = "($query_jaket) UNION ($query_stiker) UNION ($query_barang_jadi) ORDER BY stock ASC LIMIT 5";
+
+                    $data = mysqli_query($db, $query);
+
+                    if (mysqli_num_rows($data) > 0) {
+                      while ($b = mysqli_fetch_array($data)) {
+                        ?>
+                        <tr>
+                          <td><?= $no++; ?></td>
+                          <td><?= htmlspecialchars($b['nama']) ?></td>
+                          <td><?= htmlspecialchars($b['kategori']) ?></td>
+                          <td><?= htmlspecialchars($b['stock']) ?></td>
+                          <td>
+                            <button type="button" class="btn btn-xs btn-info" data-toggle="modal"
+                              data-target="#detailModal<?php echo $b['id']; ?>">
+                              Detail
+                            </button>
+                          </td>
+                        </tr>
+                        <?php
+                      }
+                    } else {
+                      ?>
+                      <tr>
+                        <td colspan="5" class="text-center">Tidak ada data barang yang stocknya menipis</td>
+                      </tr>
+                      <?php
+                    }
+                    ?>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -251,18 +302,24 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
               </thead>
               <tbody>
                 <?php
-                if (mysqli_num_rows($data) > 0) {
+                if (mysqli_num_rows($data_dn) > 0) {
                   $no = 1;
-                  while ($d = mysqli_fetch_assoc($data)) {
-                    $tanggal = explode('-', $d['tanggal_dn']);
-                    $tanggal_format = $tanggal[0] . ' ' . $bulan[$tanggal[1]];
+                  while ($d = mysqli_fetch_assoc($data_dn)) {
+                    // Check if tanggal_dn exists and isn't null
+                    if (isset($d['tanggal_dn']) && $d['tanggal_dn'] !== null && $d['tanggal_dn'] !== '') {
+                      $tanggal = explode('-', $d['tanggal_dn']);
+                      $tanggal_format = (isset($tanggal[0]) && isset($tanggal[1]) && isset($bulan[$tanggal[1]])) ?
+                        $tanggal[0] . ' ' . $bulan[$tanggal[1]] : 'Tanggal tidak valid';
+                    } else {
+                      $tanggal_format = 'Tanggal tidak tersedia';
+                    }
                     ?>
                     <tr>
                       <td><?php echo $no++; ?></td>
-                      <td><?php echo htmlspecialchars($d['nama_sekolah']); ?></td>
+                      <td><?php echo ($d['nama_sekolah'] ?? 'N/A'); ?></td>
                       <td><?php echo $tanggal_format; ?></td>
                       <td>
-                        <?php if ($d['status'] == 1): ?>
+                        <?php if (isset($d['status']) && $d['status'] == 1): ?>
                           <span class="badge badge-success">Aktif</span>
                         <?php else: ?>
                           <span class="badge badge-warning">Belum Dihubungi</span>
@@ -298,11 +355,17 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
 
 <!-- Modals -->
 <?php
-if (mysqli_num_rows($data) > 0) {
-  mysqli_data_seek($data, 0); // Reset pointer to start of result set
-  while ($d = mysqli_fetch_assoc($data)) {
-    $tanggal = explode('-', $d['tanggal_dn']);
-    $tanggal_format = $tanggal[0] . ' ' . $bulan[$tanggal[1]];
+if (mysqli_num_rows($data_dn) > 0) {
+  mysqli_data_seek($data_dn, 0); // Reset pointer to start of result set
+  while ($d = mysqli_fetch_assoc($data_dn)) {
+    // Check if tanggal_dn exists and isn't null
+    if (isset($d['tanggal_dn']) && $d['tanggal_dn'] !== null && $d['tanggal_dn'] !== '') {
+      $tanggal = explode('-', $d['tanggal_dn']);
+      $tanggal_format = (isset($tanggal[0]) && isset($tanggal[1]) && isset($bulan[$tanggal[1]])) ?
+        $tanggal[0] . ' ' . $bulan[$tanggal[1]] : 'Tanggal tidak valid';
+    } else {
+      $tanggal_format = 'Tanggal tidak tersedia';
+    }
     ?>
     <div class="modal fade" id="detailModal<?php echo $d['id']; ?>" tabindex="-1" role="dialog"
       aria-labelledby="detailModalLabel<?php echo $d['id']; ?>" aria-hidden="true">
@@ -319,7 +382,7 @@ if (mysqli_num_rows($data) > 0) {
               <tr>
                 <th width="30%">Nama Sekolah</th>
                 <td width="5%">:</td>
-                <td><?php echo htmlspecialchars($d['nama_sekolah']); ?></td>
+                <td><?php echo ($d['nama_sekolah'] ?? 'N/A'); ?></td>
               </tr>
               <tr>
                 <th>Tanggal</th>
@@ -330,7 +393,7 @@ if (mysqli_num_rows($data) > 0) {
                 <th>Status</th>
                 <td>:</td>
                 <td>
-                  <?php if ($d['status'] == 1): ?>
+                  <?php if (isset($d['status']) && $d['status'] == 1): ?>
                     <span class="badge badge-success">Aktif</span>
                   <?php else: ?>
                     <span class="badge badge-warning">Belum Dihubungi</span>
@@ -340,7 +403,7 @@ if (mysqli_num_rows($data) > 0) {
               <tr>
                 <th>Alamat</th>
                 <td>:</td>
-                <td><?php echo htmlspecialchars($d['alamat']); ?></td>
+                <td><?php echo ($d['alamat'] ?? 'N/A'); ?></td>
               </tr>
             </table>
           </div>
