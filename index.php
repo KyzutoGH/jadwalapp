@@ -173,6 +173,61 @@ require_once('bagian/Header.php');
                 ?>
             </section>
         </div>
+        <script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+let html5QrCode;
+let mode = "";
+
+function startScan(selectedMode) {
+  mode = selectedMode;
+  document.getElementById("result").innerHTML = "Menunggu scan...";
+  
+  html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    {
+      fps: 10,
+      qrbox: 250
+    },
+    (decodedText) => {
+      html5QrCode.stop();
+      processBarcode(decodedText);
+    },
+    (errorMessage) => {
+      // Gagal baca barcode (boleh dikosongin)
+    }
+  );
+}
+
+function processBarcode(decodedText) {
+  const parts = decodedText.split('|');
+  if (parts.length !== 3) {
+    document.getElementById("result").innerHTML = "Format barcode tidak valid!";
+    return;
+  }
+
+  const data = {
+    namabarang: parts[0],
+    jenis: parts[1],
+    ukuran: parts[2],
+    mode: mode
+  };
+
+  fetch("process_barcode.php", {
+    method: "POST",
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(response => {
+    document.getElementById("result").innerHTML = response.message;
+  })
+  .catch(() => {
+    document.getElementById("result").innerHTML = "Gagal menghubungi server.";
+  });
+}
+</script>
+
 
         <?php require_once('bagian/Copyright.php'); ?>
         <?php require_once('bagian/Footer.php'); ?>

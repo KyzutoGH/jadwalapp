@@ -22,6 +22,31 @@ if ($menu == "Barang") {
                     </li>
                 </ul>
                 <div>
+                    <!-- Tombol pengurangan manual -->
+<button onclick="kurangiManual()" class="btn btn-warning">Kurangi Barang</button>
+
+<!-- Tombol barcode -->
+<button data-toggle="modal" data-target="#modalScan" class="btn btn-primary">📷 Barcode</button>
+    <!-- Modal -->
+    <div class="modal fade" id="modalScan" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Scan Barcode</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body text-center">
+        <div class="mb-3">
+          <button class="btn btn-success" onclick="startScan('tambah')">Tambah Stok</button>
+          <button class="btn btn-danger" onclick="startScan('kurangi')">Kurangi Stok</button>
+        </div>
+        <div id="reader" style="width: 500px; margin: auto;"></div>
+        <div id="result" class="mt-3 fw-bold"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
                     <a href="index.php?menu=CreateBarang&submenu=BarangAdd" class="btn btn-primary">
                         Tambah Barang
                     </a>
