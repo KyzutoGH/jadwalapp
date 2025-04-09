@@ -117,6 +117,26 @@ $query_dies_natalis = "SELECT id, nama_sekolah, alamat, jenis, nomor, pemilik_ko
     LIMIT 5";
 
 $data_dn = mysqli_query($db, $query_dies_natalis);
+$query_cicilan_belum_lunas = "
+    SELECT SUM(
+    CASE
+        WHEN COALESCE(dp1_nominal, 0) + COALESCE(dp2_nominal, 0) + COALESCE(dp3_nominal, 0) <= total THEN 
+            total - COALESCE(dp1_nominal, 0) - COALESCE(dp2_nominal, 0) - COALESCE(dp3_nominal, 0)
+        ELSE 
+            0
+    END
+) AS cicilan_belum_lunas
+FROM penagihan
+WHERE status NOT IN (4, 5); -- tidak lunas dan tidak batal
+;
+";
+
+$result = $db->query($query_cicilan_belum_lunas);
+$data = $result->fetch_assoc();
+
+$cicilan_belum_lunas = $data['cicilan_belum_lunas'];
+
+
 ?>
 
 <section class="content">
@@ -148,7 +168,7 @@ $data_dn = mysqli_query($db, $query_dies_natalis);
           <span class="info-box-icon bg-success elevation-1"><i class="fas fa-money-bill"></i></span>
           <div class="info-box-content">
             <span class="info-box-text">Total Tagihan</span>
-            <span class="info-box-number"><?php echo number_format($total_tagihan, 0, ',', '.'); ?></span>
+            <span class="info-box-number">Rp. <?php echo number_format($cicilan_belum_lunas, 0, ',', '.'); ?></span>
           </div>
         </div>
       </div>
