@@ -9,15 +9,18 @@ $tanggalPembayaran = isset($_GET['tanggalPembayaran']) ? $_GET['tanggalPembayara
 $keterangan = isset($_GET['keterangan']) ? mysqli_real_escape_string($db, $_GET['keterangan']) : '';
 
 if ($id && $cicilanKe && $jumlahBayar) {
-    // Get current payment status
+    // Ambil data penagihan
     $checkSql = "SELECT 
-                        total,
-                        jumlah_dp,
-                        COALESCE(dp1_nominal, 0) as dp1_nominal,
-                        COALESCE(dp2_nominal, 0) as dp2_nominal,
-                        COALESCE(dp3_nominal, 0) as dp3_nominal
-                    FROM penagihan 
-                    WHERE id = $id";
+                    total,
+                    jumlah_dp,
+                    COALESCE(dp1_nominal, 0) as dp1_nominal,
+                    COALESCE(dp2_nominal, 0) as dp2_nominal,
+                    COALESCE(dp3_nominal, 0) as dp3_nominal,
+                    COALESCE(dp1_status, 0) as dp1_status,
+                    COALESCE(dp2_status, 0) as dp2_status,
+                    COALESCE(dp3_status, 0) as dp3_status
+                FROM penagihan 
+                WHERE id = $id";
 
     $result = $db->query($checkSql);
     if (!$result) {
@@ -30,20 +33,35 @@ if ($id && $cicilanKe && $jumlahBayar) {
     }
 
     $row = $result->fetch_assoc();
-    $totalPaid = $row['dp1_nominal'] + $row['dp2_nominal'] + $row['dp3_nominal'];
+
+    // Hitung total yang sudah dibayar berdasarkan status
+    $totalPaid = 0;
+    if ($row['jumlah_dp'] >= 1 && $row['dp1_status'] > 0)
+        $totalPaid += $row['dp1_nominal'];
+    if ($row['jumlah_dp'] >= 2 && $row['dp2_status'] > 0)
+        $totalPaid += $row['dp2_nominal'];
+    if ($row['jumlah_dp'] >= 3 && $row['dp3_status'] > 0)
+        $totalPaid += $row['dp3_nominal'];
+
     $remainingBalance = $row['total'] - $totalPaid;
 
-    // Handle final payment
+    // Jika pelunasan (di luar jumlah_dp)
     if ($cicilanKe > $row['jumlah_dp']) {
-        $jumlahBayar = $remainingBalance;
+        if ($jumlahBayar < $remainingBalance) {
+            $_SESSION['toastr'] = [
+                'type' => 'error',
+                'message' => 'Jumlah pelunasan kurang dari sisa tagihan: ' . number_format($remainingBalance, 0, ',', '.')
+            ];
+            header('Location: ../index.php?menu=Penagihan');
+            exit;
+        }
 
         $sql = "UPDATE penagihan 
-                    SET pelunasan = $jumlahBayar,
-                        tgllunas = '$tanggalPembayaran',
-                        status = '2'
-                    WHERE id = $id";
+                SET pelunasan = $jumlahBayar,
+                    tgllunas = '$tanggalPembayaran'
+                WHERE id = $id";
     } else {
-        // Regular installment payment
+        // Pembayaran cicilan biasa
         $columnNominal = "dp{$cicilanKe}_nominal";
         $columnTanggal = "dp{$cicilanKe}_tenggat";
         $columnStatus = "dp{$cicilanKe}_status";
@@ -58,22 +76,23 @@ if ($id && $cicilanKe && $jumlahBayar) {
         }
 
         $sql = "UPDATE penagihan 
-                    SET $columnNominal = $jumlahBayar,
-                        $columnTanggal = '$tanggalPembayaran',
-                        $columnStatus = '1'
-                    WHERE id = $id";
+                SET $columnNominal = $jumlahBayar,
+                    $columnTanggal = '$tanggalPembayaran',
+                    $columnStatus = '1'
+                WHERE id = $id";
     }
 
+    // Eksekusi query pembayaran
     if ($db->query($sql)) {
-        // Update overall status after payment
         $newTotalPaid = $totalPaid + $jumlahBayar;
 
+        // Cek apakah sudah lunas
         if ($newTotalPaid >= $row['total']) {
             $db->query("UPDATE penagihan 
-                           SET status = '2',
-                               tgllunas = '$tanggalPembayaran'
-                           WHERE id = $id");
-        } else if ($cicilanKe == $row['jumlah_dp']) {
+                        SET status = '2',
+                            tgllunas = '$tanggalPembayaran'
+                        WHERE id = $id");
+        } else {
             $db->query("UPDATE penagihan SET status = '1' WHERE id = $id");
         }
 

@@ -82,36 +82,39 @@
 
                 // Query untuk mengambil data penagihan
                 $sql = "SELECT 
-                    p.*, 
-                    p.dp1_tenggat, p.dp2_tenggat, p.dp3_tenggat,
-                    CASE 
-                        WHEN jumlah_dp = 1 THEN 
-                            CONCAT(
-                                CASE WHEN dp1_nominal > 0 THEN 1 ELSE 0 END, ' dari ', 1
-                            )
-                        WHEN jumlah_dp = 2 THEN 
-                            CONCAT(
-                                CASE 
-                                    WHEN dp2_nominal > 0 THEN 2
-                                    WHEN dp1_nominal > 0 THEN 1
-                                    ELSE 0 
-                                END, ' dari ', 2
-                            )
-                        WHEN jumlah_dp = 3 THEN 
-                            CONCAT(
-                                CASE 
-                                    WHEN dp3_nominal > 0 THEN 3
-                                    WHEN dp2_nominal > 0 THEN 2
-                                    WHEN dp1_nominal > 0 THEN 1
-                                    ELSE 0
-                                END, ' dari ', 3
-                            )
-                    END AS dp,
-                    COALESCE(dp1_nominal, 0) + COALESCE(dp2_nominal, 0) + COALESCE(dp3_nominal, 0) AS total_dibayar,
-                    total AS total_tagihan,
-                    tgllunas
-                FROM penagihan p
-                ORDER BY tanggal DESC";
+    p.*, 
+    p.dp1_tenggat, p.dp2_tenggat, p.dp3_tenggat,
+
+    -- Progress DP
+    CONCAT(
+        (
+            CASE WHEN dp1_status > 0 THEN 1 ELSE 0 END +
+            CASE WHEN dp2_status > 0 THEN 1 ELSE 0 END +
+            CASE WHEN dp3_status > 0 THEN 1 ELSE 0 END
+        ), 
+        ' dari ', jumlah_dp
+    ) AS dp,
+
+    -- Total dibayar (hanya yang status-nya aktif)
+    (CASE WHEN dp1_status > 0 THEN dp1_nominal ELSE 0 END) +
+    (CASE WHEN dp2_status > 0 THEN dp2_nominal ELSE 0 END) +
+    (CASE WHEN dp3_status > 0 THEN dp3_nominal ELSE 0 END) AS total_dibayar,
+
+    -- Total tagihan
+    total AS total_tagihan,
+
+    -- Sisa tagihan
+    total - (
+        (CASE WHEN dp1_status > 0 THEN dp1_nominal ELSE 0 END) +
+        (CASE WHEN dp2_status > 0 THEN dp2_nominal ELSE 0 END) +
+        (CASE WHEN dp3_status > 0 THEN dp3_nominal ELSE 0 END)
+    ) AS sisa_tagihan,
+
+    -- Tanggal lunas
+    tgllunas
+
+FROM penagihan p
+ORDER BY tanggal DESC";
 
                 $result = mysqli_query($db, $sql);
                 if (!$result)
@@ -130,11 +133,13 @@
                         $p['tgllunas'] = date('d/m/Y', strtotime($p['tgllunas']));
                     }
 
-                    // Hitung cicilan yang telah dibayar
+                    // Hitung cicilan yang telah dibayar - PERBAIKAN
                     $dpParts = explode(" dari ", $p['dp']);
                     $currentCicilan = (int) $dpParts[0];
                     $totalCicilan = (int) $dpParts[1];
 
+                    // Debug - untuk verifikasi
+                    echo "current=$currentCicilan, total=$totalCicilan, status={$p['status']}";
                     // Cek jika cicilan jatuh tempo dan belum dibayar
                     $today = date('Y-m-d');
                     $warning = false;
@@ -158,20 +163,20 @@
                             $statusBadge = '<span class="badge badge-warning">Belum Lunas</span>';
                             $actionButton = '<div class="btn-group">';
 
-                            if ($currentCicilan < $totalCicilan) {
-                                $nextCicilan = $currentCicilan + 1;
-                                $actionButton .= "
-                        <button class='btn btn-warning btn-sm' 
-                                onclick='showCicilanModal({$p['id']}, {$nextCicilan}, {$totalCicilan}, {$sisaPembayaran})'>
-                            <i class='fas fa-money-bill'></i> Cicilan ke-{$nextCicilan}
-                        </button>";
-                            }
+                            // PERBAIKAN: Jika status Belum Lunas, selalu tampilkan tombol cicilan
+                            // terlepas dari jumlah cicilan yang sudah dibayar
+                            $nextCicilan = $currentCicilan + 1;
+                            $actionButton .= "
+                                <button class='btn btn-warning btn-sm' 
+                                        onclick='showCicilanModal({$p['id']}, {$nextCicilan}, {$totalCicilan}, {$sisaPembayaran})'>
+                                    <i class='fas fa-money-bill'></i> Cicilan ke-{$nextCicilan}
+                                </button>";
 
                             $actionButton .= "
-                        <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})'>
-                            <i class='fas fa-times'></i> Batalkan
-                        </button>
-                    </div>";
+                                <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})'>
+                                    <i class='fas fa-times'></i> Batalkan
+                                </button>
+                            </div>";
                             break;
 
                         case '2': // Lunas - Proses
