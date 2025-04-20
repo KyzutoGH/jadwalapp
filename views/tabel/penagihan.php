@@ -138,8 +138,8 @@ ORDER BY tanggal DESC";
                     $currentCicilan = (int) $dpParts[0];
                     $totalCicilan = (int) $dpParts[1];
 
-                    // Debug - untuk verifikasi
-                    echo "current=$currentCicilan, total=$totalCicilan, status={$p['status']}";
+                    // // Debug - untuk verifikasi
+                    // echo "current=$currentCicilan, total=$totalCicilan, status={$p['status']}";
                     // Cek jika cicilan jatuh tempo dan belum dibayar
                     $today = date('Y-m-d');
                     $warning = false;
@@ -163,15 +163,23 @@ ORDER BY tanggal DESC";
                             $statusBadge = '<span class="badge badge-warning">Belum Lunas</span>';
                             $actionButton = '<div class="btn-group">';
 
-                            // PERBAIKAN: Jika status Belum Lunas, selalu tampilkan tombol cicilan
-                            // terlepas dari jumlah cicilan yang sudah dibayar
-                            $nextCicilan = $currentCicilan + 1;
-                            $actionButton .= "
-                                <button class='btn btn-warning btn-sm' 
-                                        onclick='showCicilanModal({$p['id']}, {$nextCicilan}, {$totalCicilan}, {$sisaPembayaran})'>
-                                    <i class='fas fa-money-bill'></i> Cicilan ke-{$nextCicilan}
-                                </button>";
+                            // Jika masih ada sisa cicilan
+                            if ($currentCicilan < $totalCicilan) {
+                                $nextCicilan = $currentCicilan + 1;
+                                $actionButton .= "
+                                    <button class='btn btn-warning btn-sm'
+                                            onclick='showCicilanModal({$p['id']}, {$nextCicilan}, {$totalCicilan}, {$sisaPembayaran})'>
+                                        <i class='fas fa-money-bill'></i> Cicilan ke-{$nextCicilan}
+                                    </button>";
+                            } else {
+                                $actionButton .= "
+    <button class='btn btn-success btn-sm'
+            onclick='showCicilanModal({$p['id']}, " . ($totalCicilan + 1) . ", {$totalCicilan}, {$sisaPembayaran})'>
+        <i class='fas fa-check-circle'></i> Pelunasan
+    </button>";
+                            }
 
+                            // Tombol Batalkan selalu ditampilkan selama belum selesai/dibatalkan
                             $actionButton .= "
                                 <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})'>
                                     <i class='fas fa-times'></i> Batalkan
@@ -181,18 +189,43 @@ ORDER BY tanggal DESC";
 
                         case '2': // Lunas - Proses
                             $statusBadge = '<span class="badge badge-info">Lunas - Proses</span>';
+                            $actionButton = '<div class="btn-group">
+                                <button class="btn btn-success btn-sm" onclick="updateStatus(' . $p['id'] . ', 3)">
+                                    <i class="fas fa-box-open"></i> Tandai Siap Diambil
+                                </button>
+                            </div>';
                             break;
 
                         case '3': // Lunas - Siap Diambil
                             $statusBadge = '<span class="badge badge-success">Lunas - Siap Diambil</span>';
+                            $actionButton = '<div class="btn-group">
+                                <button class="btn btn-secondary btn-sm" onclick="updateStatus(' . $p['id'] . ', 4)">
+                                    <i class="fas fa-check"></i> Tandai Selesai
+                                </button>
+                            </div>';
                             break;
 
                         case '4': // Selesai
                             $statusBadge = '<span class="badge badge-secondary">Selesai</span>';
+                            $actionButton = '<div class="text-muted"><i class="fas fa-check-circle"></i> Selesai</div>';
                             break;
-
                         case '5': // Dibatalkan
+                            // 1) Badge status
                             $statusBadge = '<span class="badge badge-danger">Dibatalkan</span>';
+
+                            // 2) Escape alasan supaya aman dipakai di single‑quote
+                            //    ENT_QUOTES menangani kutip tunggal dan ganda
+                            $alasanEscaped = htmlspecialchars($p['alasan_batal'], ENT_QUOTES);
+
+                            // 3) Tombol “Lihat Alasan”
+                            $actionButton = "
+                                    <button class='btn btn-info btn-sm'
+                                            onclick=\"tampilkanAlasan('{$alasanEscaped}')\"
+                                            data-toggle='modal'
+                                            data-target='#alasanModal'>
+                                        <i class='fas fa-info-circle'></i> Lihat Alasan
+                                    </button>
+                                ";
                             break;
                     }
 
@@ -289,7 +322,7 @@ ORDER BY tanggal DESC";
                 </button>
             </div>
             <div class="modal-body">
-                <form id="formBatalkan" action="config/proses_batal.php" method="POST">
+                <form id="formBatalkan" action="config/batalkan_pesanan.php" method="POST">
                     <input type="hidden" id="custIdBatal" name="custIdBatal">
 
                     <div class="form-group">
@@ -345,6 +378,16 @@ ORDER BY tanggal DESC";
 </script>
 <!-- JavaScript for handling modals and forms -->
 <script>
+    // memanggil confirm modal dengan status 3 (Siap Diambil)
+    function showSiapAmbilModal(id) {
+        updateStatus(id, 3);
+    }
+
+    // memanggil confirm modal dengan status 4 (Selesai)
+    function showSelesaikanModal(id) {
+        updateStatus(id, 4);
+    }
+
     function showCicilanModal(id, cicilanKe, totalCicilan, sisaPembayaran) {
         $('#custId').val(id);
         $('#cicilanKe').val(cicilanKe);

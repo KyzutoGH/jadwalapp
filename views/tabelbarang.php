@@ -22,8 +22,6 @@ if ($menu == "Barang") {
                     </li>
                 </ul>
                 <div>
-                    <!-- Tombol pengurangan manual -->
-                    <button onclick="kurangiManual()" class="btn btn-danger">Kurangi Barang</button>
 
                     <!-- Tombol barcode -->
                     <button data-toggle="modal" data-target="#modalScan" class="btn btn-warning">📷 Barcode</button>

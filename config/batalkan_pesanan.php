@@ -2,11 +2,11 @@
 session_start();
 include 'koneksi.php';
 
-$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-$alasan = isset($_GET['alasan']) ? mysqli_real_escape_string($db, $_GET['alasan']) : '';
+// Ambil dari POST sesuai formBatalkan
+$id = isset($_POST['custIdBatal']) ? (int) $_POST['custIdBatal'] : 0;
+$alasan = isset($_POST['alasanBatal']) ? mysqli_real_escape_string($db, $_POST['alasanBatal']) : '';
 
 if ($id && $alasan) {
-    // Update status pesanan menjadi dibatalkan
     $sql = "UPDATE penagihan 
             SET status = '5',
                 alasan_batal = '$alasan',
@@ -34,4 +34,3 @@ if ($id && $alasan) {
 $db->close();
 header('Location: ../index.php?menu=Penagihan');
 exit;
-?>
