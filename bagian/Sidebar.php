@@ -4,7 +4,7 @@
   <a href="index.php?menu=Dashboard" class="brand-link">
     <img src="assets/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
       style="opacity: .8">
-    <span class="brand-text font-weight-light">Fukubi</span>
+    <span class="brand-text font-weight-light">Fukubi Store</span>
   </a>
 
   <!-- Sidebar -->
@@ -45,23 +45,22 @@
         // Get accessible sections for current user
         $accessibleSections = isset($menuAccess[$userRole]) ? $menuAccess[$userRole] : [];
         ?>
-
-        <?php if (in_array('stock', $accessibleSections)): ?>
-          <li class="nav-header">Data Stock</li>
-        <?php endif; ?>
-
         <li class="nav-item">
           <a href="index.php?menu=Dashboard" class="nav-link <?php if ($menu == "Dashboard")
-            echo "active"; ?>">
+                                                                echo "active"; ?>">
             <i class="fas fa-tachometer-alt nav-icon"></i>
             <p>Dashboard</p>
           </a>
         </li>
+        <?php if (in_array('stock', $accessibleSections)): ?>
+          <li class="nav-header">Team Stock</li>
+        <?php endif; ?>
+
 
         <?php if (in_array('stock', $accessibleSections)): ?>
           <li class="nav-item">
             <a href="index.php?menu=Barang&submenu=StockBarang" class="nav-link <?php if ($menu == "Barang")
-              echo "active"; ?>">
+                                                                                  echo "active"; ?>">
               <i class="nav-icon fas fa-box"></i>
               <p>Stock Barang</p>
             </a>
@@ -69,10 +68,10 @@
         <?php endif; ?>
 
         <?php if (in_array('dies_natalis', $accessibleSections)): ?>
-          <li class="nav-header">Data Dies Natalis</li>
+          <li class="nav-header">Team Marketing</li>
 
           <li class="nav-item <?php if ($menu == "Tabel" || $menu == "Penagihan")
-            echo "menu-is-opening menu-open"; ?>">
+                                echo "menu-is-opening menu-open"; ?>">
             <a href="#" class="nav-link">
               <i class="nav-icon fas fa-table"></i>
               <p>
@@ -83,14 +82,14 @@
             <ul class="nav nav-treeview">
               <li class="nav-item">
                 <a href="index.php?menu=Tabel" class="nav-link <?php if ($menu == "Tabel" && empty($submenu))
-                  echo "active"; ?>">
+                                                                  echo "active"; ?>">
                   <i class="far fa-circle nav-icon"></i>
                   <p>Data Dies Natalis</p>
                 </a>
               </li>
               <li class="nav-item">
                 <a href="index.php?menu=Penagihan" class="nav-link <?php if ($menu == "Penagihan")
-                  echo "active"; ?>">
+                                                                      echo "active"; ?>">
                   <i class="far fa-circle nav-icon"></i>
                   <p>Data Penagihan</p>
                 </a>
@@ -100,14 +99,14 @@
 
           <li class="nav-item">
             <a href="index.php?menu=Kalender" class="nav-link <?php if ($menu == "Kalender")
-              echo "active"; ?>">
+                                                                echo "active"; ?>">
               <i class="nav-icon fas fa-calendar-alt"></i>
               <p>
                 Kalender Dies Natalis
                 <?php
                 // Show notification count if available
                 if (isset($notificationCount) && $notificationCount > 0):
-                  ?>
+                ?>
                   <span class="badge badge-info right"><?php echo $notificationCount; ?></span>
                 <?php endif; ?>
               </p>
@@ -116,14 +115,7 @@
         <?php endif; ?>
 
         <?php if (in_array('account', $accessibleSections)): ?>
-          <li class="nav-header">Pengaturan Akun</li>
-          <li class="nav-item">
-            <a href="index.php?menu=EditAkun" class="nav-link <?php if ($menu == "EditAkun")
-              echo "active"; ?>">
-              <i class="nav-icon fas fa-user"></i>
-              <p>Edit Akun</p>
-            </a>
-          </li>
+          <li class="nav-header">Log Out Aplikasi</li>
           <li class="nav-item">
             <a href="config/proses_logout.php" class="nav-link bg-danger">
               <i class="nav-icon fas fa-sign-out-alt"></i>

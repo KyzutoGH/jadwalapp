@@ -17,6 +17,12 @@ try {
     $keterangan = isset($_POST['keterangan']) ? $_POST['keterangan'] : '';
     $total = floatval($_POST['total']);
     $jumlah_dp = intval($_POST['jumlah_dp']);
+    $kontak = $_POST['kontak'];  // Menambahkan kontak dari form
+
+    // Hilangkan 0 di awal nomor kontak jika ada
+    if (substr($kontak, 0, 1) == '0') {
+        $kontak = substr($kontak, 1);
+    }
 
     // Nominal pembayaran dari form
     $dp1_nominal = floatval($_POST['nominal_pembayaran_1']);
@@ -60,7 +66,8 @@ try {
                 dp3_metode,
                 dp3_status,
                 keterangan,
-                status
+                status,
+                kontak  -- Menambahkan kolom kontak
             ) VALUES (
                 '$tanggal', 
                 '$customer', 
@@ -80,7 +87,8 @@ try {
                 '$dp3_metode',
                 '$dp3_status',
                 '$keterangan',
-                '$status'
+                '$status',
+                '$kontak'  -- Menambahkan kontak ke dalam query
             )";
 
     // Eksekusi query langsung
@@ -105,3 +113,4 @@ try {
     header("Location: ../index.php?menu=Create&submenu=Penagihan");
     exit;
 }
+?>
