@@ -236,7 +236,6 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
                       <th>Nama Barang</th>
                       <th>Kategori</th>
                       <th>Stock</th>
-                      <th>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -244,23 +243,22 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
                     $no = 1;
 
                     // Query untuk data jaket dengan stock < 5
-                    $query_jaket = "SELECT id_jaket as id, namabarang as nama, 'Jaket' as kategori, stock 
-                                FROM jaket 
-                                WHERE stock < 5 
-                                ORDER BY stock ASC";
+                    $query_jaket = "SELECT id_jaket as id, namabarang as nama, ukuran, 'Jaket' as kategori, stock 
+                    FROM jaket 
+                    WHERE stock < 5 
+                    ORDER BY stock ASC";
 
                     // Query untuk data stiker dengan stock < 5
-                    $query_stiker = "SELECT id_sticker as id, nama as nama, 'Stiker' as kategori, stock 
-                                FROM stiker 
-                                WHERE stock < 5 
-                                ORDER BY stock ASC";
+                    $query_stiker = "SELECT id_sticker as id, nama as nama, '' as ukuran, 'Stiker' as kategori, stock 
+                    FROM stiker 
+                    WHERE stock < 5 
+                    ORDER BY stock ASC";
 
                     // Query untuk data barang_jadi dengan stock < 5
-                    // Asumsikan struktur tabel barang_jadi mirip dengan yang lain
-                    $query_barang_jadi = "SELECT id_barang as id, nama_produk as nama, 'Barang Jadi' as kategori, stock 
-                                      FROM barang_jadi 
-                                      WHERE stock < 5 
-                                      ORDER BY stock ASC";
+                    $query_barang_jadi = "SELECT id_barang as id, nama_produk as nama, '' as ukuran, 'Barang Jadi' as kategori, stock 
+                          FROM barang_jadi 
+                          WHERE stock < 5 
+                          ORDER BY stock ASC";
 
                     // Union semua query
                     $query = "($query_jaket) UNION ($query_stiker) UNION ($query_barang_jadi) ORDER BY stock ASC LIMIT 5";
@@ -269,31 +267,31 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
 
                     if (mysqli_num_rows($data) > 0) {
                       while ($b = mysqli_fetch_array($data)) {
-                        ?>
+                    ?>
                         <tr>
                           <td><?= $no++; ?></td>
-                          <td><?= htmlspecialchars($b['nama']) ?></td>
+                          <td>
+                            <?= htmlspecialchars($b['nama']) ?>
+                            <?php if ($b['kategori'] == 'Jaket' && !empty($b['ukuran'])): ?>
+                              (Ukuran: <?= htmlspecialchars($b['ukuran']) ?>)
+                            <?php endif; ?>
+                          </td>
                           <td><?= htmlspecialchars($b['kategori']) ?></td>
                           <td><?= htmlspecialchars($b['stock']) ?></td>
-                          <td>
-                            <button type="button" class="btn btn-xs btn-info" data-toggle="modal"
-                              data-target="#detailModal<?php echo $b['id']; ?>">
-                              Detail
-                            </button>
-                          </td>
                         </tr>
-                        <?php
+                      <?php
                       }
                     } else {
                       ?>
                       <tr>
                         <td colspan="5" class="text-center">Tidak ada data barang yang stocknya menipis</td>
                       </tr>
-                      <?php
+                    <?php
                     }
                     ?>
                   </tbody>
                 </table>
+
               </div>
             </div>
           </div>
@@ -317,7 +315,6 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
                   <th>Nama Sekolah</th>
                   <th>Tanggal</th>
                   <th>Status</th>
-                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -333,7 +330,7 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
                     } else {
                       $tanggal_format = 'Tanggal tidak tersedia';
                     }
-                    ?>
+                ?>
                     <tr>
                       <td><?php echo $no++; ?></td>
                       <td><?php echo ($d['nama_sekolah'] ?? 'N/A'); ?></td>
@@ -345,21 +342,15 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
                           <span class="badge badge-warning">Belum Dihubungi</span>
                         <?php endif; ?>
                       </td>
-                      <td>
-                        <button type="button" class="btn btn-xs btn-info" data-toggle="modal"
-                          data-target="#detailModal<?php echo $d['id']; ?>">
-                          Detail
-                        </button>
-                      </td>
                     </tr>
-                    <?php
+                  <?php
                   }
                 } else {
                   ?>
                   <tr>
                     <td colspan="5" class="text-center">Tidak ada data dies natalis terdekat</td>
                   </tr>
-                  <?php
+                <?php
                 }
                 ?>
               </tbody>
@@ -386,7 +377,7 @@ if (mysqli_num_rows($data_dn) > 0) {
     } else {
       $tanggal_format = 'Tanggal tidak tersedia';
     }
-    ?>
+?>
     <div class="modal fade" id="detailModal<?php echo $d['id']; ?>" tabindex="-1" role="dialog"
       aria-labelledby="detailModalLabel<?php echo $d['id']; ?>" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -433,7 +424,7 @@ if (mysqli_num_rows($data_dn) > 0) {
         </div>
       </div>
     </div>
-    <?php
+<?php
   }
 }
 ?>

@@ -184,16 +184,22 @@ ORDER BY tanggal DESC";
                                 <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})'>
                                     <i class='fas fa-times'></i> Batalkan
                                 </button>
+                                    <a href='https://wa.me/62" . $p['kontak'] . "' target='_blank' class='btn btn-info btn-sm'>
+                                        <i class='fab fa-whatsapp'></i> Chat Customer
+                                    </a>
                             </div>";
                             break;
 
                         case '2': // Lunas - Proses
                             $statusBadge = '<span class="badge badge-info">Lunas - Proses</span>';
                             $actionButton = '<div class="btn-group">
-                                <button class="btn btn-success btn-sm" onclick="updateStatus(' . $p['id'] . ', 3)">
-                                    <i class="fas fa-box-open"></i> Tandai Siap Diambil
-                                </button>
-                            </div>';
+                                    <button class="btn btn-success btn-sm" onclick="updateStatus(' . $p['id'] . ', 3)">
+                                        <i class="fas fa-box-open"></i> Tandai Siap Diambil
+                                    </button>
+                                    <a href="https://wa.me/62' . $p['kontak'] . '" target="_blank" class="btn btn-info btn-sm">
+                                        <i class="fab fa-whatsapp"></i> Chat Customer
+                                    </a>
+                                </div>';
                             break;
 
                         case '3': // Lunas - Siap Diambil
@@ -202,6 +208,9 @@ ORDER BY tanggal DESC";
                                 <button class="btn btn-secondary btn-sm" onclick="updateStatus(' . $p['id'] . ', 4)">
                                     <i class="fas fa-check"></i> Tandai Selesai
                                 </button>
+                                    <a href="https://wa.me/62' . $p['kontak'] . '" target="_blank" class="btn btn-info btn-sm">
+                                        <i class="fab fa-whatsapp"></i> Chat Customer
+                                    </a>
                             </div>';
                             break;
 
@@ -362,7 +371,7 @@ ORDER BY tanggal DESC";
 
 <script>
     // Form validation for cancellation
-    $('#formBatalkan').on('submit', function (e) {
+    $('#formBatalkan').on('submit', function(e) {
         const alasanBatal = $('#alasanBatal').val().trim();
 
         if (!alasanBatal) {
@@ -434,7 +443,7 @@ ORDER BY tanggal DESC";
     }
 
     // Form validation
-    $('#formCicilan').on('submit', function (e) {
+    $('#formCicilan').on('submit', function(e) {
         const cicilanKe = parseInt($('#cicilanKe').val());
         const totalCicilan = parseInt($(this).data('total-cicilan'));
         const $jumlahBayar = $('#jumlahBayar');
@@ -478,7 +487,7 @@ ORDER BY tanggal DESC";
         $('#modalKonfirmasi').modal('show');
 
         // Set aksi saat tombol konfirmasi diklik
-        $('#btnKonfirmasi').off('click').on('click', function () {
+        $('#btnKonfirmasi').off('click').on('click', function() {
             window.location.href = `config/update_status.php?id=${id}&status=${newStatus}`;
         });
     }
@@ -490,31 +499,35 @@ ORDER BY tanggal DESC";
 
     // Function to display cancellation reason
     function tampilkanAlasan(alasan) {
+        console.log("Alasan Pembatalan: " + alasan); // Tambahkan log
         document.getElementById('alasanText').innerText = alasan;
     }
 
+
     // Initialize DataTable with date range and status filtering
-    $(document).ready(function () {
+    $(document).ready(function() {
         var table = $('#tabelPenagihan').DataTable({
             "responsive": true,
-            "order": [[0, "desc"]],
+            "order": [
+                [0, "desc"]
+            ],
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
             }
         });
 
         // Date range filter
-        $('#tgl_mulai, #tgl_akhir').on('change', function () {
+        $('#tgl_mulai, #tgl_akhir').on('change', function() {
             table.draw();
         });
 
         // Status filter
-        $('#filter_status').on('change', function () {
+        $('#filter_status').on('change', function() {
             table.draw();
         });
 
         // Custom filtering function
-        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
             var min = $('#tgl_mulai').val();
             var max = $('#tgl_akhir').val();
             var status = $('#filter_status').val();
