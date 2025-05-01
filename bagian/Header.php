@@ -42,5 +42,4 @@
   <link rel="stylesheet" href="assets/plugins/bs-stepper/css/bs-stepper.min.css">
   <!-- dropzonejs -->
   <link rel="stylesheet" href="assets/plugins/dropzone/min/dropzone.min.css">
-
 </head>

@@ -3,13 +3,14 @@
     <ul class="nav nav-tabs" id="formTabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link <?php if ($submenu == "ContactAdd") {
-                                    echo "active";
-                                } ?>" id="contact-tab" data-toggle="tab" href="#contact" role="tab">Tambah Data Dies Natalis</a>
+                echo "active";
+            } ?>" id="contact-tab" data-toggle="tab" href="#contact" role="tab">Tambah Data Dies
+                Natalis</a>
         </li>
         <li class="nav-item">
             <a class="nav-link <?php if ($submenu == "Penagihan") {
-                                    echo "active";
-                                } ?>" id="billing-tab" data-toggle="tab" href="#billing" role="tab">Pre Order</a>
+                echo "active";
+            } ?>" id="billing-tab" data-toggle="tab" href="#billing" role="tab">Pre Order</a>
         </li>
     </ul>
 
@@ -17,8 +18,8 @@
     <div class="tab-content">
         <!-- Contact Person Form Tab -->
         <div class="tab-pane fade <?php if ($submenu == "ContactAdd") {
-                                        echo "show active";
-                                    } ?>" id="contact" role="tabpanel">
+            echo "show active";
+        } ?>" id="contact" role="tabpanel">
             <!-- Contact form content - unchanged -->
             <div class="card card-default">
                 <div class="card-header">
@@ -54,8 +55,21 @@
                                     <input type="text" class="form-control" id="jabatan" name="jabatan" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="tanggal_dn">Tanggal Dies Natalis (Format : DD-MM. Angka Saja)</label>
-                                    <input type="text" class="form-control" id="tanggal_dn" name="tanggal_dn" required>
+                                    <label for="tanggal_dn">Tanggal Dies Natalis (Format: DD-MM. Angka Saja)</label>
+                                    <div class="d-flex">
+                                        <select class="form-control" id="dn_tanggal"
+                                            style="width: 50%; margin-right: 5px;">
+                                            <option value="">Tanggal</option>
+                                            <!-- Options will be populated by JavaScript -->
+                                        </select>
+                                        <select class="form-control" id="dn_bulan" style="width: 50%;">
+                                            <option value="">Bulan</option>
+                                            <!-- Options will be populated by JavaScript -->
+                                        </select>
+                                        <!-- Hidden input untuk menyimpan nilai gabungan dalam format DD-MM -->
+                                        <input type="hidden" id="tanggal_dn" name="tanggal_dn">
+                                    </div>
+                                    <small class="form-text text-muted" id="display_tanggal_dn"></small>
                                 </div>
                             </div>
                         </div>
@@ -72,8 +86,8 @@
 
         <!-- Billing Form Tab -->
         <div class="tab-pane fade <?php if ($submenu == "Penagihan") {
-                                        echo "show active";
-                                    } ?>" id="billing" role="tabpanel">
+            echo "show active";
+        } ?>" id="billing" role="tabpanel">
             <div class="card card-default">
                 <div class="card-header">
                     <h3 class="card-title">Data Pre Order</h3>
@@ -84,9 +98,6 @@
                             <div class="col-md-6 mb-3">
                                 <label for="tanggal">Tanggal Pre Order</label>
                                 <input type="date" class="form-control" id="tanggal" name="tanggal" required>
-                                <div class="input-group-append">
-                                    <button type="button" class="btn btn-secondary" onclick="setToday()">Hari Ini</button>
-                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="customer">Nama Customer</label>
@@ -101,20 +112,23 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="keterangan">Keterangan Produk</label>
-                                <textarea class="form-control" id="keterangan" name="keterangan" rows="2" placeholder="Deskripsi produk/pesanan"></textarea>
+                                <textarea class="form-control" id="keterangan" name="keterangan" rows="2"
+                                    placeholder="Deskripsi produk/pesanan"></textarea>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="tanggal_pengambilan">Tanggal Pengambilan Barang</label>
-                                <input type="date" class="form-control" id="tanggal_pengambilan" name="tanggal_pengambilan" required onchange="validateInstallments()">
+                                <input type="date" class="form-control" id="tanggal_pengambilan"
+                                    name="tanggal_pengambilan" required onchange="validateInstallments()">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="total">Total Keseluruhan</label>
                                 <div class="input-group">
                                     <span class="input-group-text">Rp</span>
-                                    <input type="number" class="form-control" id="total" name="total" required min="0" step="1000">
+                                    <input type="number" class="form-control" id="total" name="total" required min="0"
+                                        step="1000">
                                 </div>
                             </div>
                         </div>
@@ -122,7 +136,8 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="jumlah_dp">Rencana Cicilan DP</label>
-                                <select class="form-control" id="jumlah_dp" name="jumlah_dp" required onchange="calculateJatuhTempo()">
+                                <select class="form-control" id="jumlah_dp" name="jumlah_dp" required
+                                    onchange="calculateJatuhTempo()">
                                     <option value="">Pilih jumlah cicilan</option>
                                     <option value="1">1 kali pembayaran</option>
                                     <option value="2">2 kali pembayaran</option>
@@ -158,10 +173,6 @@
         </div>
 
         <script>
-            function setToday() {
-                const today = new Date().toISOString().split('T')[0];
-                document.getElementById('tanggal').value = today;
-            }
 
             function calculateJatuhTempo() {
                 var jumlah_dp = parseInt(document.getElementById('jumlah_dp').value) || 0;
@@ -233,7 +244,141 @@
                 }
                 return count;
             }
+            document.addEventListener('DOMContentLoaded', function () {
+                // Elemen-elemen DOM
+                const tanggalSelect = document.getElementById('dn_tanggal');
+                const bulanSelect = document.getElementById('dn_bulan');
+                const hiddenInput = document.getElementById('tanggal_dn');
+                const displayText = document.getElementById('display_tanggal_dn');
+
+                // Data bulan dengan jumlah hari
+                const dataBulan = [
+                    { nama: 'Januari', hari: 31 },
+                    { nama: 'Februari', hari: 29 }, // Menggunakan 29 untuk tahun kabisat
+                    { nama: 'Maret', hari: 31 },
+                    { nama: 'April', hari: 30 },
+                    { nama: 'Mei', hari: 31 },
+                    { nama: 'Juni', hari: 30 },
+                    { nama: 'Juli', hari: 31 },
+                    { nama: 'Agustus', hari: 31 },
+                    { nama: 'September', hari: 30 },
+                    { nama: 'Oktober', hari: 31 },
+                    { nama: 'November', hari: 30 },
+                    { nama: 'Desember', hari: 31 }
+                ];
+
+                // Populate dropdown bulan
+                dataBulan.forEach((bulan, index) => {
+                    const option = document.createElement('option');
+                    option.value = (index + 1).toString().padStart(2, '0');
+                    option.textContent = bulan.nama;
+                    bulanSelect.appendChild(option);
+                });
+
+                // Fungsi untuk memperbarui dropdown tanggal berdasarkan bulan yang dipilih
+                function updateTanggalDropdown() {
+                    // Simpan tanggal yang dipilih sebelumnya (jika ada)
+                    const selectedTanggal = tanggalSelect.value;
+
+                    // Kosongkan dropdown tanggal
+                    tanggalSelect.innerHTML = '<option value="">Tanggal</option>';
+
+                    // Tentukan jumlah hari berdasarkan bulan yang dipilih
+                    const bulanValue = bulanSelect.value;
+                    if (bulanValue) {
+                        const bulanIndex = parseInt(bulanValue) - 1;
+                        const jumlahHari = dataBulan[bulanIndex].hari;
+
+                        // Populate tanggal (1-jumlahHari)
+                        for (let i = 1; i <= jumlahHari; i++) {
+                            const option = document.createElement('option');
+                            option.value = i.toString().padStart(2, '0');
+                            option.textContent = i;
+                            tanggalSelect.appendChild(option);
+                        }
+
+                        // Coba pilih kembali tanggal yang sebelumnya dipilih jika masih valid
+                        if (selectedTanggal && parseInt(selectedTanggal) <= jumlahHari) {
+                            tanggalSelect.value = selectedTanggal;
+                        }
+                    }
+                }
+
+                // Function untuk memperbarui nilai gabungan
+                function updateTanggalDN() {
+                    const tanggal = tanggalSelect.value;
+                    const bulan = bulanSelect.value;
+
+                    if (tanggal && bulan) {
+                        // Format DD-MM
+                        hiddenInput.value = `${tanggal}-${bulan}`;
+
+                        // Tampilkan format yang lebih user-friendly
+                        const bulanIndex = parseInt(bulan) - 1;
+                        displayText.textContent = `Dipilih: ${tanggal} ${dataBulan[bulanIndex].nama}`;
+                    } else {
+                        hiddenInput.value = '';
+                        displayText.textContent = '';
+                    }
+                }
+
+                // Event listeners
+                bulanSelect.addEventListener('change', function () {
+                    updateTanggalDropdown();
+                    updateTanggalDN();
+                });
+
+                tanggalSelect.addEventListener('change', updateTanggalDN);
+
+                // Jika sudah ada nilai yang disimpan, populate select
+                if (hiddenInput.value) {
+                    const parts = hiddenInput.value.split('-');
+                    if (parts.length === 2) {
+                        bulanSelect.value = parts[1];
+                        updateTanggalDropdown();
+                        tanggalSelect.value = parts[0];
+                        updateTanggalDN();
+                    }
+                }
+
+                // Validasi saat form di-submit
+                const form = hiddenInput.closest('form');
+                if (form) {
+                    form.addEventListener('submit', function (e) {
+                        if (form.checkValidity() === false || !hiddenInput.value) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            // Highlight jika belum dipilih
+                            if (!hiddenInput.value) {
+                                if (!tanggalSelect.value) tanggalSelect.classList.add('is-invalid');
+                                if (!bulanSelect.value) bulanSelect.classList.add('is-invalid');
+                            }
+                        }
+                    });
+
+                    // Hapus highlight saat dipilih
+                    tanggalSelect.addEventListener('change', function () {
+                        this.classList.remove('is-invalid');
+                    });
+                    bulanSelect.addEventListener('change', function () {
+                        this.classList.remove('is-invalid');
+                    });
+                }
+            });
         </script>
 
+        <style>
+            /* Styling untuk dropdown */
+            #dn_tanggal,
+            #dn_bulan {
+                border-radius: 4px;
+            }
+
+            #display_tanggal_dn {
+                margin-top: 5px;
+                font-weight: 500;
+            }
+        </style>
     </div>
 </div>

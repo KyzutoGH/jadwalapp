@@ -1,13 +1,13 @@
 Array
 (
-    [tanggal] => 2025-04-26
-    [customer] => Muhammad Ali
-    [kontak] => 085258093448
-    [keterangan] => Polos Hytam Sahaja
-    [tanggal_pengambilan] => 2025-08-17
-    [total] => 5000000
+    [tanggal] => 2025-04-29
+    [customer] => Bani
+    [kontak] => 911
+    [keterangan] => Esentio 10 buah
+    [tanggal_pengambilan] => 2025-05-29
+    [total] => 500000
     [jumlah_dp] => 3
-    [dp1_tenggat] => 2025-06-02
-    [dp2_tenggat] => 2025-07-09
-    [dp3_tenggat] => 2025-08-15
+    [dp1_tenggat] => 2025-05-09
+    [dp2_tenggat] => 2025-05-19
+    [dp3_tenggat] => 2025-05-29
 )

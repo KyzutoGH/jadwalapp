@@ -18,16 +18,22 @@ class DiesNatalisNotification
     $current_date = new DateTime();
     $current_year = (int) $current_date->format('Y');
 
-    // Query untuk mengambil semua tanggal DN
+    // Query untuk mengambil semua tanggal DN - sekarang tanggal_dn adalah DATE
     $query = "SELECT id, nama_sekolah, tanggal_dn FROM datadn WHERE tanggal_dn IS NOT NULL";
     $result = $this->db->query($query);
 
     if ($result && $result->num_rows > 0) {
       while ($row = $result->fetch_assoc()) {
-        // Format tanggal dari database (DD-MM)
-        $dn_date = $row['tanggal_dn'];
+        // Tanggal dari database sekarang dalam format YYYY-MM-DD
+        $db_date = $row['tanggal_dn'];
 
-        // Buat objek DateTime untuk tanggal DN dengan tahun sekarang
+        // Buat objek DateTime dari tanggal database
+        $dn_date_obj = new DateTime($db_date);
+
+        // Ekstrak hanya tanggal dan bulan (DD-MM format) untuk notifikasi
+        $dn_date = $dn_date_obj->format('d-m');
+
+        // Buat tanggal dengan tahun saat ini untuk perbandingan
         $dn_with_year = DateTime::createFromFormat('d-m-Y', $dn_date . '-' . $current_year);
 
         // Cek jika gagal parse tanggal

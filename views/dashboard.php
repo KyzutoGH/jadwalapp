@@ -5,7 +5,7 @@ $total_sekolah = $db->query("SELECT COUNT(*) as total FROM datadn")->fetch_assoc
 $dies_natalis_bulan_ini = $db->query("
     SELECT COUNT(*) as total 
     FROM datadn 
-    WHERE MONTH(STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y')) = MONTH(CURRENT_DATE())
+    WHERE MONTH(STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURDATE())), '%d-%m-%Y')) = MONTH(CURDATE())
 ")->fetch_assoc()['total'];
 
 $total_tagihan = $db->query("
@@ -61,26 +61,27 @@ $jatuh_tempo = $db->query("
 
 // Query untuk mengambil data dies natalis per bulan
 $query = $db->query("SELECT 
-        MONTH(STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y')) as bulan,
-        COUNT(*) as total,
-        GROUP_CONCAT(nama_sekolah) as sekolah_list
-    FROM datadn 
-    WHERE YEAR(STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y')) = YEAR(CURRENT_DATE())
+        MONTH(STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURDATE())), '%d-%m-%Y')) AS bulan,
+        COUNT(*) AS total,
+        GROUP_CONCAT(nama_sekolah) AS sekolah_list
+    FROM datadn
     GROUP BY bulan
     ORDER BY bulan");
 
-
+$data_dies_natalis = [];
 while ($row = $query->fetch_assoc()) {
   $data_dies_natalis[$row['bulan'] - 1] = (int) $row['total'];
 }
+
 
 // Data for tooltip/detail
 $chart_details = [
   'current_year' => date('Y'),
   'total_annual' => array_sum($data_dies_natalis),
-  'highest_month' => array_search(max($data_dies_natalis), $data_dies_natalis) + 1,
-  'lowest_month' => array_search(min(array_filter($data_dies_natalis)), $data_dies_natalis) + 1
+  'highest_month' => !empty($data_dies_natalis) ? array_search(max($data_dies_natalis), $data_dies_natalis) + 1 : null,
+  'lowest_month' => !empty(array_filter($data_dies_natalis)) ? array_search(min(array_filter($data_dies_natalis)), $data_dies_natalis) + 1 : null
 ];
+
 
 // Fill empty months with 0
 for ($i = 0; $i < 12; $i++) {
@@ -89,6 +90,7 @@ for ($i = 0; $i < 12; $i++) {
   }
 }
 ksort($data_dies_natalis);
+
 // Dies Natalis Table Data
 $bulan = [
   '01' => 'Januari',
@@ -104,19 +106,20 @@ $bulan = [
   '11' => 'November',
   '12' => 'Desember'
 ];
+
 // Dies Natalis Table Data
-$query_dies_natalis = "SELECT id, nama_sekolah, alamat, jenis, nomor, pemilik_kontak, jabatan, tanggal_dn, status 
+$query_dies_natalis = "
+    SELECT id, nama_sekolah, alamat, jenis, nomor, pemilik_kontak, jabatan, tanggal_dn, status 
     FROM datadn 
-    WHERE STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y') >= CURRENT_DATE()
     ORDER BY 
         CASE 
-            WHEN STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y') < CURRENT_DATE()
-            THEN STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE()) + 1), '%d-%m-%Y')
-            ELSE STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURRENT_DATE())), '%d-%m-%Y')
+            WHEN STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURDATE())), '%d-%m-%Y') < CURDATE()
+            THEN STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURDATE()) + 1), '%d-%m-%Y')
+            ELSE STR_TO_DATE(CONCAT(tanggal_dn, '-', YEAR(CURDATE())), '%d-%m-%Y')
         END ASC
     LIMIT 5";
-
 $data_dn = mysqli_query($db, $query_dies_natalis);
+
 $query_cicilan_belum_lunas = "
     SELECT SUM(
     CASE
@@ -267,7 +270,7 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
 
                     if (mysqli_num_rows($data) > 0) {
                       while ($b = mysqli_fetch_array($data)) {
-                    ?>
+                        ?>
                         <tr>
                           <td><?= $no++; ?></td>
                           <td>
@@ -279,14 +282,14 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
                           <td><?= htmlspecialchars($b['kategori']) ?></td>
                           <td><?= htmlspecialchars($b['stock']) ?></td>
                         </tr>
-                      <?php
+                        <?php
                       }
                     } else {
                       ?>
                       <tr>
                         <td colspan="5" class="text-center">Tidak ada data barang yang stocknya menipis</td>
                       </tr>
-                    <?php
+                      <?php
                     }
                     ?>
                   </tbody>
@@ -330,7 +333,7 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
                     } else {
                       $tanggal_format = 'Tanggal tidak tersedia';
                     }
-                ?>
+                    ?>
                     <tr>
                       <td><?php echo $no++; ?></td>
                       <td><?php echo ($d['nama_sekolah'] ?? 'N/A'); ?></td>
@@ -343,14 +346,14 @@ WHERE status IN ('2', '3', '4') AND tgllunas IS NOT NULL;
                         <?php endif; ?>
                       </td>
                     </tr>
-                  <?php
+                    <?php
                   }
                 } else {
                   ?>
                   <tr>
                     <td colspan="5" class="text-center">Tidak ada data dies natalis terdekat</td>
                   </tr>
-                <?php
+                  <?php
                 }
                 ?>
               </tbody>
@@ -377,7 +380,7 @@ if (mysqli_num_rows($data_dn) > 0) {
     } else {
       $tanggal_format = 'Tanggal tidak tersedia';
     }
-?>
+    ?>
     <div class="modal fade" id="detailModal<?php echo $d['id']; ?>" tabindex="-1" role="dialog"
       aria-labelledby="detailModalLabel<?php echo $d['id']; ?>" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -424,7 +427,7 @@ if (mysqli_num_rows($data_dn) > 0) {
         </div>
       </div>
     </div>
-<?php
+    <?php
   }
 }
 ?>
