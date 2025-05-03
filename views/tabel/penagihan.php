@@ -168,8 +168,8 @@ ORDER BY tanggal DESC";
                                 $nextCicilan = $currentCicilan + 1;
                                 $actionButton .= "
                                     <button class='btn btn-warning btn-sm'
-                                            onclick='showCicilanModal({$p['id']}, {$nextCicilan}, {$totalCicilan}, {$sisaPembayaran})'>
-                                        <i class='fas fa-money-bill'></i> Cicilan ke-{$nextCicilan}
+                                            onclick='showCicilanModal({$p['id']}, {$nextCicilan}, {$totalCicilan}, {$sisaPembayaran})' data-toggle='tooltip' title='Cicilan ke-{$nextCicilan}'>
+                                        <i class='fas fa-money-bill'></i>
                                     </button>";
                             } else {
                                 $actionButton .= "
@@ -181,11 +181,11 @@ ORDER BY tanggal DESC";
 
                             // Tombol Batalkan selalu ditampilkan selama belum selesai/dibatalkan
                             $actionButton .= "
-                                <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})'>
-                                    <i class='fas fa-times'></i> Batalkan
+                                <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})' data-toggle='tooltip' title='Batalkan Pesanan'> 
+                                    <i class='fas fa-times'></i>
                                 </button>
-                                    <a href='https://wa.me/62" . $p['kontak'] . "' target='_blank' class='btn btn-info btn-sm'>
-                                        <i class='fab fa-whatsapp'></i> Chat Customer
+                                    <a href='https://wa.me/62" . $p['kontak'] . "' target='_blank' class='btn btn-info btn-sm' data-toggle='tooltip' title='Chat Customer'>
+                                        <i class='fab fa-whatsapp'></i>
                                     </a>
                             </div>";
                             break;
@@ -371,7 +371,7 @@ ORDER BY tanggal DESC";
 
 <script>
     // Form validation for cancellation
-    $('#formBatalkan').on('submit', function(e) {
+    $('#formBatalkan').on('submit', function (e) {
         const alasanBatal = $('#alasanBatal').val().trim();
 
         if (!alasanBatal) {
@@ -443,7 +443,7 @@ ORDER BY tanggal DESC";
     }
 
     // Form validation
-    $('#formCicilan').on('submit', function(e) {
+    $('#formCicilan').on('submit', function (e) {
         const cicilanKe = parseInt($('#cicilanKe').val());
         const totalCicilan = parseInt($(this).data('total-cicilan'));
         const $jumlahBayar = $('#jumlahBayar');
@@ -487,7 +487,7 @@ ORDER BY tanggal DESC";
         $('#modalKonfirmasi').modal('show');
 
         // Set aksi saat tombol konfirmasi diklik
-        $('#btnKonfirmasi').off('click').on('click', function() {
+        $('#btnKonfirmasi').off('click').on('click', function () {
             window.location.href = `config/update_status.php?id=${id}&status=${newStatus}`;
         });
     }
@@ -505,7 +505,7 @@ ORDER BY tanggal DESC";
 
 
     // Initialize DataTable with date range and status filtering
-    $(document).ready(function() {
+    $(document).ready(function () {
         var table = $('#tabelPenagihan').DataTable({
             "responsive": true,
             "order": [
@@ -517,17 +517,17 @@ ORDER BY tanggal DESC";
         });
 
         // Date range filter
-        $('#tgl_mulai, #tgl_akhir').on('change', function() {
+        $('#tgl_mulai, #tgl_akhir').on('change', function () {
             table.draw();
         });
 
         // Status filter
-        $('#filter_status').on('change', function() {
+        $('#filter_status').on('change', function () {
             table.draw();
         });
 
         // Custom filtering function
-        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
             var min = $('#tgl_mulai').val();
             var max = $('#tgl_akhir').val();
             var status = $('#filter_status').val();

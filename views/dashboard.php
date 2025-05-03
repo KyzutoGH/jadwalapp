@@ -109,7 +109,7 @@ $bulan = [
 
 // Dies Natalis Table Data
 $query_dies_natalis = "
-    SELECT id, nama_sekolah, alamat, jenis, nomor, pemilik_kontak, jabatan, tanggal_dn, status 
+    SELECT id, nama_sekolah, alamat, nomor, pemilik_kontak, jabatan, tanggal_dn, status 
     FROM datadn 
     ORDER BY 
         CASE 

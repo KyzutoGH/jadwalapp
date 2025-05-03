@@ -1,13 +1,183 @@
 Array
 (
-    [tanggal] => 2025-04-29
-    [customer] => Bani
-    [kontak] => 911
-    [keterangan] => Esentio 10 buah
-    [tanggal_pengambilan] => 2025-05-29
-    [total] => 500000
+    [tanggal] => 2025-05-03
+    [customer_selection] => existing
+    [customer] => MAK 1 Kepanjen
+    [kontak] => 112
+    [existing_customer] => 16
+    [product_types] => Array
+        (
+            [0] => jaket
+        )
+
+    [jaket_product] => 11
+    [jaket_qty] => 21
+    [stiker_product] => 
+    [stiker_qty] => 1
+    [barang_jadi_product] => 
+    [barang_jadi_qty] => 1
+    [keterangan] => KONTOL
+    [tanggal_pengambilan] => 2025-07-04
+    [total] => 2.625.000
     [jumlah_dp] => 3
-    [dp1_tenggat] => 2025-05-09
-    [dp2_tenggat] => 2025-05-19
-    [dp3_tenggat] => 2025-05-29
+    [dp1_tenggat] => 2025-05-23
+    [dp2_tenggat] => 2025-06-12
+    [dp3_tenggat] => 2025-07-02
 )
+========== NEW REQUEST ==========
+POST Data: Array
+(
+    [tanggal] => 2025-05-03
+    [customer_selection] => existing
+    [customer] => MAK 1 Kepanjen
+    [kontak] => 112
+    [existing_customer] => 16
+    [product_types] => Array
+        (
+            [0] => jaket
+        )
+
+    [jaket_product] => 27
+    [jaket_qty] => 5
+    [stiker_product] => 
+    [stiker_qty] => 1
+    [barang_jadi_product] => 
+    [barang_jadi_qty] => 1
+    [keterangan] => KONTOL
+    [tanggal_pengambilan] => 2025-07-04
+    [total] => 250.000
+    [jumlah_dp] => 3
+    [dp1_tenggat] => 2025-05-23
+    [dp2_tenggat] => 2025-06-12
+    [dp3_tenggat] => 2025-07-02
+)
+
+SQL Query: INSERT INTO penagihan (
+                tanggal, customer, total, jumlah_dp,
+                tanggal_pengambilan,
+                dp1_tenggat, dp1_nominal, dp1_metode, dp1_status,
+                dp2_tenggat, dp2_nominal, dp2_metode, dp2_status,
+                dp3_tenggat, dp3_nominal, dp3_metode, dp3_status,
+                keterangan, status, kontak
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Error in create_dp.php: Unknown column 'kontak' in 'field list'
+========== NEW REQUEST ==========
+POST Data: Array
+(
+    [tanggal] => 2025-05-03
+    [customer_selection] => existing
+    [customer] => MAK 1 Kepanjen
+    [kontak] => 112
+    [existing_customer] => 16
+    [product_types] => Array
+        (
+            [0] => jaket
+        )
+
+    [jaket_product] => 11
+    [jaket_qty] => 6
+    [stiker_product] => 
+    [stiker_qty] => 1
+    [barang_jadi_product] => 
+    [barang_jadi_qty] => 1
+    [keterangan] => MEMEK
+    [tanggal_pengambilan] => 2025-07-04
+    [total] => 750.000
+    [jumlah_dp] => 3
+    [dp1_tenggat] => 2025-05-23
+    [dp2_tenggat] => 2025-06-12
+    [dp3_tenggat] => 2025-07-02
+)
+
+SQL Query: INSERT INTO penagihan (
+                tanggal, customer, total, jumlah_dp,
+                tanggal_pengambilan,
+                dp1_tenggat, dp1_nominal, dp1_metode, dp1_status,
+                dp2_tenggat, dp2_nominal, dp2_metode, dp2_status,
+                dp3_tenggat, dp3_nominal, dp3_metode, dp3_status,
+                keterangan, status, kontak
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+========== NEW REQUEST ==========
+POST Data: Array
+(
+    [tanggal] => 2025-05-03
+    [customer_selection] => existing
+    [customer] => MAK 1 Kepanjen
+    [kontak] => 112
+    [existing_customer] => 16
+    [product_types] => Array
+        (
+            [0] => jaket
+        )
+
+    [jaket_product] => 11
+    [jaket_qty] => 6
+    [stiker_product] => 
+    [stiker_qty] => 1
+    [barang_jadi_product] => 
+    [barang_jadi_qty] => 1
+    [keterangan] => MEMEK
+    [tanggal_pengambilan] => 2025-07-04
+    [total] => 750.000
+    [jumlah_dp] => 3
+    [dp1_tenggat] => 2025-05-23
+    [dp2_tenggat] => 2025-06-12
+    [dp3_tenggat] => 2025-07-02
+)
+
+========== NEW REQUEST ==========
+POST Data: Array
+(
+    [tanggal] => 2025-05-03
+    [customer_selection] => existing
+    [customer] => MAK 1 Kepanjen
+    [kontak] => 112
+    [existing_customer] => 16
+    [product_types] => Array
+        (
+            [0] => jaket
+        )
+
+    [jaket_product] => 11
+    [jaket_qty] => 6
+    [stiker_product] => 
+    [stiker_qty] => 1
+    [barang_jadi_product] => 
+    [barang_jadi_qty] => 1
+    [keterangan] => MEMEK
+    [tanggal_pengambilan] => 2025-07-04
+    [total] => 750.000
+    [jumlah_dp] => 3
+    [dp1_tenggat] => 2025-05-23
+    [dp2_tenggat] => 2025-06-12
+    [dp3_tenggat] => 2025-07-02
+)
+
+========== NEW REQUEST ==========
+POST Data: Array
+(
+    [tanggal] => 2025-05-03
+    [customer_selection] => existing
+    [customer] => MAK 1 Kepanjen
+    [kontak] => 112
+    [existing_customer] => 16
+    [product_types] => Array
+        (
+            [0] => jaket
+        )
+
+    [jaket_product] => 11
+    [jaket_qty] => 6
+    [stiker_product] => 
+    [stiker_qty] => 1
+    [barang_jadi_product] => 
+    [barang_jadi_qty] => 1
+    [keterangan] => MEMEK
+    [tanggal_pengambilan] => 2025-07-04
+    [total] => 750.000
+    [jumlah_dp] => 3
+    [dp1_tenggat] => 2025-05-23
+    [dp2_tenggat] => 2025-06-12
+    [dp3_tenggat] => 2025-07-02
+)
+

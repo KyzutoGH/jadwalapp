@@ -15,10 +15,9 @@
                             $result = $db->query($query);
                             $current_month = date('m');
                             while ($row = $result->fetch_assoc()) {
-                                $tanggal_parts = explode('-', $row['tanggal_dn']);
+                                $bulan_event = date('m', strtotime($row['tanggal_dn']));
+                                if ($bulan_event === $current_month) {
 
-                                // Periksa apakah bulan cocok dengan bulan sekarang
-                                if (isset($tanggal_parts[1]) && $tanggal_parts[1] === $current_month) {
                                     ?>
                                     <div class="external-event bg-success"><?php echo $row['nama_sekolah']; ?></div>
                                     <?php
@@ -125,18 +124,15 @@ if ($result) {
         } elseif (strpos($row['nama_sekolah'], 'MAK') !== false) {
             $backgroundColor = '#9C27B0'; // Warna ungu untuk MAK
         }
-        $parts = explode('-', $row['tanggal_dn']); // Pisahkan DD dan MM
-        if (count($parts) === 2) {
-            $tanggal_dn = date('Y') . '-' . $parts[1] . '-' . $parts[0]; // Susun jadi YYYY-MM-DD (tahun-bulan-tanggal)
-            $events[] = [
-                'title' => 'Dies Natalis ' . $row['nama_sekolah'],
-                'start' => $tanggal_dn, // Format yang benar untuk FullCalendar
-                'end' => $tanggal_dn,   // Jika end sama dengan start
-                'backgroundColor' => $backgroundColor,
-                'borderColor' => '#000000'
-            ];
-        }
+        $tanggal_dn = date('Y-m-d', strtotime($row['tanggal_dn']));
     }
+    $events[] = [
+        'title' => 'Dies Natalis ' . $row['nama_sekolah'],
+        'start' => $tanggal_dn,
+        'end' => $tanggal_dn,
+        'backgroundColor' => $backgroundColor,
+        'borderColor' => '#000000'
+    ];
 }
 
 $event_json = json_encode($events);
