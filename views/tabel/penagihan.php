@@ -1,64 +1,132 @@
-<!-- Card Header -->
+<style>
+    .product-details {
+        line-height: 1.6;
+        padding: 5px 0;
+    }
+
+    .product-details strong {
+        color: #2a6496;
+    }
+</style>
+<?php
+// Query untuk data dashboard
+$sql_dashboard = "SELECT 
+    SUM(total) as total_tagihan,
+    SUM(CASE WHEN status IN ('2','3','4') THEN total ELSE 0 END) as total_lunas,
+    COUNT(CASE WHEN status IN ('2','3','4') THEN 1 END) as count_lunas,
+    COUNT(CASE WHEN status = '1' THEN 1 END) as count_belum_lunas,
+    COUNT(CASE WHEN status = '1' AND 
+        ((jumlah_dp >= 1 AND dp1_status = 0 AND dp1_tenggat < CURDATE()) OR
+         (jumlah_dp >= 2 AND dp2_status = 0 AND dp2_tenggat < CURDATE()) OR
+         (jumlah_dp = 3 AND dp3_status = 0 AND dp3_tenggat < CURDATE())) 
+    THEN 1 END) as count_jatuh_tempo
+FROM penagihan";
+
+$result_dashboard = mysqli_query($db, $sql_dashboard);
+$dashboard_data = mysqli_fetch_assoc($result_dashboard);
+
+extract($dashboard_data);
+?>
+
 <div class="card">
     <div class="card-header">
         <h3 class="card-title">Data Penagihan</h3>
         <div class="float-right">
             <a href="index.php?menu=Create&submenu=Penagihan" class="btn btn-primary">
-                Tambah Penagihan
+                <i class="fas fa-plus"></i> Tambah Penagihan
             </a>
         </div>
     </div>
 
-    <!-- Card Body with Filters -->
     <div class="card-body">
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>Filter Tanggal Mulai:</label>
-                    <input type="date" id="tgl_mulai" class="form-control">
+        <!-- Dashboard Stats Cards - AdminLTE 3 -->
+        <div class="row mb-4">
+            <!-- Total Tagihan Card -->
+            <div class="col-md-3">
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h3>Rp <?= number_format((float) ($total_tagihan ?? 0), 0, ',', '.') ?></h3>
+                        <p>Total Tagihan</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <a href="#" class="small-box-footer">
+                        Detail <i class="fas fa-arrow-circle-right"></i>
+                    </a>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>Filter Tanggal Akhir:</label>
-                    <input type="date" id="tgl_akhir" class="form-control">
+
+            <!-- Lunas Card -->
+            <div class="col-md-3">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3><?= $count_lunas ?></h3>
+                        <p>Transaksi Lunas</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <a href="#" class="small-box-footer">
+                        Detail <i class="fas fa-arrow-circle-right"></i>
+                    </a>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>Filter Status:</label>
-                    <select id="filter_status" class="form-control">
-                        <option value="">Semua Status</option>
-                        <option value="Belum Lunas">Belum Lunas</option>
-                        <option value="Lunas - Proses">Lunas - Proses</option>
-                        <option value="Lunas - Siap Diambil">Lunas - Siap Diambil</option>
-                        <option value="Selesai">Selesai</option>
-                        <option value="Dibatalkan">Dibatalkan</option>
-                    </select>
+
+            <!-- Belum Lunas Card -->
+            <div class="col-md-3">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3><?= $count_belum_lunas ?></h3>
+                        <p>Transaksi Belum Lunas</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <a href="#" class="small-box-footer">
+                        Detail <i class="fas fa-arrow-circle-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Jatuh Tempo Card -->
+            <div class="col-md-3">
+                <div class="small-box bg-danger">
+                    <div class="inner">
+                        <h3><?= $count_jatuh_tempo ?></h3>
+                        <p>Transaksi Jatuh Tempo</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <a href="#" class="small-box-footer">
+                        Detail <i class="fas fa-arrow-circle-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
-        <!-- Data Table -->
-        <table id="tabelPenagihan" class="table table-bordered table-striped">
+        <!-- Tabel Penagihan -->
+        <table id="tabelPenagihan" class="tabelBarang table table-bordered table-striped dataTable dtr-inline"
+            style="width:100%">
             <thead>
                 <tr>
                     <th>TANGGAL</th>
-                    <th>NAMA CUSTOMER</th>
-                    <th>TOTAL</th>
-                    <th>DP</th>
-                    <th>TGL LUNAS/SISA TAGIHAN</th>
+                    <th>NAMA CUSTOMER (PIC)</th>
+                    <th>TOTAL | SISA</th>
+                    <th>DP (DETAIL)</th>
+                    <th>TGL JATUH TEMPO</th>
+                    <th>BARANG</th>
                     <th>STATUS</th>
                     <th>AKSI</th>
                 </tr>
             </thead>
             <tbody>
                 <?php
-                // Helper function untuk menampilkan badge cicilan
                 function generateInstallmentBadge($current, $total, $warning = false)
                 {
                     $badgeClass = 'badge ';
                     if ($warning) {
-                        $badgeClass .= 'badge-danger'; // Warna merah jika cicilan melewati tenggat
+                        $badgeClass .= 'badge-danger';
                     } elseif ($current == $total) {
                         $badgeClass .= 'badge-success';
                     } elseif ($current == 0) {
@@ -70,91 +138,155 @@
                     $icon = $warning ? "<i class='fas fa-exclamation-triangle mr-1'></i>" : "<i class='fas fa-clock mr-1'></i>";
 
                     return sprintf(
-                        '<span class="%s" style="font-size: 0.9rem; padding: 6px 12px;">
-                    %s Cicilan %d dari %d
-                </span>',
+                        '<span class="%s" style="font-size: 0.9rem; padding: 6px 12px;" data-toggle="tooltip" title="%s">
+                %s Cicilan %d dari %d
+            </span>',
                         $badgeClass,
+                        $warning ? 'Ada cicilan yang melewati jatuh tempo' : 'Status cicilan pembayaran',
                         $icon,
                         $current,
                         $total
                     );
                 }
 
-                // Query untuk mengambil data penagihan
                 $sql = "SELECT 
-    p.*, 
-    p.dp1_tenggat, p.dp2_tenggat, p.dp3_tenggat,
-
-    -- Progress DP
-    CONCAT(
-        (
-            CASE WHEN dp1_status > 0 THEN 1 ELSE 0 END +
-            CASE WHEN dp2_status > 0 THEN 1 ELSE 0 END +
-            CASE WHEN dp3_status > 0 THEN 1 ELSE 0 END
-        ), 
-        ' dari ', jumlah_dp
-    ) AS dp,
-
-    -- Total dibayar (hanya yang status-nya aktif)
-    (CASE WHEN dp1_status > 0 THEN dp1_nominal ELSE 0 END) +
-    (CASE WHEN dp2_status > 0 THEN dp2_nominal ELSE 0 END) +
-    (CASE WHEN dp3_status > 0 THEN dp3_nominal ELSE 0 END) AS total_dibayar,
-
-    -- Total tagihan
-    total AS total_tagihan,
-
-    -- Sisa tagihan
-    total - (
+        p.id,
+        p.tanggal,
+        p.customer,
+        p.total,
+        p.jumlah_dp,
+        CONCAT(
+            (CASE WHEN dp1_status > 0 THEN 1 ELSE 0 END +
+             CASE WHEN dp2_status > 0 THEN 1 ELSE 0 END +
+             CASE WHEN dp3_status > 0 THEN 1 ELSE 0 END), 
+            ' dari ', p.jumlah_dp
+        ) AS dp_status,
+        
         (CASE WHEN dp1_status > 0 THEN dp1_nominal ELSE 0 END) +
         (CASE WHEN dp2_status > 0 THEN dp2_nominal ELSE 0 END) +
-        (CASE WHEN dp3_status > 0 THEN dp3_nominal ELSE 0 END)
-    ) AS sisa_tagihan,
-
-    -- Tanggal lunas
-    tgllunas
-
-FROM penagihan p
-ORDER BY tanggal DESC";
+        (CASE WHEN dp3_status > 0 THEN dp3_nominal ELSE 0 END) AS total_dibayar,
+        
+        p.total - (
+            (CASE WHEN dp1_status > 0 THEN dp1_nominal ELSE 0 END) +
+            (CASE WHEN dp2_status > 0 THEN dp2_nominal ELSE 0 END) +
+            (CASE WHEN dp3_status > 0 THEN dp3_nominal ELSE 0 END)
+        ) AS sisa_tagihan,
+        
+        p.dp1_tenggat,
+        p.dp2_tenggat, 
+        p.dp3_tenggat,
+        p.tgllunas,
+        
+        p.dp1_metode,
+        p.dp2_metode, 
+        p.dp3_metode,
+        
+        GROUP_CONCAT(
+            CASE 
+                WHEN pd.jenis_barang = 'jaket' THEN 
+                    CONCAT('Jaket: ', j.namabarang, 
+                           ' (', pd.qty, ' × Rp', FORMAT(pd.harga_satuan, 0), ' = Rp', FORMAT(pd.qty * pd.harga_satuan, 0), ')')
+                WHEN pd.jenis_barang = 'stiker' THEN 
+                    CONCAT('Stiker: ', s.nama, 
+                           ' (', pd.qty, ' × Rp', FORMAT(pd.harga_satuan, 0), ' = Rp', FORMAT(pd.qty * pd.harga_satuan, 0), ')')
+                WHEN pd.jenis_barang = 'barang_jadi' THEN 
+                    CONCAT('Barang Jadi: ', bj.nama_produk, 
+                           ' (', pd.qty, ' × Rp', FORMAT(pd.harga_satuan, 0), ' = Rp', FORMAT(pd.qty * pd.harga_satuan, 0), ')')
+                ELSE 
+                    CONCAT('Produk Lain: ', pd.jenis_barang, 
+                           ' (', pd.qty, ' × Rp', FORMAT(pd.harga_satuan, 0), ' = Rp', FORMAT(pd.qty * pd.harga_satuan, 0), ')')
+            END
+        SEPARATOR '\n'
+        ) AS daftar_produk,
+        
+        GROUP_CONCAT(
+            CASE 
+                WHEN pd.jenis_barang = 'jaket' THEN j.ukuran
+                WHEN pd.jenis_barang = 'stiker' THEN s.bagian
+                ELSE NULL
+            END
+            SEPARATOR ' | '
+        ) AS detail_produk,
+        
+        p.status,
+        p.kontak,
+        p.alasan_batal,
+        p.dp1_nominal,
+        p.dp2_nominal,
+        p.dp3_nominal,
+        p.dp1_status,
+        p.dp2_status,
+        p.dp3_status
+        
+    FROM penagihan p
+    LEFT JOIN penagihan_detail pd ON p.id = pd.penagihan_id
+    LEFT JOIN jaket j ON pd.jenis_barang = 'jaket' AND pd.produk_id = j.id_jaket
+    LEFT JOIN stiker s ON pd.jenis_barang = 'stiker' AND pd.produk_id = s.id_sticker
+    LEFT JOIN barang_jadi bj ON pd.jenis_barang = 'barang_jadi' AND pd.produk_id = bj.id_barang
+    GROUP BY p.id
+    ORDER BY p.tanggal DESC";
 
                 $result = mysqli_query($db, $sql);
-                if (!$result)
-                    die("Query gagal: " . mysqli_error($db));
-
                 while ($p = mysqli_fetch_assoc($result)) {
-                    // Konversi nilai numerik
-                    $total_numeric = $p['total_tagihan'];
+                    $total_numeric = $p['total'];
                     $total_dibayar_numeric = $p['total_dibayar'];
-                    $sisaPembayaran = $total_numeric - $total_dibayar_numeric;
+                    $sisaPembayaran = $p['sisa_tagihan'];
 
-                    // Format tampilan
-                    $p['total_display'] = 'Rp ' . number_format($total_numeric, 0, ',', '.');
+
+                    $total_formatted = 'Rp ' . number_format($total_numeric, 0, ',', '.');
+                    $sisa_formatted = 'Rp ' . number_format($sisaPembayaran, 0, ',', '.');
                     $p['tanggal'] = date('d/m/Y', strtotime($p['tanggal']));
-                    if (!empty($p['tgllunas'])) {
-                        $p['tgllunas'] = date('d/m/Y', strtotime($p['tgllunas']));
-                    }
+                    $p['tgllunas'] = !empty($p['tgllunas']) ? date('d/m/Y', strtotime($p['tgllunas'])) : '';
 
-                    // Hitung cicilan yang telah dibayar - PERBAIKAN
-                    $dpParts = explode(" dari ", $p['dp']);
+                    $dpParts = explode(" dari ", $p['dp_status']);
                     $currentCicilan = (int) $dpParts[0];
                     $totalCicilan = (int) $dpParts[1];
 
-                    // // Debug - untuk verifikasi
-                    // echo "current=$currentCicilan, total=$totalCicilan, status={$p['status']}";
                     // Cek jika cicilan jatuh tempo dan belum dibayar
                     $today = date('Y-m-d');
                     $warning = false;
-                    if (
-                        ($p['jumlah_dp'] >= 1 && $p['dp1_nominal'] == 0 && !empty($p['dp1_tenggat']) && $today > $p['dp1_tenggat']) ||
-                        ($p['jumlah_dp'] >= 2 && $p['dp2_nominal'] == 0 && !empty($p['dp2_tenggat']) && $today > $p['dp2_tenggat']) ||
-                        ($p['jumlah_dp'] == 3 && $p['dp3_nominal'] == 0 && !empty($p['dp3_tenggat']) && $today > $p['dp3_tenggat'])
-                    ) {
-                        $warning = true;
+                    $jatuhTempoInfo = [];
+
+                    // Format kolom TOTAL | SISA berdasarkan status
+                    if ($p['status'] == '2' || $p['status'] == '3' || $p['status'] == '4') {
+                        // Jika status Lunas (status 2, 3, atau 4)
+                        $p['total_display'] = $total_formatted . ' | <span class="text-success font-weight-bold">LUNAS</span>';
+                    } else if ($sisaPembayaran <= 0) {
+                        // Jika sisa pembayaran 0 atau negatif tapi status belum diubah
+                        $p['total_display'] = $total_formatted . ' | <span class="text-success font-weight-bold">LUNAS</span>';
+                    } else if ($p['status'] == '5') {
+                        // Jika status Dibatalkan
+                        $p['total_display'] = $total_formatted . ' | <span class="text-danger">BATAL</span>';
+                    } else {
+                        // Jika belum lunas
+                        $p['total_display'] = $total_formatted . ' | <span class="text-navy font-weight-bold">' . $sisa_formatted . '</span>';
                     }
 
-                    // Tampilkan status cicilan
-                    $dpDisplay = generateInstallmentBadge($currentCicilan, $totalCicilan, $warning);
+                    if ($p['jumlah_dp'] >= 1 && $p['dp1_status'] == 0 && !empty($p['dp1_tenggat'])) {
+                        if ($today > $p['dp1_tenggat']) {
+                            $warning = true;
+                        }
+                        $jatuhTempoInfo[] = "DP1: " . date('d/m/Y', strtotime($p['dp1_tenggat'])) .
+                            " (Rp " . number_format($p['dp1_nominal'], 0, ',', '.') . ")";
+                    }
 
-                    // Status dan tombol aksi
+                    if ($p['jumlah_dp'] >= 2 && $p['dp2_status'] == 0 && !empty($p['dp2_tenggat'])) {
+                        if ($today > $p['dp2_tenggat']) {
+                            $warning = true;
+                        }
+                        $jatuhTempoInfo[] = "DP2: " . date('d/m/Y', strtotime($p['dp2_tenggat'])).")";
+                    }
+
+                    if ($p['jumlah_dp'] == 3 && $p['dp3_status'] == 0 && !empty($p['dp3_tenggat'])) {
+                        if ($today > $p['dp3_tenggat']) {
+                            $warning = true;
+                        }
+                        $jatuhTempoInfo[] = "DP3: " . date('d/m/Y', strtotime($p['dp3_tenggat'])) .")";
+                    }
+
+                    $dpDisplay = generateInstallmentBadge($currentCicilan, $totalCicilan, $warning);
+                    $jatuhTempoDisplay = implode("<br>", $jatuhTempoInfo);
+
                     $statusBadge = '';
                     $actionButton = '';
 
@@ -163,131 +295,243 @@ ORDER BY tanggal DESC";
                             $statusBadge = '<span class="badge badge-warning">Belum Lunas</span>';
                             $actionButton = '<div class="btn-group">';
 
-                            // Jika masih ada sisa cicilan
                             if ($currentCicilan < $totalCicilan) {
                                 $nextCicilan = $currentCicilan + 1;
+
                                 $actionButton .= "
-                                    <button class='btn btn-warning btn-sm'
-                                            onclick='showCicilanModal({$p['id']}, {$nextCicilan}, {$totalCicilan}, {$sisaPembayaran})' data-toggle='tooltip' title='Cicilan ke-{$nextCicilan}'>
-                                        <i class='fas fa-money-bill'></i>
-                                    </button>";
+                    <button class='btn btn-warning btn-sm'
+                            onclick='showCicilanModal(
+                                {$p['id']}, 
+                                {$nextCicilan}, 
+                                {$totalCicilan},
+                                {$sisaPembayaran},
+                                \"" . (!empty($p['dp' . $nextCicilan . '_tenggat']) ? date('d/m/Y', strtotime($p['dp' . $nextCicilan . '_tenggat'])) : "Sekarang") . "\"
+                            )'
+                            data-toggle='tooltip' title='Bayar DP {$nextCicilan}'>
+                        <i class='fas fa-money-bill'></i> 
+                    </button>";
                             } else {
                                 $actionButton .= "
-    <button class='btn btn-success btn-sm'
-            onclick='showCicilanModal({$p['id']}, " . ($totalCicilan + 1) . ", {$totalCicilan}, {$sisaPembayaran})'>
-        <i class='fas fa-check-circle'></i> Pelunasan
-    </button>";
+                    <button class='btn btn-success btn-sm'
+                            onclick='showCicilanModal(
+                                {$p['id']}, 
+                                " . ($totalCicilan + 1) . ", 
+                                {$totalCicilan}, 
+                                {$sisaPembayaran},
+                                \"Sekarang\"
+                            )'
+                            data-toggle='tooltip' title='Pelunasan - Rp " . number_format($sisaPembayaran, 0, ',', '.') . "'>
+                        <i class='fas fa-check-circle'></i> Lunas
+                    </button>";
                             }
 
-                            // Tombol Batalkan selalu ditampilkan selama belum selesai/dibatalkan
                             $actionButton .= "
-                                <button class='btn btn-danger btn-sm' onclick='showBatalkanModal({$p['id']})' data-toggle='tooltip' title='Batalkan Pesanan'> 
-                                    <i class='fas fa-times'></i>
-                                </button>
-                                    <a href='https://wa.me/62" . $p['kontak'] . "' target='_blank' class='btn btn-info btn-sm' data-toggle='tooltip' title='Chat Customer'>
-                                        <i class='fab fa-whatsapp'></i>
-                                    </a>
-                            </div>";
+                <button class='btn btn-danger btn-sm' 
+                        onclick='showBatalkanModal({$p['id']})'
+                        data-toggle='tooltip' title='Batalkan Pesanan'> 
+                    <i class='fas fa-times'></i>
+                </button>
+                <a href='https://wa.me/62" . $p['kontak'] . "' 
+                   target='_blank' 
+                   class='btn btn-info btn-sm'
+                   data-toggle='tooltip' title='Chat Customer'>
+                    <i class='fab fa-whatsapp'></i>
+                </a>";
                             break;
 
                         case '2': // Lunas - Proses
                             $statusBadge = '<span class="badge badge-info">Lunas - Proses</span>';
                             $actionButton = '<div class="btn-group">
-                                    <button class="btn btn-success btn-sm" onclick="updateStatus(' . $p['id'] . ', 3)">
-                                        <i class="fas fa-box-open"></i> Tandai Siap Diambil
-                                    </button>
-                                    <a href="https://wa.me/62' . $p['kontak'] . '" target="_blank" class="btn btn-info btn-sm">
-                                        <i class="fab fa-whatsapp"></i> Chat Customer
-                                    </a>
-                                </div>';
+                <button class="btn btn-success btn-sm" 
+                        onclick="updateStatus(' . $p['id'] . ', 3)"
+                        data-toggle="tooltip" title="Tandai Siap Diambil">
+                    <i class="fas fa-box-open"></i>
+                </button>
+                <a href="https://wa.me/62' . $p['kontak'] . '" 
+                   target="_blank" 
+                   class="btn btn-info btn-sm"
+                   data-toggle="tooltip" title="Chat Customer">
+                    <i class="fab fa-whatsapp"></i>
+                </a>';
                             break;
 
                         case '3': // Lunas - Siap Diambil
                             $statusBadge = '<span class="badge badge-success">Lunas - Siap Diambil</span>';
                             $actionButton = '<div class="btn-group">
-                                <button class="btn btn-secondary btn-sm" onclick="updateStatus(' . $p['id'] . ', 4)">
-                                    <i class="fas fa-check"></i> Tandai Selesai
-                                </button>
-                                    <a href="https://wa.me/62' . $p['kontak'] . '" target="_blank" class="btn btn-info btn-sm">
-                                        <i class="fab fa-whatsapp"></i> Chat Customer
-                                    </a>
-                            </div>';
+                <button class="btn btn-secondary btn-sm" 
+                        onclick="updateStatus(' . $p['id'] . ', 4)"
+                        data-toggle="tooltip" title="Tandai Selesai">
+                    <i class="fas fa-check"></i>
+                </button>
+                <a href="https://wa.me/62' . $p['kontak'] . '" 
+                   target="_blank" 
+                   class="btn btn-info btn-sm"
+                   data-toggle="tooltip" title="Chat Customer">
+                    <i class="fab fa-whatsapp"></i>
+                </a>';
                             break;
 
                         case '4': // Selesai
                             $statusBadge = '<span class="badge badge-secondary">Selesai</span>';
-                            $actionButton = '<div class="text-muted"><i class="fas fa-check-circle"></i> Selesai</div>';
+                            $actionButton = '<div class="text-muted">';
                             break;
+
                         case '5': // Dibatalkan
-                            // 1) Badge status
                             $statusBadge = '<span class="badge badge-danger">Dibatalkan</span>';
-
-                            // 2) Escape alasan supaya aman dipakai di single‑quote
-                            //    ENT_QUOTES menangani kutip tunggal dan ganda
                             $alasanEscaped = htmlspecialchars($p['alasan_batal'], ENT_QUOTES);
-
-                            // 3) Tombol “Lihat Alasan”
                             $actionButton = "
-                                    <button class='btn btn-info btn-sm'
-                                            onclick=\"tampilkanAlasan('{$alasanEscaped}')\"
-                                            data-toggle='modal'
-                                            data-target='#alasanModal'>
-                                        <i class='fas fa-info-circle'></i> Lihat Alasan
-                                    </button>
-                                ";
+                <button class='btn btn-info btn-sm'
+                        onclick=\"tampilkanAlasan('{$alasanEscaped}')\"
+                        data-toggle='modal'
+                        data-target='#alasanModal'
+                        title='Lihat Alasan Pembatalan'>
+                    <i class='fas fa-info-circle'></i>
+                </button>";
                             break;
                     }
 
-                    // Output row
+                    // Tambahkan tombol detail
+                    $detailAttr = sprintf(
+                        "data-id='%d' 
+            data-customer='%s' 
+            data-tanggal='%s'
+            data-total='%s' 
+            data-total-dibayar='%s'
+            data-sisa-tagihan='%s'
+            data-status='%s' 
+            data-dp='%s'
+            data-produk='%s' 
+            data-catatan='%s'
+            data-dp1='%s'
+            data-dp2='%s'
+            data-dp3='%s'
+            data-dp1status='%d'
+            data-dp2status='%d'
+            data-dp3status='%d'
+            data-tenggat1='%s'
+            data-tenggat2='%s'
+            data-tenggat3='%s'
+            data-metode1='%s'
+            data-metode2='%s'
+            data-metode3='%s'",
+                        $p['id'],
+                        htmlspecialchars($p['customer'], ENT_QUOTES),
+                        htmlspecialchars($p['tanggal'], ENT_QUOTES),
+                        htmlspecialchars($p['total'], ENT_QUOTES),
+                        htmlspecialchars($p['total_dibayar'] ?? '0', ENT_QUOTES),
+                        htmlspecialchars($p['sisa_tagihan'] ?? $p['total'], ENT_QUOTES),
+                        htmlspecialchars(strip_tags($statusBadge), ENT_QUOTES),
+                        htmlspecialchars($p['dp_status'] ?? '-', ENT_QUOTES),
+                        htmlspecialchars($p['daftar_produk'] ?? '-', ENT_QUOTES),
+                        htmlspecialchars($p['catatan'] ?? '-', ENT_QUOTES),
+                        htmlspecialchars($p['dp1_nominal'] ?? '0', ENT_QUOTES),
+                        htmlspecialchars($p['dp2_nominal'] ?? '0', ENT_QUOTES),
+                        htmlspecialchars($p['dp3_nominal'] ?? '0', ENT_QUOTES),
+                        $p['dp1_status'] ?? 0,
+                        $p['dp2_status'] ?? 0,
+                        $p['dp3_status'] ?? 0,
+                        htmlspecialchars(!empty($p['dp1_tenggat']) ? date('d/m/Y', strtotime($p['dp1_tenggat'])) : '-', ENT_QUOTES),
+                        htmlspecialchars(!empty($p['dp2_tenggat']) ? date('d/m/Y', strtotime($p['dp2_tenggat'])) : '-', ENT_QUOTES),
+                        htmlspecialchars(!empty($p['dp3_tenggat']) ? date('d/m/Y', strtotime($p['dp3_tenggat'])) : '-', ENT_QUOTES),
+                        htmlspecialchars($p['dp1_metode'] ?? '-', ENT_QUOTES),
+                        htmlspecialchars($p['dp2_metode'] ?? '-', ENT_QUOTES),
+                        htmlspecialchars($p['dp3_metode'] ?? '-', ENT_QUOTES)
+                    );
+
+                    $actionButton .= "
+            <button class='btn btn-secondary btn-sm' 
+                    onclick='showDetailModal(this)'
+                    $detailAttr
+                    data-toggle='tooltip' title='Detail Pesanan'>
+                <i class='fas fa-info-circle'></i>
+            </button>
+        </div>";
+                    // Bagian kode yang menampilkan kolom tersebut dalam tabel
                     echo "<tr>
-                    <td>" . htmlspecialchars($p['tanggal']) . "</td>
-                    <td>" . htmlspecialchars($p['customer']) . "</td>
-                    <td>" . htmlspecialchars($p['total_display']) . "</td>
-                    <td>$dpDisplay</td>
-                    <td>";
-
-                    if ($p['status'] == '5') {
-                        echo '<span class="badge badge-danger">Dibatalkan</span>';
-                    } else {
-                        echo empty($p['tgllunas']) ? "Rp " . number_format($sisaPembayaran, 2, ',', '.') : $p['tgllunas'];
-                    }
-
-                    echo "</td>
-                  <td>$statusBadge</td>
-                  <td>$actionButton</td>
-                </tr>";
+    <td>" . htmlspecialchars($p['tanggal']) . "</td>
+    <td>" . htmlspecialchars($p['customer']) . "</td>
+    <td>" . $p['total_display'] . "</td>
+    <td>$dpDisplay</td>
+    <td>$jatuhTempoDisplay</td>
+    <td>
+        <div class='product-details'>" .
+                        nl2br(htmlspecialchars($p['daftar_produk'])) .
+                        "</div>
+    </td>
+    <td>$statusBadge</td>
+    <td>$actionButton</td>
+</tr>";
                 }
                 ?>
             </tbody>
         </table>
+    </div>
+</div>
 
+<!-- Modal Detail yang Dioptimalkan -->
+<div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="modalDetailLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalDetailLabel">Detail Pesanan</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Tutup">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                <!-- Konten detail akan dimuat dinamis -->
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                <a href="#" id="whatsappCustomerBtn" class="btn btn-success" target="_blank">
+                    <i class="fab fa-whatsapp mr-1"></i> Hubungi Customer
+                </a>
+                <button type="button" id="printDetailBtn" class="btn btn-info">
+                    <i class="fas fa-print mr-1"></i> Cetak
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
 <!-- Modal Cicilan -->
-<div class="modal fade" id="modalCicilan" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="cicilanModal" tabindex="-1" role="dialog" aria-labelledby="modalCicilanTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Form Cicilan Pembayaran</h5>
-                <button type="button" class="close" data-dismiss="modal">
+                <h5 class="modal-title" id="modalCicilanTitle">Pembayaran Cicilan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="formCicilan" action="config/proses_cicilan.php" method="GET">
-                    <input type="hidden" id="custId" name="custId">
-                    <input type="hidden" id="cicilanKe" name="cicilanKe">
-                    <input type="hidden" id="tanggalPembayaran" name="tanggalPembayaran">
+
+                <form id="formCicilan" action="config/proses_cicilan.php" method="POST">
+                    <input type="hidden" id="penagihan_id" name="penagihan_id">
+                    <input type="hidden" id="cicilan_ke" name="cicilan_ke">
+                    <input type="hidden" id="total_cicilan" name="total_cicilan">
 
                     <div class="form-group">
-                        <label>Jumlah Pembayaran</label>
-                        <input type="number" class="form-control" id="jumlahBayar" name="jumlahBayar" required>
+                        <label for="nominal">Nominal Pembayaran</label>
+                        <input type="number" class="form-control" id="nominal" name="nominal" required>
                     </div>
 
                     <div class="form-group">
-                        <label>Keterangan</label>
-                        <textarea class="form-control" id="keterangan" name="keterangan"></textarea>
+                        <label for="tanggal_bayar">Tanggal Pembayaran</label>
+                        <input type="date" class="form-control" id="tanggal_bayar" name="tanggal_bayar" required
+                            value="<?php echo date('Y-m-d'); ?>">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="keterangan">Keterangan (Opsional)</label>
+                        <textarea class="form-control" id="keterangan" name="keterangan" rows="2"></textarea>
                     </div>
 
                     <div class="modal-footer">
@@ -295,31 +539,12 @@ ORDER BY tanggal DESC";
                         <button type="submit" class="btn btn-primary">Simpan Pembayaran</button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Konfirmasi -->
-<div class="modal fade" id="modalKonfirmasi" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Konfirmasi</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p id="konfirmasiText"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary" id="btnKonfirmasi">Ya, Lanjutkan</button>
-            </div>
-        </div>
-    </div>
-</div>
 <!-- Modal Batalkan -->
 <div class="modal fade" id="modalBatalkan" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
@@ -369,8 +594,396 @@ ORDER BY tanggal DESC";
     </div>
 </div>
 
+<!-- Modal Konfirmasi Status -->
+<div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Konfirmasi Perubahan Status</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="statusModalBody">
+                Apakah Anda yakin ingin mengubah status?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <a href="#" id="konfirmasiStatusBtn" class="btn btn-primary">Ya, Konfirmasi</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Form validation for cancellation
+    function showDetailModal(el) {
+        // Format angka ke format mata uang
+        const formatCurrency = (amount) => {
+            return 'Rp ' + parseFloat(amount).toLocaleString('id-ID');
+        };
+
+        // Persiapan data tanggal dan cek jatuh tempo
+        const today = new Date();
+        const formatDate = (dateStr) => {
+            if (!dateStr || dateStr === '-') return '-';
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return dateStr;
+            return `${parts[0]}/${parts[1]}/${parts[2]}`;
+        };
+
+        // Parse tanggal jatuh tempo
+        const parseDate = (dateStr) => {
+            if (!dateStr || dateStr === '-') return null;
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return null;
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        };
+
+        const dp1_tenggat = parseDate(el.dataset.tenggat1);
+        const dp2_tenggat = parseDate(el.dataset.tenggat2);
+        const dp3_tenggat = parseDate(el.dataset.tenggat3);
+
+        // Cek jatuh tempo
+        const isDp1Overdue = dp1_tenggat && today > dp1_tenggat && el.dataset.dp1status === '0';
+        const isDp2Overdue = dp2_tenggat && today > dp2_tenggat && el.dataset.dp2status === '0';
+        const isDp3Overdue = dp3_tenggat && today > dp3_tenggat && el.dataset.dp3status === '0';
+        const hasOverdue = isDp1Overdue || isDp2Overdue || isDp3Overdue;
+
+        // Status badge dengan warna
+        const getStatusBadge = (status) => {
+            let badgeClass = 'badge ';
+            if (status.includes('Belum Lunas')) {
+                badgeClass += 'badge-warning';
+            } else if (status.includes('Siap Diambil')) {
+                badgeClass += 'badge-success';
+            } else if (status.includes('Proses')) {
+                badgeClass += 'badge-info';
+            } else if (status.includes('Selesai')) {
+                badgeClass += 'badge-secondary';
+            } else if (status.includes('Dibatalkan')) {
+                badgeClass += 'badge-danger';
+            } else {
+                badgeClass += 'badge-primary';
+            }
+            return `<span class="${badgeClass}">${status}</span>`;
+        };
+
+        // Peringatan pembayaran jatuh tempo
+        let overdueWarnings = '';
+        if (hasOverdue) {
+            overdueWarnings = '<div class="alert alert-danger mb-4">';
+            overdueWarnings += '<i class="fas fa-exclamation-triangle mr-2"></i><strong>Peringatan:</strong> Ada pembayaran yang melewati jatuh tempo!';
+            overdueWarnings += '<ul class="mb-0 mt-2">';
+
+            if (isDp1Overdue) {
+                overdueWarnings += `<li>DP1 seharusnya dibayar sebelum ${formatDate(el.dataset.tenggat1)}</li>`;
+            }
+            if (isDp2Overdue) {
+                overdueWarnings += `<li>DP2 seharusnya dibayar sebelum ${formatDate(el.dataset.tenggat2)}</li>`;
+            }
+            if (isDp3Overdue) {
+                overdueWarnings += `<li>DP3 seharusnya dibayar sebelum ${formatDate(el.dataset.tenggat3)}</li>`;
+            }
+
+            overdueWarnings += '</ul></div>';
+        }
+
+        // Kartu informasi dasar
+        let basicInfo = `
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-info-circle mr-2"></i>Informasi Pesanan</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Customer:</strong> ${el.dataset.customer}</p>
+                        <p><strong>Tanggal Pesan:</strong> ${el.dataset.tanggal}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>ID Pesanan:</strong> #${el.dataset.id}</p>
+                        <p><strong>Status:</strong> ${getStatusBadge(el.dataset.status)}</p>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        // Kartu detail pembayaran
+        let paymentDetails = `
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-money-bill-wave mr-2"></i>Detail Pembayaran</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="text-center border rounded p-3 h-100 bg-light">
+                            <p class="mb-1"><strong>Total Tagihan</strong></p>
+                            <h4 class="mb-0">${formatCurrency(el.dataset.total)}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center border rounded p-3 h-100 bg-light">
+                            <p class="mb-1"><strong>Total Dibayar</strong></p>
+                            <h4 class="mb-0">${formatCurrency(el.dataset.totalDibayar)}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center border rounded p-3 h-100 ${parseFloat(el.dataset.sisaTagihan) > 0 ? 'bg-warning' : 'bg-success text-white'}">
+                            <p class="mb-1"><strong>Sisa Tagihan</strong></p>
+                            <h4 class="mb-0">${parseFloat(el.dataset.sisaTagihan) > 0 ? formatCurrency(el.dataset.sisaTagihan) : 'LUNAS'}</h4>
+                        </div>
+                    </div>
+                </div>`;
+
+        // Rincian DP
+        if (el.dataset.dp1 || el.dataset.dp2 || el.dataset.dp3) {
+            paymentDetails += '<h6 class="mt-4 mb-3 border-bottom pb-2"><strong>Rincian Pembayaran</strong></h6>';
+            paymentDetails += '<div class="table-responsive"><table class="table table-sm table-bordered table-hover">';
+            paymentDetails += `<thead class="thead-light">
+                <tr>
+                    <th>Pembayaran</th>
+                    <th>Nominal</th>
+                    <th>Metode</th>
+                    <th>Jatuh Tempo</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+            // DP1
+            if (el.dataset.dp1) {
+                const dp1Status = el.dataset.dp1status === '1' ?
+                    '<span class="badge badge-success">Dibayar</span>' :
+                    (isDp1Overdue ? '<span class="badge badge-danger">Terlambat</span>' : '<span class="badge badge-warning">Belum Dibayar</span>');
+
+                paymentDetails += `
+                <tr>
+                    <td>DP1</td>
+                    <td>${formatCurrency(el.dataset.dp1)}</td>
+                    <td>${el.dataset.metode1 || '-'}</td>
+                    <td>${formatDate(el.dataset.tenggat1)}</td>
+                    <td>${dp1Status}</td>
+                </tr>`;
+            }
+
+            // DP2
+            if (el.dataset.dp2) {
+                const dp2Status = el.dataset.dp2status === '1' ?
+                    '<span class="badge badge-success">Dibayar</span>' :
+                    (isDp2Overdue ? '<span class="badge badge-danger">Terlambat</span>' : '<span class="badge badge-warning">Belum Dibayar</span>');
+
+                paymentDetails += `
+                <tr>
+                    <td>DP2</td>
+                    <td>${formatCurrency(el.dataset.dp2)}</td>
+                    <td>${el.dataset.metode2 || '-'}</td>
+                    <td>${formatDate(el.dataset.tenggat2)}</td>
+                    <td>${dp2Status}</td>
+                </tr>`;
+            }
+
+            // DP3
+            if (el.dataset.dp3) {
+                const dp3Status = el.dataset.dp3status === '1' ?
+                    '<span class="badge badge-success">Dibayar</span>' :
+                    (isDp3Overdue ? '<span class="badge badge-danger">Terlambat</span>' : '<span class="badge badge-warning">Belum Dibayar</span>');
+
+                paymentDetails += `
+                <tr>
+                    <td>DP3</td>
+                    <td>${formatCurrency(el.dataset.dp3)}</td>
+                    <td>${el.dataset.metode3 || '-'}</td>
+                    <td>${formatDate(el.dataset.tenggat3)}</td>
+                    <td>${dp3Status}</td>
+                </tr>`;
+            }
+
+            paymentDetails += '</tbody></table></div>';
+        }
+
+        paymentDetails += '</div></div>';
+
+        // Kartu detail produk
+        let productDetails = `
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="fas fa-box mr-2"></i>Detail Produk</h5>
+            </div>
+            <div class="card-body">`;
+
+        if (el.dataset.produk && el.dataset.produk !== '-') {
+            const produkLines = el.dataset.produk.split('\n');
+            productDetails += '<ul class="list-group">';
+            produkLines.forEach(line => {
+                productDetails += `<li class="list-group-item">${line}</li>`;
+            });
+            productDetails += '</ul>';
+        } else {
+            productDetails += '<p class="text-muted">Tidak ada detail produk.</p>';
+        }
+
+        if (el.dataset.catatan && el.dataset.catatan !== '-') {
+            productDetails += `
+            <div class="mt-3">
+                <h6><strong>Catatan:</strong></h6>
+                <div class="p-3 bg-light rounded">${el.dataset.catatan}</div>
+            </div>`;
+        }
+
+        productDetails += '</div></div>';
+
+        // Susun modal
+        const html = `
+            ${overdueWarnings}
+            ${basicInfo}
+            ${paymentDetails}
+            ${productDetails}
+        `;
+
+        // Update modal content
+        document.getElementById('detailContent').innerHTML = html;
+
+        // Set WhatsApp link
+        const phoneNumber = el.dataset.kontak || '';
+        if (phoneNumber) {
+            $('#whatsappCustomerBtn').attr('href', `https://wa.me/62${phoneNumber}`).show();
+        } else {
+            $('#whatsappCustomerBtn').hide();
+        }
+
+        // Tampilkan modal
+        $('#modalDetail').modal('show');
+    }
+
+    // Fungsi untuk mencetak detail
+    document.getElementById('printDetailBtn').addEventListener('click', function () {
+        const printContent = document.getElementById('detailContent').innerHTML;
+        const originalContent = document.body.innerHTML;
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Detail Pesanan</title>
+                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+                <style>
+                    body { padding: 20px; }
+                    @media print {
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h3 class="mb-4 text-center">Detail Pesanan</h3>
+                    ${printContent}
+                    <div class="mt-5 text-center no-print">
+                        <button onclick="window.print()" class="btn btn-primary">Print</button>
+                        <button onclick="window.close()" class="btn btn-secondary ml-2">Tutup</button>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    });
+    function updateStatus(id, newStatus) {
+        // Set judul dan pesan berdasarkan status yang akan diubah
+        let title = newStatus === 3 ? 'Konfirmasi Barang Siap' : 'Konfirmasi Pengambilan';
+        let text = newStatus === 3 ?
+            'Apakah barang sudah selesai diproduksi dan siap diambil?' :
+            'Apakah barang sudah diambil oleh customer?';
+
+        // Update modal content
+        $('#statusModalLabel').text(title);
+        $('#statusModalBody').text(text);
+
+        // Set link konfirmasi
+        $('#konfirmasiStatusBtn').attr('href', `config/update_status.php?id=${id}&status=${newStatus}`);
+
+        // Tampilkan modal
+        $('#statusModal').modal('show');
+    }
+
+    function showCicilanModal(id, cicilanKe, totalCicilan, nominal, tenggat) {
+        console.log('Parameters received:', id, cicilanKe, totalCicilan, nominal, tenggat);
+
+        // Convert nominal ke number jika perlu
+        nominal = parseFloat(nominal) || 0;
+
+        // Set nilai ke form
+        $('#penagihan_id').val(id);
+        $('#cicilan_ke').val(cicilanKe);
+        $('#total_cicilan').val(totalCicilan);
+        // Format tampilan
+        var infoText = '';
+        if (cicilanKe <= totalCicilan) {
+            infoText = 'Pembayaran DP ' + cicilanKe + ' dari ' + totalCicilan +
+                '<br>Nominal: Rp ' + nominal.toLocaleString('id-ID') +
+                '<br>Jatuh Tempo: ' + tenggat;
+        } else {
+            infoText = 'Pelunasan Pembayaran' +
+                '<br>Nominal: Rp ' + nominal.toLocaleString('id-ID');
+        }
+        $('#infoCicilan').html(infoText);
+
+        // Debugging
+        console.log('Values set:', {
+            id: $('#penagihan_id').val(),
+            cicilanKe: $('#cicilan_ke').val(),
+            totalCicilan: $('#total_cicilan').val(),
+            nominal: $('#nominal').val()
+        });
+
+        $('#cicilanModal').modal('show');
+    }
+    function showBatalkanModal(id) {
+        $('#custIdBatal').val(id);
+        $('#modalBatalkan').modal('show');
+    }
+
+    function tampilkanAlasan(alasan) {
+        document.getElementById('alasanText').innerText = alasan;
+    }
+
+    // Payment form validation
+    $('#formCicilan').on('submit', function (e) {
+        e.preventDefault(); // Mencegah pengiriman form secara default
+
+        const cicilanKe = parseInt($('#cicilanKe').val());
+        const totalCicilan = parseInt($(this).data('total-cicilan'));
+        const $jumlahBayar = $('#jumlahBayar');
+        const jumlahBayar = parseFloat($jumlahBayar.val());
+
+        // Validasi form
+        if (cicilanKe > totalCicilan) {
+            const sisaPembayaran = parseFloat($jumlahBayar.attr('min'));
+
+            if (jumlahBayar !== sisaPembayaran) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Jumlah pelunasan harus sesuai dengan sisa pembayaran'
+                });
+                return false;
+            }
+        } else if (!jumlahBayar || jumlahBayar <= 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Jumlah pembayaran harus lebih dari 0'
+            });
+            return false;
+        }
+
+        // Jika validasi sukses, kirim form secara manual
+        this.submit(); // Kirim form jika validasi sukses
+    });
+
+    // Cancel form validation
     $('#formBatalkan').on('submit', function (e) {
         const alasanBatal = $('#alasanBatal').val().trim();
 
@@ -383,165 +996,5 @@ ORDER BY tanggal DESC";
             });
             return false;
         }
-    });
-</script>
-<!-- JavaScript for handling modals and forms -->
-<script>
-    // memanggil confirm modal dengan status 3 (Siap Diambil)
-    function showSiapAmbilModal(id) {
-        updateStatus(id, 3);
-    }
-
-    // memanggil confirm modal dengan status 4 (Selesai)
-    function showSelesaikanModal(id) {
-        updateStatus(id, 4);
-    }
-
-    function showCicilanModal(id, cicilanKe, totalCicilan, sisaPembayaran) {
-        $('#custId').val(id);
-        $('#cicilanKe').val(cicilanKe);
-
-        // Set current date
-        const today = new Date().toISOString().split('T')[0];
-        $('#tanggalPembayaran').val(today);
-
-        // Get form elements
-        const $jumlahBayar = $('#jumlahBayar');
-        const $keteranganGroup = $('.form-group:has(#keterangan)');
-        const $modalTitle = $('.modal-title');
-        const $submitBtn = $('#formCicilan button[type="submit"]');
-
-        // Handle final payment case
-        if (cicilanKe > totalCicilan) {
-            // Setup for final payment
-            $modalTitle.text('Form Pelunasan');
-            $jumlahBayar.val(sisaPembayaran);
-            $jumlahBayar.prop('readonly', true);
-            $jumlahBayar.attr('min', sisaPembayaran);
-            $jumlahBayar.attr('max', sisaPembayaran);
-            $keteranganGroup.hide();
-            $submitBtn.text('Konfirmasi Pelunasan');
-
-            // Add info text
-            const $infoText = $('<small>', {
-                class: 'text-muted d-block mt-2',
-                text: 'Jumlah pelunasan sudah ditetapkan sesuai sisa tagihan'
-            });
-            $jumlahBayar.after($infoText);
-        } else {
-            // Setup for regular installment
-            $modalTitle.text(`Form Cicilan ke-${cicilanKe}`);
-            $jumlahBayar.val('');
-            $jumlahBayar.prop('readonly', false);
-            $jumlahBayar.removeAttr('min max');
-            $keteranganGroup.show();
-            $submitBtn.text('Simpan Pembayaran');
-            $jumlahBayar.next('small').remove();
-        }
-
-        $('#modalCicilan').modal('show');
-    }
-
-    // Form validation
-    $('#formCicilan').on('submit', function (e) {
-        const cicilanKe = parseInt($('#cicilanKe').val());
-        const totalCicilan = parseInt($(this).data('total-cicilan'));
-        const $jumlahBayar = $('#jumlahBayar');
-        const jumlahBayar = parseFloat($jumlahBayar.val());
-
-        if (cicilanKe > totalCicilan) {
-            // Validate final payment amount
-            const sisaPembayaran = parseFloat($jumlahBayar.attr('min'));
-
-            if (jumlahBayar !== sisaPembayaran) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Jumlah pelunasan harus sesuai dengan sisa pembayaran'
-                });
-                return false;
-            }
-        } else if (!jumlahBayar || jumlahBayar <= 0) {
-            e.preventDefault();
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Jumlah pembayaran harus lebih dari 0'
-            });
-            return false;
-        }
-    });
-
-    // Status update function (continued)
-    function updateStatus(id, newStatus) {
-        let title = newStatus === 3 ? 'Konfirmasi Barang Siap' : 'Konfirmasi Pengambilan';
-        let text = newStatus === 3 ?
-            'Apakah barang sudah selesai diproduksi dan siap diambil?' :
-            'Apakah barang sudah diambil oleh customer?';
-
-        // Set teks konfirmasi
-        $('#konfirmasiText').text(text);
-
-        // Tampilkan modal
-        $('#modalKonfirmasi').modal('show');
-
-        // Set aksi saat tombol konfirmasi diklik
-        $('#btnKonfirmasi').off('click').on('click', function () {
-            window.location.href = `config/update_status.php?id=${id}&status=${newStatus}`;
-        });
-    }
-    // Function to show cancellation modal
-    function showBatalkanModal(id) {
-        $('#custIdBatal').val(id);
-        $('#modalBatalkan').modal('show');
-    }
-
-    // Function to display cancellation reason
-    function tampilkanAlasan(alasan) {
-        console.log("Alasan Pembatalan: " + alasan); // Tambahkan log
-        document.getElementById('alasanText').innerText = alasan;
-    }
-
-
-    // Initialize DataTable with date range and status filtering
-    $(document).ready(function () {
-        var table = $('#tabelPenagihan').DataTable({
-            "responsive": true,
-            "order": [
-                [0, "desc"]
-            ],
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
-            }
-        });
-
-        // Date range filter
-        $('#tgl_mulai, #tgl_akhir').on('change', function () {
-            table.draw();
-        });
-
-        // Status filter
-        $('#filter_status').on('change', function () {
-            table.draw();
-        });
-
-        // Custom filtering function
-        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-            var min = $('#tgl_mulai').val();
-            var max = $('#tgl_akhir').val();
-            var status = $('#filter_status').val();
-            var date = data[0]; // assumes date is in column 0
-            var rowStatus = data[5]; // assumes status is in column 5
-
-            // Convert date format (from dd/mm/yyyy to yyyy-mm-dd for comparison)
-            var parts = date.split('/');
-            var convertedDate = parts[2] + '-' + parts[1] + '-' + parts[0];
-
-            var dateCheck = (!min || !max || (convertedDate >= min && convertedDate <= max));
-            var statusCheck = (!status || rowStatus.includes(status));
-
-            return dateCheck && statusCheck;
-        });
     });
 </script>

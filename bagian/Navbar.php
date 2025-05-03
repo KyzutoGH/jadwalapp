@@ -14,6 +14,19 @@ class DiesNatalisNotification
 
   public function getActiveNotifications()
   {
+    // Check if user has marketing role
+    if (!isset($_SESSION['role'])) {
+      if ($this->debug)
+        error_log('Debug - User role not set');
+      return [];
+    }
+
+    if ($_SESSION['role'] !== 'marketing') {
+      if ($this->debug)
+        error_log('Debug - User is not marketing');
+      return [];
+    }
+
     $notifications = [];
     $current_date = new DateTime();
     $current_year = (int) $current_date->format('Y');
@@ -93,6 +106,10 @@ class DiesNatalisNotification
 
   public function getNotificationCount()
   {
+    // Check if user has marketing role
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'marketing') {
+      return 0;
+    }
     return count($this->getActiveNotifications());
   }
 
