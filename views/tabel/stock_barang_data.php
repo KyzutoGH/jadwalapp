@@ -1,3 +1,81 @@
+<?php
+// Kode untuk memproses form edit barang
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_barang'])) {
+    // Ambil data dari form
+    $id = $_POST['id'];
+    $namabarang = $_POST['namabarang'];
+    $ukuran = $_POST['ukuran'];
+    $harga = $_POST['harga'];
+    $stock = $_POST['stock'];
+
+    // Update data barang
+    $query = "UPDATE jaket SET 
+              namabarang = '$namabarang',
+              ukuran = '$ukuran',
+              harga = '$harga',
+              stock = '$stock'
+              WHERE id_jaket = '$id'";
+    
+    $result = mysqli_query($db, $query);
+
+    if ($result) {
+        // Jika berhasil, set pesan sukses
+        $alert = "updated";
+    } else {
+        // Jika gagal, set pesan error
+        $alert = "failed";
+    }
+    
+    // Tetap di halaman yang sama dengan menampilkan alert
+    echo "<script>
+            window.location.href='index.php?menu=databarang&alert=" . $alert . "';
+            // Tambahkan script untuk scroll ke posisi barang yang diedit
+            window.onload = function() {
+                var element = document.getElementById('modalEditBarang" . $id . "');
+                if(element) {
+                    element.scrollIntoView({behavior: 'smooth'});
+                }
+            }
+          </script>";
+    exit;
+}
+
+// Kode untuk memproses tambah/kurangi stok
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
+    // Ambil data dari form
+    $id = $_POST['id'];
+    $action = $_POST['action'];
+
+    // Ambil stock saat ini
+    $query_select = "SELECT stock FROM jaket WHERE id_jaket = '$id'";
+    $result_select = mysqli_query($db, $query_select);
+    $current_data = mysqli_fetch_assoc($result_select);
+    $current_stock = $current_data['stock'];
+
+    // Update stock (tambah atau kurangi 1)
+    if ($action == 'tambah') {
+        $new_stock = $current_stock + 1;
+        $alert = "stock_added";
+    } else if ($action == 'kurangi') {
+        // Pastikan stock tidak kurang dari 0
+        $new_stock = max(0, $current_stock - 1);
+        $alert = "stock_reduced";
+    }
+
+    // Update data di database
+    $query_update = "UPDATE jaket SET stock = '$new_stock' WHERE id_jaket = '$id'";
+    $result_update = mysqli_query($db, $query_update);
+
+    if (!$result_update) {
+        $alert = "failed";
+    }
+
+    // Redirect kembali ke halaman dengan alert
+    echo "<script>window.location.href='index.php?menu=databarang&alert=" . $alert . "';</script>";
+    exit;
+}
+?>
+
 <!-- Tab Data Barang -->
 <div class="tab-pane fade show active" id="data" role="tabpanel">
     <div class="pt-3">
@@ -63,14 +141,25 @@
                                     data-target="#modalEditBarang<?= $b['id_jaket'] ?>">
                                     <i class="far fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-success"
-                                    onclick="showModal('barang', <?= $b['id_jaket'] ?>, 'tambah')" title="Tambah Stock">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="showModal('barang', <?= $b['id_jaket'] ?>, 'kurangi')" title="Kurangi Stock">
-                                    <i class="fas fa-minus"></i>
-                                </button>
+                                
+                                <!-- Tombol Tambah dan Kurangi Stock yang sudah diperbaiki -->
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="id" value="<?= $b['id_jaket'] ?>">
+                                    <input type="hidden" name="action" value="tambah">
+                                    <input type="hidden" name="update_stock" value="1">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Tambah Stock">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </form>
+                                
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="id" value="<?= $b['id_jaket'] ?>">
+                                    <input type="hidden" name="action" value="kurangi">
+                                    <input type="hidden" name="update_stock" value="1">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Kurangi Stock">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -86,27 +175,31 @@
                                         <span>&times;</span>
                                     </button>
                                 </div>
-                                <form action="config/edit_barang.php" method="POST">
+                                <!-- Ubah action menjadi kosong sehingga form di-submit ke halaman saat ini -->
+                                <form action="" method="POST">
                                     <div class="modal-body">
                                         <input type="hidden" name="id" value="<?= $b['id_jaket'] ?>">
-                                        <div class="form-group">
-                                            <label>Jenis</label>
-                                            <select class="form-control" name="jenis">
-                                                <option value="Jaket" <?= ($b['jenis'] === 'Jaket' ? 'selected' : '') ?>>Jaket
-                                                </option>
-                                                <option value="Varsity" <?= ($b['jenis'] === 'Varsity' ? 'selected' : '') ?>>
-                                                    Varsity</option>
-                                            </select>
-                                        </div>
+                                        <input type="hidden" name="edit_barang" value="true">
+                                        <!-- Jenis dihapus -->
                                         <div class="form-group">
                                             <label>Nama Barang</label>
                                             <input type="text" class="form-control" name="namabarang"
                                                 value="<?= htmlspecialchars($b['namabarang']) ?>" required>
                                         </div>
                                         <div class="form-group">
+                                            <label>Ukuran</label>
+                                            <input type="text" class="form-control" name="ukuran"
+                                                value="<?= htmlspecialchars($b['ukuran']) ?>" required>
+                                        </div>
+                                        <div class="form-group">
                                             <label>Harga</label>
                                             <input type="number" class="form-control" name="harga"
                                                 value="<?= htmlspecialchars($b['harga']) ?>" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Stock</label>
+                                            <input type="number" class="form-control" name="stock"
+                                                value="<?= htmlspecialchars($b['stock']) ?>" min="0" required>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
