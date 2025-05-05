@@ -270,7 +270,6 @@ $notificationCount = $dnNotification->getNotificationCount();
             </small>
           </a>
         <?php endforeach; ?>
-
         <div class="dropdown-divider"></div>
         <a href="#" class="dropdown-item dropdown-footer">Lihat Semua Notifikasi</a>
       </div>

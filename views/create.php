@@ -35,7 +35,7 @@
                                         required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="alamat">Alamat <span style="color: red;">*</span></label>
+                                    <label for="alamat">Alamat Sekolah <span style="color: red;">*</span></label>
                                     <input type="text" class="form-control" id="alamat" name="alamat" required>
                                 </div>
                                 <div class="form-group">

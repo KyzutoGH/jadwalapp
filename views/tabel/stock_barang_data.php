@@ -15,63 +15,76 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_barang'])) {
               harga = '$harga',
               stock = '$stock'
               WHERE id_jaket = '$id'";
-    
+
     $result = mysqli_query($db, $query);
 
     if ($result) {
-        // Jika berhasil, set pesan sukses
-        $alert = "updated";
+        $_SESSION['toastr'] = [
+            'type' => 'success',
+            'message' => 'Data barang berhasil diperbarui'
+        ];
     } else {
-        // Jika gagal, set pesan error
-        $alert = "failed";
+        $_SESSION['toastr'] = [
+            'type' => 'error',
+            'message' => 'Gagal memperbarui data barang'
+        ];
     }
-    
-    // Tetap di halaman yang sama dengan menampilkan alert
-    echo "<script>
-            window.location.href='index.php?menu=databarang&alert=" . $alert . "';
-            // Tambahkan script untuk scroll ke posisi barang yang diedit
-            window.onload = function() {
-                var element = document.getElementById('modalEditBarang" . $id . "');
-                if(element) {
-                    element.scrollIntoView({behavior: 'smooth'});
-                }
-            }
-          </script>";
+
+    header("Location: index.php?menu=Barang");
     exit;
 }
 
+
+// Kode untuk memproses tambah/kurangi stok
 // Kode untuk memproses tambah/kurangi stok
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
     // Ambil data dari form
-    $id = $_POST['id'];
+    $id = (int)$_POST['id'];
     $action = $_POST['action'];
 
-    // Ambil stock saat ini
-    $query_select = "SELECT stock FROM jaket WHERE id_jaket = '$id'";
-    $result_select = mysqli_query($db, $query_select);
-    $current_data = mysqli_fetch_assoc($result_select);
+    // Validasi input
+    if (!in_array($action, ['tambah', 'kurangi'])) {
+        $_SESSION['toastr'] = [
+            'type' => 'error',
+            'message' => 'Aksi tidak valid'
+        ];
+        header("Location: index.php?menu=Barang");
+        exit;
+    }
+
+    // Ambil stock saat ini dengan prepared statement
+    $stmt = $db->prepare("SELECT stock FROM jaket WHERE id_jaket = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $current_data = $result->fetch_assoc();
     $current_stock = $current_data['stock'];
 
-    // Update stock (tambah atau kurangi 1)
+    // Update stock
     if ($action == 'tambah') {
         $new_stock = $current_stock + 1;
-        $alert = "stock_added";
-    } else if ($action == 'kurangi') {
-        // Pastikan stock tidak kurang dari 0
+        $message = 'Stok berhasil ditambahkan';
+    } else {
         $new_stock = max(0, $current_stock - 1);
-        $alert = "stock_reduced";
+        $message = 'Stok berhasil dikurangi';
     }
 
-    // Update data di database
-    $query_update = "UPDATE jaket SET stock = '$new_stock' WHERE id_jaket = '$id'";
-    $result_update = mysqli_query($db, $query_update);
+    // Update data dengan prepared statement
+    $stmt = $db->prepare("UPDATE jaket SET stock = ? WHERE id_jaket = ?");
+    $stmt->bind_param("ii", $new_stock, $id);
+    $result_update = $stmt->execute();
 
-    if (!$result_update) {
-        $alert = "failed";
+    if ($result_update) {
+        $_SESSION['toastr'] = [
+            'type' => 'success',
+            'message' => $message
+        ];
+    } else {
+        $_SESSION['toastr'] = [
+            'type' => 'error',
+            'message' => 'Gagal memperbarui stok'
+        ];
     }
-
-    // Redirect kembali ke halaman dengan alert
-    echo "<script>window.location.href='index.php?menu=databarang&alert=" . $alert . "';</script>";
     exit;
 }
 ?>
@@ -118,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
                         'ukuran' => $b['ukuran']
                     ]);
                     $qrDataEncoded = urlencode($qrData);
-                    ?>
+                ?>
                     <tr>
                         <td><?= $kodeBarang ?></td>
                         <td><?= htmlspecialchars($b['jenis']) ?></td>
@@ -141,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
                                     data-target="#modalEditBarang<?= $b['id_jaket'] ?>">
                                     <i class="far fa-edit"></i>
                                 </button>
-                                
+
                                 <!-- Tombol Tambah dan Kurangi Stock yang sudah diperbaiki -->
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="id" value="<?= $b['id_jaket'] ?>">
@@ -151,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </form>
-                                
+
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="id" value="<?= $b['id_jaket'] ?>">
                                     <input type="hidden" name="action" value="kurangi">
@@ -239,7 +252,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
                             </div>
                         </div>
                     </div>
-                <?php } // end while ?>
+                <?php } // end while 
+                ?>
             </tbody>
         </table>
     </div>
@@ -293,9 +307,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
 
 <!-- Load External JS Libraries -->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // Load libraries
-        loadScript('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js', function () {
+        loadScript('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js', function() {
             console.log('jsQR loaded');
         });
     });
@@ -324,7 +338,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
         // Buat QR code
         var qrImage = new Image();
         qrImage.crossOrigin = "Anonymous";
-        qrImage.onload = function () {
+        qrImage.onload = function() {
             // Gambar QR di tengah canvas
             var x = (canvas.width - 200) / 2;
             ctx.drawImage(qrImage, x, 20, 200, 200);
@@ -350,14 +364,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
         link.download = 'qr-' + kode + '.png';
 
         // Konversi canvas ke blob
-        canvas.toBlob(function (blob) {
+        canvas.toBlob(function(blob) {
             // Buat URL object dari blob
             var url = URL.createObjectURL(blob);
             link.href = url;
             link.click();
 
             // Clean up
-            setTimeout(function () {
+            setTimeout(function() {
                 URL.revokeObjectURL(url);
             }, 100);
         });
@@ -378,16 +392,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
         );
 
         popup.document.close();
-        popup.onload = function () {
+        popup.onload = function() {
             popup.print();
             popup.close();
         };
     }
 
     // Inisialisasi semua QR code saat halaman dimuat
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // Aktifkan semua modal
-        $('.modal').on('shown.bs.modal', function (e) {
+        $('.modal').on('shown.bs.modal', function(e) {
             var modalId = $(this).attr('id');
             if (modalId && modalId.startsWith('modalGenerateQR')) {
                 var itemId = modalId.replace('modalGenerateQR', '');
@@ -441,8 +455,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
         canvasContext = canvasElement.getContext('2d');
 
         // Akses kamera
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-            .then(function (stream) {
+        navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: "environment"
+                }
+            })
+            .then(function(stream) {
                 videoElement.srcObject = stream;
                 videoElement.setAttribute('playsinline', true);
                 videoElement.play();
@@ -450,9 +468,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
                 // Mulai scanning
                 scanInterval = setInterval(scanQRCode, 500);
             })
-            .catch(function (err) {
-                document.getElementById('qr-reader-results').innerHTML =
-                    '<div class="alert alert-danger">Gagal mengakses kamera: ' + err.message + '</div>';
+            .catch(function(err) {
+                toastr.error('Gagal mengakses kamera: ' + err.message);
             });
     }
 
@@ -508,10 +525,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
 
                     // Hentikan scanning
                     clearInterval(scanInterval);
-
+                    toastr.success('Berhasil memindai QR code');
                 } catch (e) {
-                    document.getElementById('qr-reader-results').innerHTML =
-                        '<div class="alert alert-warning">QR Code tidak valid: ' + e.message + '</div>';
+                    toastr.warning('QR Code tidak valid: ' + e.message);
                 }
             }
         }

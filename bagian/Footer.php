@@ -75,7 +75,16 @@
       showEasing: "swing",
       hideEasing: "linear",
       showMethod: "fadeIn",
-      hideMethod: "fadeOut"
+      hideMethod: "fadeOut",
+      // Tambahan untuk notifikasi sukses
+      success: {
+            timeOut: "3000",
+            extendedTimeOut: "1000"
+        },
+        // Tambahan untuk notifikasi error
+        error: {
+            timeOut: "5000"
+        }
     },
     dataTable: {
       language: {

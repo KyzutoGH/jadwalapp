@@ -14,7 +14,7 @@
                 <tr>
                     <th>No</th>
                     <th>Nama Sekolah</th>
-                    <th>Alamat</th>
+                    <th>Alamat Sekolah</th>
                     <th>Kontak</th>
                     <th>Pemilik Kontak</th>
                     <th>Jabatan</th>
