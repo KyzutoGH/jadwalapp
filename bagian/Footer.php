@@ -34,7 +34,7 @@
 <script src="assets/plugins/datatables-buttons/js/buttons.print.min.js"></script>
 <script src="assets/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-<!-- <script src="assets/js/pages/dashboard2.js"></script> -->
+<script src="assets/js/pages/dashboard2.js"></script>
 <!-- fullCalendar 2.2.5 -->
 <script src="assets/plugins/moment/moment.min.js"></script>
 <script src="assets/plugins/fullcalendar/main.js"></script>

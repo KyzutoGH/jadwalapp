@@ -1,97 +1,121 @@
 <?php
-// Kode untuk memproses form edit barang
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_barang'])) {
-    // Ambil data dari form
-    $id = $_POST['id'];
-    $namabarang = $_POST['namabarang'];
-    $ukuran = $_POST['ukuran'];
-    $harga = $_POST['harga'];
-    $stock = $_POST['stock'];
-
-    // Update data barang
-    $query = "UPDATE jaket SET 
-              namabarang = '$namabarang',
-              ukuran = '$ukuran',
-              harga = '$harga',
-              stock = '$stock'
-              WHERE id_jaket = '$id'";
-
-    $result = mysqli_query($db, $query);
-
-    if ($result) {
-        $_SESSION['toastr'] = [
-            'type' => 'success',
-            'message' => 'Data barang berhasil diperbarui'
-        ];
-    } else {
-        $_SESSION['toastr'] = [
-            'type' => 'error',
-            'message' => 'Gagal memperbarui data barang'
-        ];
-    }
-
-    header("Location: index.php?menu=Barang");
-    exit;
+// Start session jika belum dimulai
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
+// PENTING: Jangan ada output HTML sebelum semua operasi header() dan session
 
-// Kode untuk memproses tambah/kurangi stok
+// Fungsi untuk menyimpan pesan dan redirect tanpa header()
+function setFlashMessageAndRedirect($type, $message) {
+    $_SESSION['toastr'] = [
+        'type' => $type,
+        'message' => $message
+    ];
+    
+    // Simpan flag redirect dalam session
+    $_SESSION['should_redirect'] = 'index.php?menu=Barang&submenu=StockBarang&updated='.time();
+}
+
 // Kode untuk memproses tambah/kurangi stok
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
     // Ambil data dari form
-    $id = (int)$_POST['id'];
+    $id = (int) $_POST['id'];
     $action = $_POST['action'];
 
     // Validasi input
     if (!in_array($action, ['tambah', 'kurangi'])) {
-        $_SESSION['toastr'] = [
-            'type' => 'error',
-            'message' => 'Aksi tidak valid'
-        ];
-        header("Location: index.php?menu=Barang");
-        exit;
-    }
-
-    // Ambil stock saat ini dengan prepared statement
-    $stmt = $db->prepare("SELECT stock FROM jaket WHERE id_jaket = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $current_data = $result->fetch_assoc();
-    $current_stock = $current_data['stock'];
-
-    // Update stock
-    if ($action == 'tambah') {
-        $new_stock = $current_stock + 1;
-        $message = 'Stok berhasil ditambahkan';
+        setFlashMessageAndRedirect('error', 'Aksi tidak valid');
+        // Tidak menggunakan header() disini
     } else {
-        $new_stock = max(0, $current_stock - 1);
-        $message = 'Stok berhasil dikurangi';
-    }
+        // Ambil stock saat ini dengan prepared statement
+        $stmt = $db->prepare("SELECT stock FROM jaket WHERE id_jaket = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows == 0) {
+            setFlashMessageAndRedirect('error', 'Barang tidak ditemukan');
+            // Tidak menggunakan header() disini
+        } else {
+            $current_data = $result->fetch_assoc();
+            $current_stock = $current_data['stock'];
 
+            // Update stock
+            if ($action == 'tambah') {
+                $new_stock = $current_stock + 1;
+                $message = 'Stok berhasil ditambahkan';
+            } else {
+                $new_stock = max(0, $current_stock - 1);
+                $message = 'Stok berhasil dikurangi';
+            }
+
+            // Update data dengan prepared statement
+            $stmt = $db->prepare("UPDATE jaket SET stock = ? WHERE id_jaket = ?");
+            $stmt->bind_param("ii", $new_stock, $id);
+            $result_update = $stmt->execute();
+
+            if ($result_update) {
+                setFlashMessageAndRedirect('success', $message);
+                // Tidak menggunakan header() disini
+            } else {
+                setFlashMessageAndRedirect('error', 'Gagal memperbarui stok: ' . $db->error);
+                // Tidak menggunakan header() disini
+            }
+        }
+    }
+}
+
+// Kode untuk memproses edit barang
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_barang'])) {
+    // Ambil data dari form
+    $id = (int) $_POST['id'];
+    $namabarang = $_POST['namabarang'];
+    $ukuran = $_POST['ukuran'];
+    $harga = (int) $_POST['harga'];
+    $stock = (int) $_POST['stock'];
+    
     // Update data dengan prepared statement
-    $stmt = $db->prepare("UPDATE jaket SET stock = ? WHERE id_jaket = ?");
-    $stmt->bind_param("ii", $new_stock, $id);
+    $stmt = $db->prepare("UPDATE jaket SET namabarang = ?, ukuran = ?, harga = ?, stock = ? WHERE id_jaket = ?");
+    $stmt->bind_param("ssiii", $namabarang, $ukuran, $harga, $stock, $id);
     $result_update = $stmt->execute();
-
+    
     if ($result_update) {
-        $_SESSION['toastr'] = [
-            'type' => 'success',
-            'message' => $message
-        ];
+        setFlashMessageAndRedirect('success', 'Data barang berhasil diperbarui');
+        // Tidak menggunakan header() disini
     } else {
-        $_SESSION['toastr'] = [
-            'type' => 'error',
-            'message' => 'Gagal memperbarui stok'
-        ];
+        setFlashMessageAndRedirect('error', 'Gagal memperbarui data barang: ' . $db->error);
+        // Tidak menggunakan header() disini
     }
-    exit;
+}
+
+// Cek apakah perlu redirect menggunakan JavaScript
+$redirectScript = '';
+if (isset($_SESSION['should_redirect'])) {
+    $redirectUrl = $_SESSION['should_redirect'];
+    $redirectScript = "<script>window.location.href = '$redirectUrl';</script>";
+    unset($_SESSION['should_redirect']);
 }
 ?>
 
 <!-- Tab Data Barang -->
 <div class="tab-pane fade show active" id="data" role="tabpanel">
     <div class="pt-3">
+        <!-- Redirect script jika diperlukan -->
+        <?= $redirectScript ?>
+        
+        <!-- Notifikasi dengan Toastr (jika ada) -->
+        <?php if (isset($_SESSION['toastr'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                toastr.<?= $_SESSION['toastr']['type'] ?>('<?= $_SESSION['toastr']['message'] ?>');
+            });
+        </script>
+        <?php 
+        // Hapus notifikasi setelah ditampilkan
+        unset($_SESSION['toastr']);
+        endif; ?>
+        
         <!-- Tombol Scan QR -->
         <div class="mb-3">
             <button class="btn btn-primary" data-toggle="modal" data-target="#modalScanQR">
@@ -114,145 +138,160 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
             </thead>
             <tbody>
                 <?php
+                // Pastikan koneksi masih aktif
+                if (!$db->ping()) {
+                    $db->close();
+                    // Gunakan parameter koneksi yang benar sesuai dengan file konfigurasi Anda
+                    // Contoh sederhana:
+                    $db = new mysqli($host, $user, $password, $database);
+                }
+                
+                // Ambil data dengan error handling
                 $data = mysqli_query($db, "SELECT * FROM jaket");
-                while ($b = mysqli_fetch_array($data)) {
-                    // Tentukan kode dan versi URL encoded-nya
-                    if ($b['jenis'] === 'Jaket') {
-                        $kodeBarang = 'JKT' . $b['id_jaket'];
-                    } else {
-                        $kodeBarang = 'VAR' . $b['id_jaket'];
-                    }
+                if (!$data) {
+                    echo '<tr><td colspan="8" class="text-center text-danger">Error mengambil data: ' . $db->error . '</td></tr>';
+                } else if (mysqli_num_rows($data) == 0) {
+                    echo '<tr><td colspan="8" class="text-center">Tidak ada data</td></tr>';
+                } else {
+                    while ($b = mysqli_fetch_array($data)) {
+                        // Tentukan kode dan versi URL encoded-nya
+                        if ($b['jenis'] === 'Jaket') {
+                            $kodeBarang = 'JKT' . $b['id_jaket'];
+                        } else {
+                            $kodeBarang = 'VAR' . $b['id_jaket'];
+                        }
 
-                    // Buat data untuk QR code
-                    $qrData = json_encode([
-                        'id' => $b['id_jaket'],
-                        'kode' => $kodeBarang,
-                        'nama' => $b['namabarang'],
-                        'ukuran' => $b['ukuran']
-                    ]);
-                    $qrDataEncoded = urlencode($qrData);
-                ?>
-                    <tr>
-                        <td><?= $kodeBarang ?></td>
-                        <td><?= htmlspecialchars($b['jenis']) ?></td>
-                        <td><?= htmlspecialchars($b['namabarang']) ?></td>
-                        <td><?= htmlspecialchars($b['ukuran']) ?></td>
-                        <td><?= 'Rp ' . number_format($b['harga'], 0, ',', '.') ?></td>
-                        <td><?= htmlspecialchars($b['stock']) ?></td>
-                        <td>
-                            <span class="badge badge-<?= $b['stock'] > 0 ? 'success' : 'danger' ?>">
-                                <?= $b['stock'] > 0 ? 'Tersedia' : 'Habis' ?>
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <div class="btn-group" role="group">
-                                <button class="btn btn-sm btn-warning" data-toggle="modal"
-                                    data-target="#modalGenerateQR<?= $b['id_jaket'] ?>">
-                                    <i class="fa fa-qrcode"></i>
-                                </button>
-                                <button class="btn btn-sm btn-primary" data-toggle="modal"
-                                    data-target="#modalEditBarang<?= $b['id_jaket'] ?>">
-                                    <i class="far fa-edit"></i>
-                                </button>
-
-                                <!-- Tombol Tambah dan Kurangi Stock yang sudah diperbaiki -->
-                                <form method="POST" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?= $b['id_jaket'] ?>">
-                                    <input type="hidden" name="action" value="tambah">
-                                    <input type="hidden" name="update_stock" value="1">
-                                    <button type="submit" class="btn btn-sm btn-success" title="Tambah Stock">
-                                        <i class="fas fa-plus"></i>
+                        // Buat data untuk QR code
+                        $qrData = json_encode([
+                            'id' => $b['id_jaket'],
+                            'kode' => $kodeBarang,
+                            'nama' => $b['namabarang'],
+                            'ukuran' => $b['ukuran']
+                        ]);
+                        $qrDataEncoded = urlencode($qrData);
+                        ?>
+                        <tr>
+                            <td><?= $kodeBarang ?></td>
+                            <td><?= htmlspecialchars($b['jenis']) ?></td>
+                            <td><?= htmlspecialchars($b['namabarang']) ?></td>
+                            <td><?= htmlspecialchars($b['ukuran']) ?></td>
+                            <td><?= 'Rp ' . number_format($b['harga'], 0, ',', '.') ?></td>
+                            <td><?= htmlspecialchars($b['stock']) ?></td>
+                            <td>
+                                <span class="badge badge-<?= $b['stock'] > 0 ? 'success' : 'danger' ?>">
+                                    <?= $b['stock'] > 0 ? 'Tersedia' : 'Habis' ?>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-warning" data-toggle="modal"
+                                        data-target="#modalGenerateQR<?= $b['id_jaket'] ?>">
+                                        <i class="fa fa-qrcode"></i>
                                     </button>
-                                </form>
-
-                                <form method="POST" style="display:inline;">
-                                    <input type="hidden" name="id" value="<?= $b['id_jaket'] ?>">
-                                    <input type="hidden" name="action" value="kurangi">
-                                    <input type="hidden" name="update_stock" value="1">
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Kurangi Stock">
-                                        <i class="fas fa-minus"></i>
+                                    <button class="btn btn-sm btn-primary" data-toggle="modal"
+                                        data-target="#modalEditBarang<?= $b['id_jaket'] ?>">
+                                        <i class="far fa-edit"></i>
                                     </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
 
-                    <!-- Modal Edit Barang -->
-                    <div class="modal fade" id="modalEditBarang<?= $b['id_jaket'] ?>" tabindex="-1" role="dialog"
-                        aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Edit Data Barang</h5>
-                                    <button type="button" class="close" data-dismiss="modal">
-                                        <span>&times;</span>
-                                    </button>
-                                </div>
-                                <!-- Ubah action menjadi kosong sehingga form di-submit ke halaman saat ini -->
-                                <form action="" method="POST">
-                                    <div class="modal-body">
+                                    <!-- Form untuk tombol tambah stok -->
+                                    <form method="POST" style="display:inline;">
                                         <input type="hidden" name="id" value="<?= $b['id_jaket'] ?>">
-                                        <input type="hidden" name="edit_barang" value="true">
-                                        <!-- Jenis dihapus -->
-                                        <div class="form-group">
-                                            <label>Nama Barang</label>
-                                            <input type="text" class="form-control" name="namabarang"
-                                                value="<?= htmlspecialchars($b['namabarang']) ?>" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Ukuran</label>
-                                            <input type="text" class="form-control" name="ukuran"
-                                                value="<?= htmlspecialchars($b['ukuran']) ?>" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Harga</label>
-                                            <input type="number" class="form-control" name="harga"
-                                                value="<?= htmlspecialchars($b['harga']) ?>" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Stock</label>
-                                            <input type="number" class="form-control" name="stock"
-                                                value="<?= htmlspecialchars($b['stock']) ?>" min="0" required>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                                        <input type="hidden" name="action" value="tambah">
+                                        <input type="hidden" name="update_stock" value="1">
+                                        <button type="submit" class="btn btn-sm btn-success" title="Tambah Stock">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </form>
 
-                    <!-- Modal QR Code Barang -->
-                    <div class="modal fade" id="modalGenerateQR<?= $b['id_jaket'] ?>" tabindex="-1" role="dialog"
-                        aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered" role="document">
-                            <div class="modal-content text-center">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">QR Code Barang</h5>
-                                    <button type="button" class="close" data-dismiss="modal">
-                                        <span>&times;</span>
-                                    </button>
+                                    <!-- Form untuk tombol kurangi stok -->
+                                    <form method="POST" style="display:inline;">
+                                        <input type="hidden" name="id" value="<?= $b['id_jaket'] ?>">
+                                        <input type="hidden" name="action" value="kurangi">
+                                        <input type="hidden" name="update_stock" value="1">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Kurangi Stock" 
+                                            <?= $b['stock'] <= 0 ? 'disabled' : '' ?>>
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                    </form>
                                 </div>
-                                <div class="modal-body">
-                                    <!-- QR dan info barang dalam satu canvas -->
-                                    <canvas id="qrCanvas<?= $b['id_jaket'] ?>" width="300" height="350"
-                                        style="border:1px solid #ddd"></canvas>
-                                </div>
-                                <div class="modal-footer justify-content-center">
-                                    <button class="btn btn-primary"
-                                        onclick="downloadQR('qrCanvas<?= $b['id_jaket'] ?>', '<?= $kodeBarang ?>')">
-                                        Download QR
-                                    </button>
-                                    <button class="btn btn-secondary" onclick="printQR(this)">
-                                        Print
-                                    </button>
+                            </td>
+                        </tr>
+
+                        <!-- Modal Edit Barang -->
+                        <div class="modal fade" id="modalEditBarang<?= $b['id_jaket'] ?>" tabindex="-1" role="dialog"
+                            aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Data Barang</h5>
+                                        <button type="button" class="close" data-dismiss="modal">
+                                            <span>&times;</span>
+                                        </button>
+                                    </div>
+                                    <form method="POST">
+                                        <div class="modal-body">
+                                            <input type="hidden" name="id" value="<?= $b['id_jaket'] ?>">
+                                            <input type="hidden" name="edit_barang" value="true">
+                                            <div class="form-group">
+                                                <label>Nama Barang</label>
+                                                <input type="text" class="form-control" name="namabarang"
+                                                    value="<?= htmlspecialchars($b['namabarang']) ?>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Ukuran</label>
+                                                <input type="text" class="form-control" name="ukuran"
+                                                    value="<?= htmlspecialchars($b['ukuran']) ?>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Harga</label>
+                                                <input type="number" class="form-control" name="harga"
+                                                    value="<?= htmlspecialchars($b['harga']) ?>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Stock</label>
+                                                <input type="number" class="form-control" name="stock"
+                                                    value="<?= htmlspecialchars($b['stock']) ?>" min="0" required>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                <?php } // end while 
+
+                        <!-- Modal QR Code Barang -->
+                        <div class="modal fade" id="modalGenerateQR<?= $b['id_jaket'] ?>" tabindex="-1" role="dialog"
+                            aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content text-center">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">QR Code Barang</h5>
+                                        <button type="button" class="close" data-dismiss="modal">
+                                            <span>&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- QR dan info barang dalam satu canvas -->
+                                        <canvas id="qrCanvas<?= $b['id_jaket'] ?>" width="300" height="350"
+                                            style="border:1px solid #ddd"></canvas>
+                                    </div>
+                                    <div class="modal-footer justify-content-center">
+                                        <button class="btn btn-primary"
+                                            onclick="downloadQR('qrCanvas<?= $b['id_jaket'] ?>', '<?= $kodeBarang ?>')">
+                                            Download QR
+                                        </button>
+                                        <button class="btn btn-secondary" onclick="printQR(this)">
+                                            Print
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php } // end while 
+                } // end else
                 ?>
             </tbody>
         </table>
@@ -283,12 +322,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
                             <p class="card-text" id="productSize">Ukuran: -</p>
                             <p class="card-text" id="currentStock">Stok saat ini: 0</p>
 
-                            <form id="updateStockForm" method="POST" action="config/update_stock.php">
+                            <form id="updateStockForm" method="POST">
                                 <input type="hidden" name="id" id="productId">
+                                <input type="hidden" name="update_stock" value="1">
                                 <div class="form-group">
                                     <label for="stockAmount">Jumlah</label>
-                                    <input type="number" class="form-control" id="stockAmount" name="jumlah" value="1"
-                                        min="1">
+                                    <input type="number" class="form-control" id="stockAmount" name="jumlah" value="1" min="1">
                                 </div>
                                 <div class="btn-group w-100" role="group">
                                     <button type="submit" name="action" value="tambah" class="btn btn-success">Tambah
@@ -305,11 +344,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
     </div>
 </div>
 
-<!-- Load External JS Libraries -->
+<!-- JS untuk initializing tabel dan toastr -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Inisialisasi DataTable
+        try {
+            $('#tabelBarang').DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false,
+                "pageLength": 10,
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Indonesian.json"
+                }
+            });
+        } catch (e) {
+            console.error('Error initializing DataTable:', e);
+        }
+        
+        // Inisialisasi Toastr options jika belum diset
+        if (typeof toastr !== 'undefined') {
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "timeOut": "5000"
+            };
+        }
+    });
+</script>
+
+<!-- Load External JS Libraries -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
         // Load libraries
-        loadScript('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js', function() {
+        loadScript('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js', function () {
             console.log('jsQR loaded');
         });
     });
@@ -329,6 +398,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
     function createQRCodeWithInfo(canvasId, data, kode, nama, ukuran) {
         // Ambil elemen canvas
         var canvas = document.getElementById(canvasId);
+        if (!canvas) return; // Safety check
+        
         var ctx = canvas.getContext('2d');
 
         // Bersihkan canvas
@@ -338,7 +409,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
         // Buat QR code
         var qrImage = new Image();
         qrImage.crossOrigin = "Anonymous";
-        qrImage.onload = function() {
+        qrImage.onload = function () {
             // Gambar QR di tengah canvas
             var x = (canvas.width - 200) / 2;
             ctx.drawImage(qrImage, x, 20, 200, 200);
@@ -360,18 +431,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
     // Fungsi untuk mendownload QR code
     function downloadQR(canvasId, kode) {
         var canvas = document.getElementById(canvasId);
+        if (!canvas) return; // Safety check
+        
         var link = document.createElement('a');
         link.download = 'qr-' + kode + '.png';
 
         // Konversi canvas ke blob
-        canvas.toBlob(function(blob) {
+        canvas.toBlob(function (blob) {
             // Buat URL object dari blob
             var url = URL.createObjectURL(blob);
             link.href = url;
             link.click();
 
             // Clean up
-            setTimeout(function() {
+            setTimeout(function () {
                 URL.revokeObjectURL(url);
             }, 100);
         });
@@ -381,6 +454,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
     function printQR(button) {
         var modalBody = button.closest('.modal-content').querySelector('.modal-body');
         var canvas = modalBody.querySelector('canvas');
+        if (!canvas) return; // Safety check
 
         // Buka popup untuk print
         var popup = window.open('', '', 'width=400,height=500');
@@ -392,16 +466,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
         );
 
         popup.document.close();
-        popup.onload = function() {
+        popup.onload = function () {
             popup.print();
             popup.close();
         };
     }
 
     // Inisialisasi semua QR code saat halaman dimuat
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Aktifkan semua modal
-        $('.modal').on('shown.bs.modal', function(e) {
+        $('.modal').on('shown.bs.modal', function (e) {
             var modalId = $(this).attr('id');
             if (modalId && modalId.startsWith('modalGenerateQR')) {
                 var itemId = modalId.replace('modalGenerateQR', '');
@@ -441,6 +515,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
     // Inisialisasi QR scanner
     function initQRScanner() {
         var qrReader = document.getElementById('qr-reader');
+        if (!qrReader) return; // Safety check
+        
         qrReader.innerHTML = '';
 
         // Buat elemen video
@@ -455,22 +531,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
         canvasContext = canvasElement.getContext('2d');
 
         // Akses kamera
-        navigator.mediaDevices.getUserMedia({
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({
                 video: {
                     facingMode: "environment"
                 }
             })
-            .then(function(stream) {
-                videoElement.srcObject = stream;
-                videoElement.setAttribute('playsinline', true);
-                videoElement.play();
+                .then(function (stream) {
+                    videoElement.srcObject = stream;
+                    videoElement.setAttribute('playsinline', true);
+                    videoElement.play();
 
-                // Mulai scanning
-                scanInterval = setInterval(scanQRCode, 500);
-            })
-            .catch(function(err) {
-                toastr.error('Gagal mengakses kamera: ' + err.message);
-            });
+                    // Mulai scanning
+                    scanInterval = setInterval(scanQRCode, 500);
+                })
+                .catch(function (err) {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Gagal mengakses kamera: ' + err.message);
+                    } else {
+                        alert('Gagal mengakses kamera: ' + err.message);
+                    }
+                });
+        } else {
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Browser tidak mendukung akses kamera');
+            } else {
+                alert('Browser tidak mendukung akses kamera');
+            }
+        }
     }
 
     // Hentikan QR scanner
@@ -486,6 +574,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
 
     // Scan QR code
     function scanQRCode() {
+        if (!videoElement || !canvasElement || !canvasContext) return;
+        
         if (videoElement.readyState === videoElement.HAVE_ENOUGH_DATA) {
             // Set ukuran canvas
             canvasElement.height = videoElement.videoHeight;
@@ -495,39 +585,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_stock'])) {
             canvasContext.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
             var imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
 
-            // Scan QR code
-            var code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "dontInvert",
-            });
+            // Check jika jsQR sudah dimuat
+            if (typeof jsQR === 'function') {
+                // Scan QR code
+                var code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
 
-            if (code) {
-                try {
-                    // Parse data
-                    var data = JSON.parse(code.data);
+                if (code) {
+                    try {
+                        // Parse data
+                        var data = JSON.parse(code.data);
 
-                    // Tampilkan info produk
-                    document.getElementById('productId').value = data.id;
-                    document.getElementById('productCode').textContent = data.kode;
-                    document.getElementById('productName').textContent = data.nama;
-                    document.getElementById('productSize').textContent = 'Ukuran: ' + data.ukuran;
+                        // Tampilkan info produk
+                        document.getElementById('productId').value = data.id;
+                        document.getElementById('productCode').textContent = data.kode;
+                        document.getElementById('productName').textContent = data.nama;
+                        document.getElementById('productSize').textContent = 'Ukuran: ' + data.ukuran;
 
-                    // Ambil stok saat ini
-                    fetch('config/get_stock.php?id=' + data.id)
-                        .then(response => response.json())
-                        .then(stockData => {
-                            if (stockData.success) {
-                                document.getElementById('currentStock').textContent = 'Stok saat ini: ' + stockData.stock;
-                            }
-                        });
+                        // Ambil stok saat ini
+                        fetch('config/get_stock.php?id=' + data.id)
+                            .then(response => response.json())
+                            .then(stockData => {
+                                if (stockData.success) {
+                                    document.getElementById('currentStock').textContent = 'Stok saat ini: ' + stockData.stock;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error fetching stock:', error);
+                                document.getElementById('currentStock').textContent = 'Stok saat ini: (tidak tersedia)';
+                            });
 
-                    // Tampilkan form
-                    document.getElementById('scannedProductInfo').classList.remove('d-none');
+                        // Tampilkan form
+                        document.getElementById('scannedProductInfo').classList.remove('d-none');
 
-                    // Hentikan scanning
-                    clearInterval(scanInterval);
-                    toastr.success('Berhasil memindai QR code');
-                } catch (e) {
-                    toastr.warning('QR Code tidak valid: ' + e.message);
+                        // Hentikan scanning
+                        clearInterval(scanInterval);
+                        
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success('Berhasil memindai QR code');
+                        }
+                    } catch (e) {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.warning('QR Code tidak valid: ' + e.message);
+                        } else {
+                            console.error('QR Code tidak valid:', e);
+                        }
+                    }
                 }
             }
         }
