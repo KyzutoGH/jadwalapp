@@ -23,6 +23,7 @@ $roleAccess = [
         'Kalender',
         'Create',
         'Penagihan',
+        'History',
         'Barang',
         'Stiker',
         'CreateBarang'
@@ -33,7 +34,8 @@ $roleAccess = [
         'Inbox',
         'Kalender',
         'Create',
-        'Penagihan'
+        'Penagihan',
+        'History'
     ],
     'stock' => [
         'Dashboard',
@@ -66,6 +68,10 @@ const VALID_MENUS = [
         'view' => 'views/create.php'
     ],
     'Penagihan' => [
+        'header' => 'bagian/header/tabel.php',
+        'view' => 'views/tabel.php'
+    ],
+    'History' => [
         'header' => 'bagian/header/tabel.php',
         'view' => 'views/tabel.php'
     ],

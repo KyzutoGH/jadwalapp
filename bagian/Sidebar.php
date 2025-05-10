@@ -94,6 +94,13 @@
                   <p>Data Penagihan</p>
                 </a>
               </li>
+              <li class="nav-item">
+                <a href="index.php?menu=History" class="nav-link <?php if ($menu == "History")
+                                                                      echo "active"; ?>">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>History Pembayaran</p>
+                </a>
+              </li>
             </ul>
           </li>
 
