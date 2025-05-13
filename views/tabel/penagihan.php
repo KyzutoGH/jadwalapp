@@ -848,34 +848,104 @@ extract($dashboard_data);
     // Fungsi untuk mencetak detail
     document.getElementById('printDetailBtn').addEventListener('click', function () {
         const printContent = document.getElementById('detailContent').innerHTML;
-        const originalContent = document.body.innerHTML;
 
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Detail Pesanan</title>
-                <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-                <style>
-                    body { padding: 20px; }
-                    @media print {
-                        .no-print { display: none; }
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Struk Pemesanan</title>
+            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+            <style>
+                body {
+                    padding: 40px;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    background: #f8f9fa;
+                }
+                .receipt-container {
+                    background: #fff;
+                    border: 1px solid #dee2e6;
+                    border-radius: 8px;
+                    padding: 30px;
+                    max-width: 700px;
+                    margin: auto;
+                    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+                }
+                .store-info {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+                .store-info img {
+                    width: 100px;
+                    margin-bottom: 10px;
+                }
+                .store-info h5 {
+                    margin-bottom: 5px;
+                    font-weight: bold;
+                }
+                .store-info p {
+                    margin: 0;
+                    font-size: 13px;
+                    color: #6c757d;
+                }
+                .receipt-header {
+                    border-top: 2px dashed #6c757d;
+                    border-bottom: 2px dashed #6c757d;
+                    margin: 20px 0;
+                    padding: 10px 0;
+                    text-align: center;
+                }
+                .receipt-content {
+                    font-size: 15px;
+                }
+                .receipt-footer {
+                    border-top: 2px dashed #6c757d;
+                    margin-top: 30px;
+                    padding-top: 10px;
+                    text-align: center;
+                    font-size: 13px;
+                    color: #6c757d;
+                }
+                .btn-print {
+                    margin-top: 30px;
+                    text-align: center;
+                }
+                @media print {
+                    .no-print {
+                        display: none;
                     }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h3 class="mb-4 text-center">Detail Pesanan</h3>
-                    ${printContent}
-                    <div class="mt-5 text-center no-print">
-                        <button onclick="window.print()" class="btn btn-primary">Print</button>
-                        <button onclick="window.close()" class="btn btn-secondary ml-2">Tutup</button>
-                    </div>
+                }
+            </style>
+        </head>
+        <body>
+            <div class="receipt-container">
+                <div class="store-info">
+                    <img src="assets/img/fukubistorelogo.png" alt="Fubuki Konveksi">
+                    <h5>Fubuki Konveksi</h5>
+                    <p>Dadapan, Kedung Bunder, Kec. Sutojayan, Kabupaten Blitar, Jawa Timur 66172</p>
+                    <p>WA: 0856-4962-3058</p>
                 </div>
-            </body>
-            </html>
-        `);
+
+                <div class="receipt-header">
+                    <h4>Detail Pemesanan</h4>
+                </div>
+
+                <div class="receipt-content">
+                    ${printContent}
+                </div>
+
+                <div class="receipt-footer">
+                    Terima kasih telah memesan di Fubuki Konveksi.
+                </div>
+
+                <div class="btn-print no-print">
+                    <button onclick="window.print()" class="btn btn-primary">Print</button>
+                    <button onclick="window.close()" class="btn btn-secondary ml-2">Tutup</button>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
         printWindow.document.close();
     });
     function updateStatus(id, newStatus) {
