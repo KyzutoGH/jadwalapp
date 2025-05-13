@@ -13,7 +13,7 @@
                 FROM log_barang l
                 LEFT JOIN jaket j ON l.id_jaket = j.id_jaket 
                 LEFT JOIN stiker s ON l.id_sticker = s.id_sticker
-                WHERE l.jenis_log = 'Tambah'");
+                WHERE LOWER(l.jenis_log) = 'tambah'");
             while ($bm = mysqli_fetch_array($data)) {
                 ?>
                 <tr>

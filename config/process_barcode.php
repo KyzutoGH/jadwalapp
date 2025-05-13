@@ -1,33 +1,56 @@
 <?php
-// process_barcode.php
-include "koneksi.php"; // atau koneksi ke DB kamu
+session_start();
+include "koneksi.php";
 
-$data = json_decode(file_get_contents("php://input"), true);
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $id = intval($_POST["id"]);
+    $jumlah = intval($_POST["jumlah"]);
+    $mode = $_POST["action"];
 
-$namabarang = $data["namabarang"];
-$jenis = $data["jenis"];
-$ukuran = $data["ukuran"];
-$mode = $data["mode"];
-
-$stmt = $conn->prepare("SELECT * FROM jaket WHERE namabarang=? AND jenis=? AND ukuran=?");
-$stmt->bind_param("sss", $namabarang, $jenis, $ukuran);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows === 1) {
-    $barang = $result->fetch_assoc();
-    $id = $barang["id_jaket"];
-
-    if ($mode === "tambah") {
-        $stmt = $conn->prepare("UPDATE jaket SET stock = stock + 1 WHERE id_jaket = ?");
-    } else if ($mode === "kurangi") {
-        $stmt = $conn->prepare("UPDATE jaket SET stock = GREATEST(stock - 1, 0) WHERE id_jaket = ?");
-    }
-
+    $stmt = $db->prepare("SELECT stock FROM jaket WHERE id_jaket = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
+    $result = $stmt->get_result();
 
-    echo json_encode(["success" => true, "message" => "Stok berhasil diupdate!"]);
-} else {
-    echo json_encode(["success" => false, "message" => "Barang tidak ditemukan!"]);
+    if ($result->num_rows === 1) {
+        if ($mode === "tambah") {
+            $stmt = $db->prepare("UPDATE jaket SET stock = stock + ? WHERE id_jaket = ?");
+        } else if ($mode === "kurangi") {
+            $stmt = $db->prepare("UPDATE jaket SET stock = stock - ? WHERE id_jaket = ?");
+        } else {
+            $_SESSION['toastr'] = [
+                'type' => 'error',
+                'message' => 'Mode tidak dikenali!',
+            ];
+            header("Location: ../index.php?menu=Barang&submenu=StockBarang");
+            exit;
+        }
+
+        if ($stmt->bind_param("ii", $jumlah, $id) && $stmt->execute()) {
+            // ✅ Simpan ke tabel log
+            $logStmt = $db->prepare("INSERT INTO log_barang (id_jaket, jenis_log, jumlah, tanggal) VALUES (?, ?, ?, NOW())");
+            $jumlahStr = strval($jumlah); // karena di DB jumlah bertipe varchar
+            $logStmt->bind_param("iss", $id, $mode, $jumlahStr);
+            $logStmt->execute();
+
+            $_SESSION['toastr'] = [
+                'type' => 'success',
+                'message' => 'Stok berhasil diupdate & dicatat di log!',
+            ];
+        } else {
+            $_SESSION['toastr'] = [
+                'type' => 'error',
+                'message' => 'Gagal update stok: ' . $stmt->error,
+            ];
+        }
+    } else {
+        $_SESSION['toastr'] = [
+            'type' => 'error',
+            'message' => 'Barang tidak ditemukan!',
+        ];
+    }
+
+    header("Location: ../index.php?menu=Barang&submenu=StockBarang");
+    exit;
 }
+?>

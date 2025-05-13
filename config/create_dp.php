@@ -400,8 +400,8 @@ function updateStokBarang($db, $jenis, $id, $qty)
         }
 
         // Catat log perubahan stok
-        $jenis_log = "Update Stok $jenis";
-        $deskripsi = "Mengurangi stok $nama_produk sebanyak $qty";
+        $jenis_log = "kurangi";
+        $deskripsi = "$qty";
 
         $sql_log = "INSERT INTO log_barang (
             id_jaket, 

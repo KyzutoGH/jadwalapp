@@ -322,12 +322,11 @@ if (isset($_SESSION['should_redirect'])) {
                             <p class="card-text" id="productSize">Ukuran: -</p>
                             <p class="card-text" id="currentStock">Stok saat ini: 0</p>
 
-                            <form id="updateStockForm" method="POST">
-                                <input type="hidden" name="id" id="productId">
-                                <input type="hidden" name="update_stock" value="1">
+                            <form id="updateStockForm" method="POST" action="config/process_barcode.php">
+                            <input type="hidden" name="id" id="productId">
                                 <div class="form-group">
                                     <label for="stockAmount">Jumlah</label>
-                                    <input type="number" class="form-control" id="stockAmount" name="jumlah" value="1" min="1">
+                                    <input type="number" class="form-control" id="stockAmount" name="jumlah" min="1">
                                 </div>
                                 <div class="btn-group w-100" role="group">
                                     <button type="submit" name="action" value="tambah" class="btn btn-success">Tambah
