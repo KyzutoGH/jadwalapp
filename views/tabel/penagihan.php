@@ -51,9 +51,6 @@ extract($dashboard_data);
                     <div class="icon">
                         <i class="fas fa-money-bill-wave"></i>
                     </div>
-                    <a href="#" class="small-box-footer">
-                        Detail <i class="fas fa-arrow-circle-right"></i>
-                    </a>
                 </div>
             </div>
 
@@ -67,9 +64,6 @@ extract($dashboard_data);
                     <div class="icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
-                    <a href="#" class="small-box-footer">
-                        Detail <i class="fas fa-arrow-circle-right"></i>
-                    </a>
                 </div>
             </div>
 
@@ -83,9 +77,6 @@ extract($dashboard_data);
                     <div class="icon">
                         <i class="fas fa-clock"></i>
                     </div>
-                    <a href="#" class="small-box-footer">
-                        Detail <i class="fas fa-arrow-circle-right"></i>
-                    </a>
                 </div>
             </div>
 
@@ -99,9 +90,6 @@ extract($dashboard_data);
                     <div class="icon">
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>
-                    <a href="#" class="small-box-footer">
-                        Detail <i class="fas fa-arrow-circle-right"></i>
-                    </a>
                 </div>
             </div>
         </div>
@@ -274,14 +262,14 @@ extract($dashboard_data);
                         if ($today > $p['dp2_tenggat']) {
                             $warning = true;
                         }
-                        $jatuhTempoInfo[] = "DP2: " . date('d/m/Y', strtotime($p['dp2_tenggat'])).")";
+                        $jatuhTempoInfo[] = "DP2: " . date('d/m/Y', strtotime($p['dp2_tenggat'])) . ")";
                     }
 
                     if ($p['jumlah_dp'] == 3 && $p['dp3_status'] == 0 && !empty($p['dp3_tenggat'])) {
                         if ($today > $p['dp3_tenggat']) {
                             $warning = true;
                         }
-                        $jatuhTempoInfo[] = "DP3: " . date('d/m/Y', strtotime($p['dp3_tenggat'])) .")";
+                        $jatuhTempoInfo[] = "DP3: " . date('d/m/Y', strtotime($p['dp3_tenggat'])) . ")";
                     }
 
                     $dpDisplay = generateInstallmentBadge($currentCicilan, $totalCicilan, $warning);
