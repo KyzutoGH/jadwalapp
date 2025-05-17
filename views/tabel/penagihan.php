@@ -110,8 +110,19 @@ extract($dashboard_data);
             </thead>
             <tbody>
                 <?php
-                function generateInstallmentBadge($current, $total, $warning = false)
+                function generateInstallmentBadge($current, $total, $warning = false, $status = null)
                 {
+                    // Check if status is paid or canceled first
+                    if ($status == '2' || $status == '3' || $status == '4' || ($current == $total && $total > 0)) {
+                        return '<span class="badge badge-success" style="font-size: 0.9rem; padding: 6px 12px;" data-toggle="tooltip" title="Pembayaran sudah lunas">
+                <i class="fas fa-check-circle mr-1"></i> Sudah Lunas
+            </span>';
+                    } else if ($status == '5') {
+                        return '<span class="badge badge-danger" style="font-size: 0.9rem; padding: 6px 12px;" data-toggle="tooltip" title="Pesanan dibatalkan">
+                <i class="fas fa-times-circle mr-1"></i> Dibatalkan
+            </span>';
+                    }
+
                     $badgeClass = 'badge ';
                     if ($warning) {
                         $badgeClass .= 'badge-danger';
@@ -198,6 +209,7 @@ extract($dashboard_data);
         
         p.status,
         p.kontak,
+        p.keterangan,
         p.alasan_batal,
         p.dp1_nominal,
         p.dp2_nominal,
@@ -249,30 +261,91 @@ extract($dashboard_data);
                         // Jika belum lunas
                         $p['total_display'] = $total_formatted . ' | <span class="text-navy font-weight-bold">' . $sisa_formatted . '</span>';
                     }
-
+                    // Add this at the beginning of your code or in an appropriate place
+                    $alertMessages = []; // Array to collect alert messages
+                
+                    // Then modify your deadline checking code like this:
                     if ($p['jumlah_dp'] >= 1 && $p['dp1_status'] == 0 && !empty($p['dp1_tenggat'])) {
-                        if ($today > $p['dp1_tenggat']) {
+                        $dp1Date = strtotime($p['dp1_tenggat']);
+                        $todayStamp = strtotime('today');
+
+                        if ($todayStamp > $dp1Date) {
                             $warning = true;
+                            // Calculate days overdue
+                            $daysOverdue = floor(($todayStamp - $dp1Date) / (60 * 60 * 24));
+                            $alertMessages[] = [
+                                'type' => 'danger',
+                                'message' => "Pembayaran DP1 untuk {$p['customer']} telah lewat {$daysOverdue} hari! Tenggat: " . date('d/m/Y', $dp1Date) . " - Rp " . number_format($p['dp1_nominal'], 0, ',', '.'),
+                                'id' => $p['id']
+                            ];
                         }
-                        $jatuhTempoInfo[] = "DP1: " . date('d/m/Y', strtotime($p['dp1_tenggat'])) .
+                        // Check if deadline is approaching (within 3 days)
+                        else if ($dp1Date - $todayStamp <= 3 * 24 * 60 * 60) {
+                            $daysLeft = ceil(($dp1Date - $todayStamp) / (60 * 60 * 24));
+                            $alertMessages[] = [
+                                'type' => 'warning',
+                                'message' => "Pembayaran DP1 untuk {$p['customer']} akan jatuh tempo dalam {$daysLeft} hari! Tenggat: " . date('d/m/Y', $dp1Date) . " - Rp " . number_format($p['dp1_nominal'], 0, ',', '.'),
+                                'id' => $p['id']
+                            ];
+                        }
+
+                        $jatuhTempoInfo[] = "DP1: " . date('d/m/Y', $dp1Date) .
                             " (Rp " . number_format($p['dp1_nominal'], 0, ',', '.') . ")";
                     }
 
+                    // Do similar for DP2
                     if ($p['jumlah_dp'] >= 2 && $p['dp2_status'] == 0 && !empty($p['dp2_tenggat'])) {
-                        if ($today > $p['dp2_tenggat']) {
+                        $dp2Date = strtotime($p['dp2_tenggat']);
+                        $todayStamp = strtotime('today');
+
+                        if ($todayStamp > $dp2Date) {
                             $warning = true;
+                            $daysOverdue = floor(($todayStamp - $dp2Date) / (60 * 60 * 24));
+                            $alertMessages[] = [
+                                'type' => 'danger',
+                                'message' => "Pembayaran DP2 untuk {$p['customer']} telah lewat {$daysOverdue} hari! Tenggat: " . date('d/m/Y', $dp2Date) . " - Rp " . number_format($p['dp2_nominal'], 0, ',', '.'),
+                                'id' => $p['id']
+                            ];
+                        } else if ($dp2Date - $todayStamp <= 3 * 24 * 60 * 60) {
+                            $daysLeft = ceil(($dp2Date - $todayStamp) / (60 * 60 * 24));
+                            $alertMessages[] = [
+                                'type' => 'warning',
+                                'message' => "Pembayaran DP2 untuk {$p['customer']} akan jatuh tempo dalam {$daysLeft} hari! Tenggat: " . date('d/m/Y', $dp2Date) . " - Rp " . number_format($p['dp2_nominal'], 0, ',', '.'),
+                                'id' => $p['id']
+                            ];
                         }
-                        $jatuhTempoInfo[] = "DP2: " . date('d/m/Y', strtotime($p['dp2_tenggat'])) . ")";
+
+                        $jatuhTempoInfo[] = "DP2: " . date('d/m/Y', $dp2Date) .
+                            " (Rp " . number_format($p['dp2_nominal'], 0, ',', '.') . ")";
                     }
 
+                    // And for DP3
                     if ($p['jumlah_dp'] == 3 && $p['dp3_status'] == 0 && !empty($p['dp3_tenggat'])) {
-                        if ($today > $p['dp3_tenggat']) {
+                        $dp3Date = strtotime($p['dp3_tenggat']);
+                        $todayStamp = strtotime('today');
+
+                        if ($todayStamp > $dp3Date) {
                             $warning = true;
+                            $daysOverdue = floor(($todayStamp - $dp3Date) / (60 * 60 * 24));
+                            $alertMessages[] = [
+                                'type' => 'danger',
+                                'message' => "Pembayaran DP3 untuk {$p['customer']} telah lewat {$daysOverdue} hari! Tenggat: " . date('d/m/Y', $dp3Date) . " - Rp " . number_format($p['dp3_nominal'], 0, ',', '.'),
+                                'id' => $p['id']
+                            ];
+                        } else if ($dp3Date - $todayStamp <= 3 * 24 * 60 * 60) {
+                            $daysLeft = ceil(($dp3Date - $todayStamp) / (60 * 60 * 24));
+                            $alertMessages[] = [
+                                'type' => 'warning',
+                                'message' => "Pembayaran DP3 untuk {$p['customer']} akan jatuh tempo dalam {$daysLeft} hari! Tenggat: " . date('d/m/Y', $dp3Date) . " - Rp " . number_format($p['dp3_nominal'], 0, ',', '.'),
+                                'id' => $p['id']
+                            ];
                         }
-                        $jatuhTempoInfo[] = "DP3: " . date('d/m/Y', strtotime($p['dp3_tenggat'])) . ")";
+
+                        $jatuhTempoInfo[] = "DP3: " . date('d/m/Y', $dp3Date) .
+                            " (Rp " . number_format($p['dp3_nominal'], 0, ',', '.') . ")";
                     }
 
-                    $dpDisplay = generateInstallmentBadge($currentCicilan, $totalCicilan, $warning);
+                    $dpDisplay = generateInstallmentBadge($currentCicilan, $totalCicilan, $warning, $p['status']);
                     $jatuhTempoDisplay = implode("<br>", $jatuhTempoInfo);
 
                     $statusBadge = '';
@@ -328,6 +401,7 @@ extract($dashboard_data);
                             break;
 
                         case '2': // Lunas - Proses
+                            $jatuhTempoDisplay = '';
                             $statusBadge = '<span class="badge badge-info">Lunas - Proses</span>';
                             $actionButton = '<div class="btn-group">
                 <button class="btn btn-success btn-sm" 
@@ -344,6 +418,7 @@ extract($dashboard_data);
                             break;
 
                         case '3': // Lunas - Siap Diambil
+                            $jatuhTempoDisplay = '';
                             $statusBadge = '<span class="badge badge-success">Lunas - Siap Diambil</span>';
                             $actionButton = '<div class="btn-group">
                 <button class="btn btn-secondary btn-sm" 
@@ -360,11 +435,13 @@ extract($dashboard_data);
                             break;
 
                         case '4': // Selesai
+                            $jatuhTempoDisplay = '';
                             $statusBadge = '<span class="badge badge-secondary">Selesai</span>';
                             $actionButton = '<div class="text-muted">';
                             break;
 
                         case '5': // Dibatalkan
+                            $jatuhTempoDisplay = '';
                             $statusBadge = '<span class="badge badge-danger">Dibatalkan</span>';
                             $alasanEscaped = htmlspecialchars($p['alasan_batal'], ENT_QUOTES);
                             $actionButton = "
@@ -389,7 +466,8 @@ extract($dashboard_data);
             data-status='%s' 
             data-dp='%s'
             data-produk='%s' 
-            data-catatan='%s'
+            data-keterangan='%s'
+            data-kontak='%s'
             data-dp1='%s'
             data-dp2='%s'
             data-dp3='%s'
@@ -411,7 +489,8 @@ extract($dashboard_data);
                         htmlspecialchars(strip_tags($statusBadge), ENT_QUOTES),
                         htmlspecialchars($p['dp_status'] ?? '-', ENT_QUOTES),
                         htmlspecialchars($p['daftar_produk'] ?? '-', ENT_QUOTES),
-                        htmlspecialchars($p['catatan'] ?? '-', ENT_QUOTES),
+                        htmlspecialchars($p['keterangan'] ?? '-', ENT_QUOTES),
+                        htmlspecialchars($p['kontak'] ?? '-', ENT_QUOTES),
                         htmlspecialchars($p['dp1_nominal'] ?? '0', ENT_QUOTES),
                         htmlspecialchars($p['dp2_nominal'] ?? '0', ENT_QUOTES),
                         htmlspecialchars($p['dp3_nominal'] ?? '0', ENT_QUOTES),
@@ -449,6 +528,30 @@ extract($dashboard_data);
     <td>$statusBadge</td>
     <td>$actionButton</td>
 </tr>";
+                }
+                // After your while loop ends, add this to display the alerts:
+                if (!empty($alertMessages)) {
+                    echo '<div class="alert-container" style="margin-top: 20px;">';
+
+                    foreach ($alertMessages as $alert) {
+                        echo '<div class="alert alert-' . $alert['type'] . ' alert-dismissible fade show" role="alert">
+            <strong>' . ($alert['type'] == 'danger' ? '⚠️ PEMBAYARAN TERLAMBAT!' : '⚠️ SEGERA JATUH TEMPO!') . '</strong> 
+            ' . $alert['message'] . '
+            <div class="mt-2">
+                <a href="https://wa.me/62' . $p['kontak'] . '" class="btn btn-sm btn-outline-dark" target="_blank">
+                    <i class="fab fa-whatsapp"></i> Hubungi Customer
+                </a>
+                <button class="btn btn-sm btn-outline-' . ($alert['type'] == 'danger' ? 'danger' : 'warning') . '" onclick="showCicilanModal(' . $alert['id'] . ')">
+                    <i class="fas fa-money-bill"></i> Proses Pembayaran
+                </button>
+            </div>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>';
+                    }
+
+                    echo '</div>';
                 }
                 ?>
             </tbody>
@@ -685,14 +788,16 @@ extract($dashboard_data);
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <p><strong>Customer:</strong> ${el.dataset.customer}</p>
                         <p><strong>Tanggal Pesan:</strong> ${el.dataset.tanggal}</p>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <p><strong>ID Pesanan:</strong> #${el.dataset.id}</p>
                         <p><strong>Status:</strong> ${getStatusBadge(el.dataset.status)}</p>
                     </div>
+                    <div class="col-md-4">
+                        <p><strong>Kontak:</strong> 0${el.dataset.kontak || '-'}</p>
                 </div>
             </div>
         </div>`;
@@ -812,11 +917,11 @@ extract($dashboard_data);
             productDetails += '<p class="text-muted">Tidak ada detail produk.</p>';
         }
 
-        if (el.dataset.catatan && el.dataset.catatan !== '-') {
+        if (el.dataset.keterangan && el.dataset.keterangan !== '-') {
             productDetails += `
             <div class="mt-3">
                 <h6><strong>Catatan:</strong></h6>
-                <div class="p-3 bg-light rounded">${el.dataset.catatan}</div>
+                <div class="p-3 bg-light rounded">${el.dataset.keterangan}</div>
             </div>`;
         }
 

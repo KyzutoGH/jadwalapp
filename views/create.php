@@ -99,7 +99,7 @@
                     <h3 class="card-title">Data Pre Order</h3>
                 </div>
                 <div class="card-body">
-                    <form action="config/create_dp.php?debug=1" method="POST" id="penagihanForm"
+                    <form action="config/create_dp.php" method="POST" id="penagihanForm"
                         onsubmit="return validatePenagihanForm()">
                         <div class="row">
                             <div class="col-md-6 mb-3">
