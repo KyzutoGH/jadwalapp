@@ -6,30 +6,19 @@ include 'koneksi.php';
 session_start();
 
 // Ambil dan sanitasi data dari form
-$id = mysqli_real_escape_string($db, $_POST['id']);
+$id = mt_rand(100000000, 999999999); // ID acak 9 digit
 $nama_sekolah = mysqli_real_escape_string($db, $_POST['nama_sekolah']);
 $alamat = mysqli_real_escape_string($db, $_POST['alamat']);
-$nomor = mysqli_real_escape_string($db, $_POST['nomor']);
+$nomor = mysqli_real_escape_string($db, $_POST['nomor_kontak']);
 $pemilik_kontak = mysqli_real_escape_string($db, $_POST['pemilik_kontak']);
 $jabatan = mysqli_real_escape_string($db, $_POST['jabatan']);
 $tanggal_dn = mysqli_real_escape_string($db, $_POST['tanggal_dn']);
-$status = mysqli_real_escape_string($db, $_POST['status']);
-
-// Tentukan jenis berdasarkan nomor jika belum ada di form
-if (!isset($_POST['jenis'])) {
-    if (is_numeric($nomor)) {
-        $jenis = 'Whatsapp';
-    } else {
-        $jenis = 'Instagram';
-    }
-} else {
-    $jenis = mysqli_real_escape_string($db, $_POST['jenis']);
-}
+$status = 1; // Kontak Belum Dihubungi
 
 // Validasi data
 if (
     empty($nama_sekolah) || empty($alamat) || empty($nomor) ||
-    empty($pemilik_kontak) || empty($jabatan) || empty($tanggal_dn) || !isset($status)
+    empty($pemilik_kontak) || empty($jabatan) || empty($tanggal_dn)
 ) {
     $_SESSION['toastr'] = [
         'type' => 'error',
@@ -37,91 +26,73 @@ if (
     ];
     header("Location: ../index.php?menu=Tabel");
     exit;
-} else {
-    // Validasi format tanggal DD-MM
-    $parts = explode('-', $tanggal_dn);
-    if (count($parts) == 2) {
-        $day = $parts[0];
-        $month = $parts[1];
-        $currentYear = date('Y');
+}
 
-        // Format untuk MySQL DATE: YYYY-MM-DD
-        $formattedDate = "$currentYear-$month-$day";
+// Validasi format tanggal DD-MM
+$parts = explode('-', $tanggal_dn);
+if (count($parts) == 2) {
+    $day = $parts[0];
+    $month = $parts[1];
+    $currentYear = date('Y');
 
-        // Validasi format tanggal
-        if (checkdate((int) $month, (int) $day, (int) $currentYear)) {
-            // Gunakan prepared statement untuk mencegah SQL injection
-            $stmt = mysqli_prepare($db, "UPDATE datadn SET 
-                    nama_sekolah = ?,
-                    alamat = ?,
-                    jenis = ?,
-                    nomor = ?,
-                    pemilik_kontak = ?,
-                    jabatan = ?,
-                    tanggal_dn = ?,
-                    status = ?
-                    WHERE id = ?");
+    if (checkdate((int) $month, (int) $day, (int) $currentYear)) {
+        $formattedDate = "$currentYear-$month-$day"; // Format YYYY-MM-DD
 
-            if ($stmt) {
-                // Bind parameters
-                mysqli_stmt_bind_param(
-                    $stmt,
-                    "ssssssssi",
-                    $nama_sekolah,
-                    $alamat,
-                    $jenis,
-                    $nomor,
-                    $pemilik_kontak,
-                    $jabatan,
-                    $formattedDate,  // Gunakan format tanggal yang benar untuk MySQL
-                    $status,
-                    $id
-                );
+        // Siapkan statement
+        $stmt = mysqli_prepare($db, "INSERT INTO datadn (
+            id, nama_sekolah, alamat, nomor, pemilik_kontak, jabatan, tanggal_dn, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
-                // Execute the statement
-                $success = mysqli_stmt_execute($stmt);
+        if ($stmt) {
+            // Bind parameters
+            mysqli_stmt_bind_param(
+                $stmt,
+                "sssssssi",
+                $id,
+                $nama_sekolah,
+                $alamat,
+                $nomor,
+                $pemilik_kontak,
+                $jabatan,
+                $formattedDate,
+                $status
+            );
 
-                // Close statement
-                mysqli_stmt_close($stmt);
+            // Eksekusi statement
+            $success = mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
 
-                if ($success) {
-                    $_SESSION['toastr'] = [
-                        'type' => 'success',
-                        'message' => 'Data berhasil diupdate!',
-                    ];
-                    header("Location: ../index.php?menu=Tabel");
-                    exit;
-                } else {
-                    $_SESSION['toastr'] = [
-                        'type' => 'error',
-                        'message' => 'Error: ' . mysqli_error($db),
-                    ];
-                    header("Location: ../index.php?menu=Tabel");
-                    exit;
-                }
+            if ($success) {
+                $_SESSION['toastr'] = [
+                    'type' => 'success',
+                    'message' => 'Data berhasil ditambahkan!',
+                ];
             } else {
                 $_SESSION['toastr'] = [
                     'type' => 'error',
-                    'message' => 'Error: ' . mysqli_error($db),
+                    'message' => 'Gagal menambahkan data: ' . mysqli_error($db),
                 ];
-                header("Location: ../index.php?menu=Tabel");
-                exit;
             }
         } else {
             $_SESSION['toastr'] = [
                 'type' => 'error',
-                'message' => 'Format tanggal tidak valid!',
+                'message' => 'Query error: ' . mysqli_error($db),
             ];
-            header("Location: ../index.php?menu=Tabel");
-            exit;
         }
     } else {
         $_SESSION['toastr'] = [
             'type' => 'error',
-            'message' => 'Format tanggal harus DD-MM!',
+            'message' => 'Format tanggal tidak valid!',
         ];
-        header("Location: ../index.php?menu=Tabel");
-        exit;
     }
+} else {
+    $_SESSION['toastr'] = [
+        'type' => 'error',
+        'message' => 'Format tanggal harus DD-MM!',
+    ];
 }
+
+// Redirect ke halaman tabel
+header("Location: ../index.php?menu=Tabel");
+exit;
 ?>

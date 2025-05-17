@@ -41,8 +41,9 @@
                                 <div class="form-group">
                                     <label for="nomor_kontak">Nomor Kontak (10–15 digit angka tanpa spasi) <span
                                             style="color: red;">*</span></label>
-                                    <input type="tel" class="form-control" id="nomor_kontak" name="nomor_kontak"
-                                        pattern="[0-9]{10,15}" required>
+                                    <input type="text" class="form-control" id="nomor_kontak" name="nomor_kontak"
+                                        pattern="[0-9]{10,15}" maxlength="15" required
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     <small class="form-text text-muted">Masukkan hanya angka, tanpa spasi atau simbol
                                         (+, -, dll).</small>
                                 </div>
