@@ -25,9 +25,11 @@
                         <td><?= $no++ ?></td>
                         <td><?= htmlspecialchars($d['nama_sekolah']) ?></td>
                         <td><?= htmlspecialchars($d['alamat']) ?></td>
-                        <td><a href="<?= "tel:" . htmlspecialchars($d['nomor']); ?>">
+                        <td>
+  <a href="<?= "https://wa.me/62" . ltrim($d['nomor'], '0'); ?>" target="_blank">
     <?= htmlspecialchars($d['nomor']); ?>
-</a></td>
+  </a>
+</td>
                         <td><?= htmlspecialchars($d['pemilik_kontak']) ?></td>
                         <td><?= htmlspecialchars($d['jabatan']) ?></td>
                         <td>
@@ -176,6 +178,29 @@
                                 <button class="btn btn-sm btn-danger" onclick="hapusSekolah(<?= $d['id'] ?>)" title="Hapus">
                                     <i class="far fa-trash-alt"></i>
                                 </button>
+                                <!-- Modal Konfirmasi -->
+<div class="modal fade" id="modalHapus" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Konfirmasi Hapus</h5>
+<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+  <span aria-hidden="true">&times;</span>
+</button>
+      </div>
+      <div class="modal-body">
+        Yakin ingin menghapus data ini?
+      </div>
+      <div class="modal-footer">
+        <form id="formHapusFinal" method="POST" action="./config/hapus_kontak.php">
+          <input type="hidden" name="id" id="hapusID">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-danger">Hapus</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
                             </div>
                         </td>
                     </tr>

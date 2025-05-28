@@ -232,7 +232,7 @@ $notifications = $dnNotification->getActiveNotifications();
 $notificationCount = $dnNotification->getNotificationCount();
 ?>
 <!-- Navbar -->
-<nav class="main-header navbar navbar-expand">
+<nav class="main-header navbar navbar-expand fixed-top navbar-light bg-white">
   <!-- Left navbar links -->
   <ul class="navbar-nav">
     <li class="nav-item">

@@ -28,7 +28,7 @@
                         '11' => 'November',
                         '12' => 'Desember'
                     ];
-                    
+
                     $current_year = date('Y');
                     // Menampilkan opsi untuk tahun saat ini dan tahun sebelumnya
                     for ($year = $current_year; $year >= $current_year - 1; $year--) {
@@ -56,9 +56,7 @@
                     <th>Cicilan Ke</th>
                     <th>Jumlah Pembayaran</th>
                     <th>Total Tagihan</th>
-                    <th>Metode Pembayaran</th>
                     <th>Status</th>
-                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -73,32 +71,49 @@
                     <tr>
                         <td><?= $no++ ?></td>
                         <td><?= htmlspecialchars($d['customer']) ?></td>
-                        <td><a href="<?= "tel:" . htmlspecialchars($d['kontak']); ?>">
-                            <?= htmlspecialchars($d['kontak']); ?>
-                        </a></td>
-                        <td><?= date('d-m-Y', strtotime($d['tanggal_pembayaran'])) ?></td>
+                        <td><?= htmlspecialchars($d['kontak']); ?></td>
+                        <?php
+                        $bulanIndo = [
+                            'January' => 'Januari',
+                            'February' => 'Februari',
+                            'March' => 'Maret',
+                            'April' => 'April',
+                            'May' => 'Mei',
+                            'June' => 'Juni',
+                            'July' => 'Juli',
+                            'August' => 'Agustus',
+                            'September' => 'September',
+                            'October' => 'Oktober',
+                            'November' => 'November',
+                            'December' => 'Desember'
+                        ];
+
+                        $tanggal = strtotime($d['tanggal_pembayaran']);
+                        $namaBulan = $bulanIndo[date('F', $tanggal)];
+                        $tanggalFormatted = date('d', $tanggal) . ' ' . $namaBulan . ' ' . date('Y', $tanggal);
+                        ?>
+                        <td><?= $tanggalFormatted ?></td>
                         <td><?= htmlspecialchars($d['cicilan_ke']) ?></td>
-                        <td><?= number_format($d['jumlah_pembayaran'], 0, ',', '.') ?></td>
-                        <td><?= number_format($d['total_tagihan'], 0, ',', '.') ?></td>
-                        <td><?= htmlspecialchars($d['metode_pembayaran']) ?></td>
+                        <td><?= 'Rp ' . number_format($d['jumlah_pembayaran'], 0, ',', '.') ?></td>
+                        <td><?= 'Rp ' . number_format($d['total_tagihan'], 0, ',', '.') ?></td>
                         <td><span class="badge 
-                        <?php 
+                        <?php
                         if ($d['status'] == 1) { // Belum Lunas
                             echo "badge-warning";
-                        } else if ($d['status'] == 2 || $d['status'] == 3 || $d['status'] == 4){ // Lunas
+                        } else if ($d['status'] == 2 || $d['status'] == 3 || $d['status'] == 4) { // Lunas
                             echo "badge-success";
-                        } else if ($d['status'] == 5){ // Batal
+                        } else if ($d['status'] == 5) { // Batal
                             echo "badge-danger";
-                        }?>"><?php 
-                        if ($d['status'] == 1) {
+                        } ?>"><?php
+                         if ($d['status'] == 1) {
                              echo "Belum Lunas";
                          } else if ($d['status'] == 2) {
                              echo "Lunas - Proses";
-                         } else if ($d['status'] == 3){
-                            echo "Lunas - Siap Ambil";
-                         } else if ($d['status'] == 4){
-                            echo "Pesanan Selesai";
-                         } else if ($d['status'] == 5){
+                         } else if ($d['status'] == 3) {
+                             echo "Lunas - Siap Ambil";
+                         } else if ($d['status'] == 4) {
+                             echo "Pesanan Selesai";
+                         } else if ($d['status'] == 5) {
                              echo "Dibatalkan";
                          } ?></span></td>
                         <td class="text-center">

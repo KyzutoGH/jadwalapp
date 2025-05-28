@@ -129,7 +129,6 @@
                 <tr>
                     <th>Pembayaran</th>
                     <th>Nominal</th>
-                    <th>Metode</th>
                     <th>Jatuh Tempo</th>
                     <th>Status</th>
                 </tr>
@@ -146,7 +145,6 @@
                 <tr>
                     <td>DP1</td>
                     <td>${formatCurrency(el.dataset.dp1)}</td>
-                    <td>${el.dataset.metode1 || '-'}</td>
                     <td>${formatDate(el.dataset.tenggat1)}</td>
                     <td>${dp1Status}</td>
                 </tr>`;
@@ -162,7 +160,6 @@
                 <tr>
                     <td>DP2</td>
                     <td>${formatCurrency(el.dataset.dp2)}</td>
-                    <td>${el.dataset.metode2 || '-'}</td>
                     <td>${formatDate(el.dataset.tenggat2)}</td>
                     <td>${dp2Status}</td>
                 </tr>`;
@@ -178,7 +175,6 @@
                 <tr>
                     <td>DP3</td>
                     <td>${formatCurrency(el.dataset.dp3)}</td>
-                    <td>${el.dataset.metode3 || '-'}</td>
                     <td>${formatDate(el.dataset.tenggat3)}</td>
                     <td>${dp3Status}</td>
                 </tr>`;
@@ -186,13 +182,23 @@
 
             // PELUNASAN
             if (el.dataset.pelunasan) {
-                const pelunasanStatus = '<span class="badge badge-success">Dibayar</span>';
+                const pelunasan = Number(el.dataset.pelunasan);
+                const status = el.dataset.status;
+                const lunasStatus = ['2', '3', '4'];
+                let pelunasanStatus = '';
+
+                if (lunasStatus.includes(status)) {
+                    pelunasanStatus = '<span class="badge badge-success">Sudah lunas duluan</span>';
+                } else if (pelunasan > 0) {
+                    pelunasanStatus = '<span class="badge badge-success">Dibayar</span>';
+                } else {
+                    pelunasanStatus = '<span class="badge badge-danger">Belum Dibayar</span>';
+                }
 
                 paymentDetails += `
                 <tr>
                     <td>Pelunasan</td>
                     <td>${formatCurrency(el.dataset.pelunasan)}</td>
-                    <td>${'Cash'}</td>
                     <td>${formatDate(el.dataset.tglpelunasan)}</td>
                     <td>${pelunasanStatus}</td>
                 </tr>`;

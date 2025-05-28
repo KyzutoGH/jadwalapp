@@ -1,5 +1,9 @@
 <?php
 include 'koneksi.php';
+
+// Mulai session
+session_start();
+
 $id = $_POST['id'];
 $sql = "DELETE FROM datadn WHERE id='$id'";
 // Execute query

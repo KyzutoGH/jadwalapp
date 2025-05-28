@@ -101,7 +101,7 @@ try {
 
     $_SESSION['toastr'] = [
         'type' => 'success',
-        'message' => '✅ Data berhasil disimpan! ID: ' . $penagihan_id
+        'message' => 'Data berhasil disimpan!'
     ];
     header("Location: ../index.php?menu=Penagihan");
     exit;

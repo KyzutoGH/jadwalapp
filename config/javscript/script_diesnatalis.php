@@ -1,9 +1,9 @@
 <script>
     // Function to handle school deletion
     function hapusSekolah(id) {
-        if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-            document.getElementById('hapusSekolahForm_' + id).submit();
-        }
+        document.getElementById('hapusID').value = id;
+        var modal = new bootstrap.Modal(document.getElementById('modalHapus'));
+        modal.show();
     }
 
     // Wait for document to be fully loaded

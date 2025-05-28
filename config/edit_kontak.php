@@ -1,6 +1,9 @@
 <?php
 include 'koneksi.php';
 
+// Mulai session
+session_start();
+
 // Validasi ID
 if (!isset($_POST['id']) || empty($_POST['id'])) {
         echo "<script>
@@ -80,20 +83,37 @@ if ($stmt) {
         mysqli_stmt_close($stmt);
 
         if ($success) {
-                echo "<script>
-            alert('Data berhasil diupdate!');
-            window.location.href = '../index.php?menu=Tabel';
-        </script>";
+                //         echo "<script>
+                //     alert('Data berhasil diupdate!');
+                //     window.location.href = '../index.php?menu=Tabel';
+                // </script>";
+                $_SESSION['toastr'] = [
+                        'type' => 'success',
+                        'message' => 'Berhasil mengupdate data dies natalis sekolah!',
+                ];
         } else {
-                echo "<script>
-            alert('Gagal mengupdate data: " . mysqli_error($db) . "');
-            window.location.href = '../index.php?menu=Tabel';
-        </script>";
+                //         echo "<script>
+                //     alert('Gagal mengupdate data: " . mysqli_error($db) . "');
+                //     window.location.href = '../index.php?menu=Tabel';
+                // </script>";
+
+                $_SESSION['toastr'] = [
+                        'type' => 'error',
+                        'message' => 'Gagal mengupdate data dies natalis sekolah!',
+                ];
         }
 } else {
-        echo "<script>
-        alert('Query error: " . mysqli_error($db) . "');
-        window.location.href = '../index.php?menu=Tabel';
-    </script>";
+        //         echo "<script>
+//         alert('Query error: " . mysqli_error($db) . "');
+//         window.location.href = '../index.php?menu=Tabel';
+//     </script>";
+        $_SESSION['toastr'] = [
+                'type' => 'error',
+                'message' => 'Gagal mengupdate data dies natalis sekolah!',
+        ];
 }
+
+// Redirect ke halaman tabel
+header("Location: ../index.php?menu=Tabel");
+exit;
 ?>

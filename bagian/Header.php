@@ -43,4 +43,15 @@
   <link rel="stylesheet" href="assets/plugins/bs-stepper/css/bs-stepper.min.css">
   <!-- dropzonejs -->
   <link rel="stylesheet" href="assets/plugins/dropzone/min/dropzone.min.css">
+  <style>
+    body {
+      padding-top: 56px;
+      /* Sesuaikan dengan tinggi navbar */
+    }
+
+    /* Atau jika menggunakan AdminLTE */
+    .content-wrapper {
+      margin-top: 0;
+    }
+  </style>
 </head>

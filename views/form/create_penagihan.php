@@ -22,8 +22,27 @@
                 <input type="text" class="form-control" id="customer" name="customer" required>
             </div>
             <div class="col-md-6 mb-3">
-                <label for="kontak">Kontak Customer <span style="color: red;">*</span></label>
-                <input type="text" class="form-control" id="kontak" name="kontak" required>
+                <label for="kontak">Kontak Customer (10–13 digit, dimulai dari 0) <span
+                        style="color: red;">*</span></label>
+                <input type="text" class="form-control" id="kontak" name="kontak" pattern="0[0-9]{9,12}" maxlength="13"
+                    placeholder="Contoh: 08123456789" required oninput="validatePhone(this)">
+                <small class="form-text text-muted">
+                    Masukkan nomor telepon yang dimulai dari 0 (contoh: 08123456789)
+                </small>
+
+                <script>
+                    function validatePhone(input) {
+                        // Hanya izinkan angka
+                        input.value = input.value.replace(/[^0-9]/g, '');
+
+                        // Jika ada input tapi tidak dimulai dari 0
+                        if (input.value.length > 0 && !input.value.startsWith('0')) {
+                            input.setCustomValidity('Nomor harus dimulai dari 0');
+                        } else {
+                            input.setCustomValidity('');
+                        }
+                    }
+                </script>
             </div>
         </div>
     </div>

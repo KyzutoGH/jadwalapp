@@ -19,12 +19,22 @@ if (isset($_GET['bulan']) && !empty($_GET['bulan']) && isset($_GET['tahun']) && 
               ORDER BY p.tanggal ASC, n.customer ASC";
 
     $result = mysqli_query($db, $query);
-    if (!$result) die("Query Error: " . mysqli_error($db));
+    if (!$result)
+        die("Query Error: " . mysqli_error($db));
 
     $months = [
-        '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
-        '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
-        '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+        '01' => 'Januari',
+        '02' => 'Februari',
+        '03' => 'Maret',
+        '04' => 'April',
+        '05' => 'Mei',
+        '06' => 'Juni',
+        '07' => 'Juli',
+        '08' => 'Agustus',
+        '09' => 'September',
+        '10' => 'Oktober',
+        '11' => 'November',
+        '12' => 'Desember'
     ];
     $nama_bulan = $months[str_pad($bulan, 2, '0', STR_PAD_LEFT)];
 
@@ -40,6 +50,7 @@ if (isset($_GET['bulan']) && !empty($_GET['bulan']) && isset($_GET['tahun']) && 
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Laporan Pembayaran - <?= $nama_bulan ?> <?= $tahun ?></title>
@@ -49,58 +60,73 @@ if (isset($_GET['bulan']) && !empty($_GET['bulan']) && isset($_GET['tahun']) && 
             font-family: Arial, sans-serif;
             margin: 40px;
         }
+
         .company-header {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
         }
+
         .company-header img {
             max-height: 80px;
             margin-right: 20px;
         }
+
         .company-info h3 {
             margin: 0;
         }
+
         .company-info p {
             margin: 0;
             font-size: 13px;
         }
+
         hr {
             border-top: 3px solid #000;
         }
+
         .header {
             text-align: center;
             margin-top: 20px;
             margin-bottom: 20px;
         }
+
         table {
             font-size: 12px;
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        th, td {
+
+        th,
+        td {
             border: 1px solid #ddd;
             padding: 8px;
         }
+
         th {
             background-color: #f2f2f2;
         }
+
         .text-right {
             text-align: right;
         }
+
         .footer {
             margin-top: 50px;
             text-align: right;
         }
+
         .footer p {
             font-size: 13px;
         }
+
         .no-data {
             text-align: center;
             padding: 20px;
             font-style: italic;
         }
+
         @media print {
             .no-print {
                 display: none;
@@ -108,78 +134,81 @@ if (isset($_GET['bulan']) && !empty($_GET['bulan']) && isset($_GET['tahun']) && 
         }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <div class="company-header">
-        <img src="assets/img/fukubistorelogo.png" alt="Logo">
-        <div class="company-info">
-            <h3>FukuBI Sablon Satuan Blitar</h3>
-            <p>Dadapan, Kedung Bunder, Kec. Sutojayan, Kabupaten Blitar, Jawa Timur 66172</p>
-        </div>
-    </div>
-    <hr>
-    <div class="header">
-        <h4><strong>LAPORAN PEMBAYARAN</strong></h4>
-        <p>PERIODE: <?= strtoupper($nama_bulan) ?> <?= $tahun ?></p>
-    </div>
-
-    <div class="no-print" style="margin-bottom: 20px;">
-        <button onclick="window.print()" class="btn btn-primary">
-            <i class="glyphicon glyphicon-print"></i> Cetak
-        </button>
-        <a href="javascript:window.close()" class="btn btn-default">
-            Tutup
-        </a>
-    </div>
-
-    <?php if (mysqli_num_rows($result) > 0) { ?>
-        <table>
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Customer</th>
-                    <th>Kontak</th>
-                    <th>Tanggal</th>
-                    <th>Cicilan Ke</th>
-                    <th class="text-right">Jumlah Bayar</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $no = 1;
-                $formatter = new IntlDateFormatter('id_ID', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-                while ($row = mysqli_fetch_assoc($result)) {
-                    echo "<tr>";
-                    echo "<td>" . $no++ . "</td>";
-                    echo "<td>" . htmlspecialchars($row['customer']) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['kontak']) . "</td>";
-                    echo "<td>" . $formatter->format(new DateTime($row['tanggal_pembayaran'])) . "</td>";
-                    echo "<td>" . htmlspecialchars($row['cicilan_ke']) . "</td>";
-                    echo "<td class='text-right'>" . number_format($row['jumlah_pembayaran'], 0, ',', '.') . "</td>";
-                    echo "</tr>";
-                }
-                ?>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="5" class="text-right">TOTAL</th>
-                    <th class="text-right"><?= number_format($total_pembayaran, 0, ',', '.') ?></th>
-                </tr>
-            </tfoot>
-        </table>
-
-        <div class="footer">
-            <p>Blitar, <?= $formatter->format(new DateTime()) ?></p>
-            <div style="margin-top: 80px;">
-                <p>__________________________</p>
-                <p>Team Marketing</p>
+    <div class="container">
+        <div class="company-header">
+            <img src="assets/img/fukubistorelogo.png" alt="Logo">
+            <div class="company-info">
+                <h3>FukuBI Sablon Satuan Blitar</h3>
+                <p>Dadapan, Kedung Bunder, Kec. Sutojayan, Kabupaten Blitar, Jawa Timur 66172</p>
             </div>
         </div>
-    <?php } else { ?>
-        <div class="no-data">
-            <p>Tidak ada data pembayaran untuk periode <?= $nama_bulan ?> <?= $tahun ?></p>
+        <hr>
+        <div class="header">
+            <h4><strong>LAPORAN PEMBAYARAN</strong></h4>
+            <p>PERIODE: <?= strtoupper($nama_bulan) ?> <?= $tahun ?></p>
         </div>
-    <?php } ?>
-</div>
+
+        <div class="no-print" style="margin-bottom: 20px;">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="glyphicon glyphicon-print"></i> Cetak
+            </button>
+            <a href="javascript:window.close()" class="btn btn-default">
+                Tutup
+            </a>
+        </div>
+
+        <?php if (mysqli_num_rows($result) > 0) { ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Customer</th>
+                        <th>Kontak</th>
+                        <th>Tanggal</th>
+                        <th>Cicilan Ke</th>
+                        <th class="text-right">Jumlah Bayar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $no = 1;
+                    $formatter = new IntlDateFormatter('id_ID', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
+                    while ($row = mysqli_fetch_assoc($result)) {
+                        echo "<tr>";
+                        echo "<td>" . $no++ . "</td>";
+                        echo "<td>" . htmlspecialchars($row['customer']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['kontak']) . "</td>";
+                        echo "<td>" . $formatter->format(new DateTime($row['tanggal_pembayaran'])) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['cicilan_ke']) . "</td>";
+                        echo "<td class='text-right'>Rp " . number_format($row['jumlah_pembayaran'], 0, ',', '.') . "</td>";
+                        echo "</tr>";
+                    }
+                    ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="5" class="text-right">TOTAL</th>
+                        <th class="text-right">Rp <?= number_format($total_pembayaran, 0, ',', '.') ?>
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="footer">
+                <p>Blitar, <?= $formatter->format(new DateTime()) ?></p>
+                <div style="margin-top: 80px;">
+                    <p>__________________________</p>
+                    <p>Team Marketing</p>
+                </div>
+            </div>
+        <?php } else { ?>
+            <div class="no-data">
+                <p>Tidak ada data pembayaran untuk periode <?= $nama_bulan ?>     <?= $tahun ?></p>
+            </div>
+        <?php } ?>
+    </div>
 </body>
+
 </html>
